@@ -1,0 +1,287 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    /* الإعدادات العامة للصفحة لمنع مشاكل التمرير */
+    :root {
+        --primary-blue: #4fc3f7;
+        --dark-bg: #0f2027;
+    }
+
+    body {
+        background: var(--dark-bg);
+        background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+        color: #ffffff;
+    }
+
+    /* --- Hero Section المطور --- */
+    .hero-section {
+        height: 90vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        padding: 0 20px;
+        background: url('https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?auto=format&fit=crop&w=1920&q=80') no-repeat center center/cover;
+        overflow: hidden;
+    }
+
+    .hero-overlay {
+        position: absolute;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(15, 32, 39, 0.65);
+        backdrop-filter: blur(2px);
+    }
+
+    .hero-content {
+        position: relative;
+        z-index: 2;
+        text-align: center;
+        max-width: 900px;
+    }
+
+    .hero-content h1 {
+        font-size: clamp(45px, 8vw, 90px);
+        font-weight: 900;
+        text-transform: uppercase;
+        margin-bottom: 20px;
+        line-height: 1;
+        letter-spacing: -2px;
+        animation: fadeInUp 0.8s ease;
+    }
+
+    .hero-content h1 span { 
+        color: var(--primary-blue); 
+        text-shadow: 0 0 30px rgba(79, 195, 247, 0.4); 
+    }
+
+    .hero-content p {
+        font-size: clamp(16px, 2vw, 20px);
+        color: #d9ecff;
+        margin-bottom: 40px;
+        font-weight: 300;
+        animation: fadeInUp 1s ease;
+    }
+
+    /* --- Features Bar (شريط الثقة) --- */
+    .features-bar {
+        background: rgba(255, 255, 255, 0.03);
+        backdrop-filter: blur(15px);
+        padding: 50px 5%;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 30px;
+        border-top: 1px solid rgba(255,255,255,0.05);
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .feature-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 10px;
+    }
+
+    .feature-item i, .feature-item img { 
+        font-size: 32px; 
+        color: var(--primary-blue); 
+        margin-bottom: 10px;
+        width: 45px; /* حجم مناسب للأيقونة */
+        height: auto;
+    }
+
+    .feature-item h4 { margin: 0; font-size: 18px; font-weight: 600; }
+    .feature-item p { margin: 0; font-size: 14px; color: #b0c4de; }
+
+    /* --- قسم التصنيفات (Grid) --- */
+    .section-padding { padding: 100px 8%; }
+
+    .section-title {
+        text-align: center;
+        margin-bottom: 70px;
+    }
+
+    .section-title h2 {
+        font-size: clamp(30px, 5vw, 45px);
+        font-weight: 800;
+        position: relative;
+    }
+
+    .section-title h2 span { color: var(--primary-blue); }
+
+    .category-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 40px;
+    }
+
+    /* تأثير الكارت المضيء المطور */
+    .category-card {
+        height: 500px;
+        border-radius: 25px;
+        position: relative;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        background: rgba(255, 255, 255, 0.05);
+    }
+
+    .category-card::before {
+        content: '';
+        position: absolute;
+        width: 150%; height: 150%;
+        background-image: conic-gradient(transparent, transparent, transparent, var(--primary-blue));
+        animation: rotateLight 4s linear infinite;
+    }
+
+    @keyframes rotateLight {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    .card-inner {
+        position: absolute;
+        inset: 4px; /* الإطار المضيء */
+        background: #0f2027;
+        border-radius: 22px;
+        z-index: 1;
+        overflow: hidden;
+    }
+
+    .card-inner img {
+        width: 100%; height: 100%;
+        object-fit: cover;
+        transition: 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+        opacity: 0.8;
+    }
+
+    .category-card:hover .card-inner img { 
+        transform: scale(1.1) rotate(1deg); 
+        opacity: 1;
+    }
+
+    .category-info {
+        position: absolute;
+        bottom: 0; left: 0; width: 100%;
+        padding: 40px;
+        background: linear-gradient(to top, rgba(15, 32, 39, 0.95), transparent);
+        z-index: 2;
+        transition: 0.4s;
+    }
+
+    .category-info h3 { font-size: 28px; margin-bottom: 12px; }
+
+    /* --- الأزرار --- */
+    .btn-main {
+        padding: 16px 40px;
+        border-radius: 50px;
+        font-weight: 700;
+        text-transform: uppercase;
+        text-decoration: none;
+        display: inline-block;
+        transition: 0.4s;
+    }
+
+    .btn-filled { 
+        background: var(--primary-blue); 
+        color: #0f2027; 
+        box-shadow: 0 10px 20px rgba(79, 195, 247, 0.2); 
+    }
+    .btn-filled:hover { 
+        transform: translateY(-5px); 
+        box-shadow: 0 15px 30px rgba(79, 195, 247, 0.4); 
+    }
+
+    .btn-ghost { 
+        border: 2px solid var(--primary-blue); 
+        color: var(--primary-blue); 
+        margin-left: 15px; 
+    }
+    .btn-ghost:hover { background: var(--primary-blue); color: #0f2027; }
+
+    /* --- Animations --- */
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* التجاوب مع الجوال */
+    @media (max-width: 768px) {
+        .btn-ghost { margin-left: 0; margin-top: 15px; width: 100%; }
+        .btn-filled { width: 100%; }
+        .features-bar { grid-template-columns: repeat(2, 1fr); } /* عرض المميزات بجانب بعضها */
+    }
+</style>
+
+<section class="hero-section">
+    <div class="hero-overlay"></div>
+    <div class="hero-content">
+        <h1>Cool Style for <br><span>Cold Souls</span></h1>
+        <p>Enjoy Our World Of Shiny Clothes 🧊 
+        <div class="hero-btns">
+            <a href="{% url 'shop' %}" class="btn-main btn-filled">Explore Shop</a>
+            <a href="#" class="btn-main btn-ghost">New Arrivals</a>
+        </div>
+    </div>
+</section>
+
+<div class="features-bar">
+    <div class="feature-item">
+        <i class="fas fa-truck-fast"></i>
+        <div><h4>Avilable Shipping</h4><p>On orders over $100</p></div>
+    </div>
+    <div class="feature-item">
+        <i class="fas fa-certificate"></i>
+        <div><h4>Premium Quality</h4><p>Certified Fabrics</p></div>
+    </div>
+    <div class="feature-item">
+        <img src="https://img.icons8.com/ios-filled/100/4fc3f7/lock.png" alt="Secure Payment Lock Icon">
+        <div><h4>Secure Payment</h4><p>100% Safe Checkout</p></div>
+    </div>
+    <div class="feature-item">
+        <i class="fas fa-bolt"></i>
+        <div><h4>Fast Delivery</h4><p>Worldwide Shipping</p></div>
+    </div>
+</div>
+
+<section class="section-padding">
+    <div class="section-title">
+        <h2>Shop By <span>Category</span></h2>
+    </div>
+    <div class="category-grid">
+        <div class="category-card" onclick="location.href='{% url 'shop' %}?category=men';">
+            <div class="card-inner">
+                <img src="https://images.unsplash.com/photo-1552374196-1ab2a1c593e8?auto=format&fit=crop&w=800&q=80" alt="Men">
+                <div class="category-info">
+                    <h3>Hoodies Collection</h3>
+                    <span style="color: var(--primary-blue); font-weight: bold;">View All &rarr;</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="category-card" onclick="location.href='{% url 'shop' %}?category=women';">
+            <div class="card-inner">
+                <img src="https://images.unsplash.com/photo-1525507119028-ed4c629a60a3?auto=format&fit=crop&w=800&q=80" alt="Women">
+                <div class="category-info">
+                    <h3>Jeans Collection</h3>
+                    <span style="color: var(--primary-blue); font-weight: bold;">View All &rarr;</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="category-card" onclick="location.href='{% url 'shop' %}?category=accessories';">
+            <div class="card-inner">
+                <img src="https://images.unsplash.com/photo-1523381210434-271e8be1f52b?auto=format&fit=crop&w=800&q=80" alt="Accessories">
+                <div class="category-info">
+                    <h3>Accessories</h3>
+                    <span style="color: var(--primary-blue); font-weight: bold;">View All &rarr;</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}

@@ -1,0 +1,300 @@
+<style>
+    /* الإعدادات العامة */
+    * {
+        box-sizing: border-box;
+    }
+
+    .navbar {
+        width: 100%;
+        background: rgba(15, 32, 39, 0.9);
+        backdrop-filter: blur(10px);
+        padding: 15px 40px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        left: 0;
+        right: 0;
+    }
+
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+        margin: 0;
+        padding: 0;
+        color: #ffffff;
+        overflow-x: hidden;
+    }
+
+    .nav-logo {
+        font-size: 26px;
+        font-weight: 800;
+        color: #e6f4ff;
+        letter-spacing: 1px;
+        text-decoration: none;
+    }
+
+    .nav-logo span { color: #4fc3f7; }
+
+    .nav-links {
+        display: flex;
+        align-items: center;
+        gap: 30px;
+    }
+
+    .nav-links a {
+        color: #d9ecff;
+        text-decoration: none;
+        font-size: 15px;
+        font-weight: 500;
+        position: relative;
+        transition: color 0.3s ease;
+    }
+
+    .nav-links a::after {
+        content: "";
+        position: absolute;
+        width: 0%;
+        height: 2px;
+        background: #4fc3f7;
+        left: 0;
+        bottom: -6px;
+        transition: width 0.3s ease;
+    }
+
+    .nav-links a:hover { color: #4fc3f7; }
+    .nav-links a:hover::after { width: 100%; }
+
+    .nav-links a.admin-link {
+        color: #ffca28;
+        font-weight: 700;
+    }
+
+    .nav-actions {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        color: #e6f4ff;
+        font-size: 14px;
+    }
+
+    .nav-btn {
+        padding: 10px 22px;
+        border-radius: 30px;
+        font-size: 14px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        white-space: nowrap;
+    }
+
+    .nav-btn.primary {
+        background: linear-gradient(135deg, #2196f3, #21cbf3);
+        color: #fff;
+        box-shadow: 0 8px 20px rgba(33, 150, 243, 0.4);
+    }
+
+    /* تنسيق خاص لأيقونة العربة في الشاشات الكبيرة */
+    .cart-icon-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 45px;
+        height: 45px;
+        background: rgba(79, 195, 247, 0.1);
+        border-radius: 50%;
+        color: #4fc3f7;
+        transition: all 0.3s ease;
+        border: 1px solid rgba(79, 195, 247, 0.3);
+    }
+
+    .cart-icon-wrapper:hover {
+        background: #4fc3f7;
+        color: #fff;
+        transform: translateY(-2px);
+    }
+
+    .cart-badge-main {
+        background: #ff5252;
+        color: white;
+        border-radius: 50%;
+        padding: 2px 6px;
+        font-size: 10px;
+        position: absolute;
+        top: -5px;
+        right: -5px;
+        border: 2px solid #0f2027;
+    }
+
+    .nav-btn.outline {
+        border: 2px solid #4fc3f7;
+        color: #4fc3f7;
+        background: transparent;
+    }
+
+    /* ===== MOBILE CONTROLS (Cart + Toggle) ===== */
+    .mobile-controls {
+        display: none;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .menu-toggle {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        cursor: pointer;
+    }
+
+    .menu-toggle span {
+        width: 25px;
+        height: 3px;
+        background: #e6f4ff;
+        border-radius: 5px;
+    }
+
+    /* ===== Responsive ===== */
+    @media (max-width: 992px) {
+        .nav-links { gap: 15px; }
+        .navbar { padding: 15px 20px; }
+    }
+
+    @media (max-width: 768px) {
+        .mobile-controls {
+            display: flex;
+        }
+
+        .nav-links {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            width: 100%;
+            background: rgba(15, 32, 39, 0.95);
+            flex-direction: column;
+            gap: 20px;
+            padding: 25px 0;
+            display: none;
+            text-align: center;
+        }
+
+        .nav-links.active {
+            display: flex;
+        }
+
+        .nav-actions {
+            display: none; 
+        }
+    }
+
+    /* ===== LARGE SCREENS ONLY ===== */
+    @media (min-width: 1200px) {
+        .navbar {
+            padding: 22px 70px;
+        }
+
+        .nav-logo {
+            font-size: 32px;
+        }
+
+        .nav-links {
+            gap: 40px;
+        }
+
+        .nav-links a {
+            font-size: 17px;
+        }
+
+        .nav-actions {
+            font-size: 16px;
+            gap: 20px;
+        }
+
+        .nav-btn {
+            font-size: 15px;
+            padding: 12px 28px;
+        }
+    }
+
+    @media (min-width: 769px) {
+        .nav-links a[href*="logout"] {
+            display: none;
+        }
+    }
+</style>
+
+<nav class="navbar">
+    <a href="{% url 'home' %}" class="nav-logo">
+        Ice Club <span>Store</span>
+    </a>
+
+    <div class="mobile-controls">
+        {% if user.is_authenticated %}
+            <a href="{% url 'cart_view' %}" style="text-decoration: none; position: relative; color: #4fc3f7;">
+                <i class="fas fa-shopping-cart" style="font-size: 20px;"></i>
+                {% if cart_count > 0 %}
+                    <span style="background: #ff5252; color: white; border-radius: 50%; padding: 1px 6px; font-size: 10px; position: absolute; top: -10px; right: -10px;">
+                        {{ cart_count }}
+                    </span>
+                {% endif %}
+            </a>
+        {% endif %}
+
+        <div class="menu-toggle" id="menuToggle">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+    </div>
+
+    <div class="nav-links" id="navLinks">
+        <a href="{% url 'home' %}">Home</a>
+        <a href="{% url 'shop' %}">Shop</a>
+
+        {% if user.is_authenticated and user.is_superuser %}
+            <a href="{% url 'dashboard' %}" class="admin-link">Dashboard</a>
+        {% endif %}
+
+        <a href="{% url 'offers' %}">Offers</a>
+        <a href="{% url 'about' %}">About</a>
+        <a href="{% url 'policies' %}">Policies</a>
+        <a href="{% url 'contact' %}">Contact</a>
+
+        {% if user.is_authenticated %}
+            <a href="{% url 'logout' %}">Logout</a>
+        {% else %}
+            <a href="{% url 'login' %}">Login</a>
+        {% endif %}
+    </div>
+
+    <div class="nav-actions">
+        {% if user.is_authenticated %}
+            <span>Hi, <strong>{{ user.username }}</strong></span>
+            
+            <a href="{% url 'logout' %}" class="nav-btn outline">Logout</a>
+            
+            <a href="{% url 'cart_view' %}" class="cart-icon-wrapper">
+                <i class="fas fa-shopping-cart" style="font-size: 18px;"></i>
+                {% if cart_count > 0 %}
+                    <span class="cart-badge-main">
+                        {{ cart_count }}
+                    </span>
+                {% endif %}
+            </a>
+        {% else %}
+            <a href="{% url 'login' %}" class="nav-btn outline">Login</a>
+        {% endif %}
+    </div>
+</nav>
+
+<script>
+    const menuToggle = document.getElementById("menuToggle");
+    const navLinks = document.getElementById("navLinks");
+
+    menuToggle.addEventListener("click", () => {
+        navLinks.classList.toggle("active");
+    });
+</script>

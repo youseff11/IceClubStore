@@ -1,0 +1,205 @@
+{% extends 'base.html' %}
+{% block content %}
+<style>
+    :root {
+        --primary-color: #4fc3f7;
+        --secondary-color: #0f2027;
+        --accent-gradient: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+        --glass-border: rgba(255, 255, 255, 0.1);
+        --transition-smooth: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .success-wrapper {
+        padding: 120px 5% 50px;
+        background: var(--accent-gradient);
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: #fff;
+        overflow: hidden;
+        position: relative;
+    }
+
+    /* الحاوية الخارجية مع الأنيميشن المضيء الموحد */
+    .success-container-outer {
+        position: relative;
+        max-width: 600px;
+        width: 100%;
+        border-radius: 30px;
+        overflow: hidden;
+        padding: 2px;
+        box-shadow: 0 40px 80px rgba(0,0,0,0.6);
+        z-index: 10;
+    }
+
+    .success-container-outer::before {
+        content: '';
+        position: absolute;
+        width: 150%;
+        height: 150%;
+        top: -25%;
+        left: -25%;
+        background-image: conic-gradient(transparent, transparent, transparent, var(--primary-color));
+        animation: rotateLight 4s linear infinite;
+    }
+
+    @keyframes rotateLight {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    .success-container {
+        position: relative;
+        z-index: 5;
+        width: 100%;
+        background: #0f2027;
+        border-radius: 28px;
+        padding: 50px 30px;
+        text-align: center;
+    }
+
+    .success-icon {
+        width: 80px;
+        height: 80px;
+        background: rgba(79, 195, 247, 0.1);
+        border: 2px solid var(--primary-color);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 25px;
+        font-size: 2.5rem;
+        color: var(--primary-color);
+        box-shadow: 0 0 30px rgba(79, 195, 247, 0.3);
+        animation: scaleIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+    }
+
+    @keyframes scaleIn {
+        from { transform: scale(0); opacity: 0; }
+        to { transform: scale(1); opacity: 1; }
+    }
+
+    .success-title {
+        font-size: clamp(1.8rem, 5vw, 2.5rem);
+        font-weight: 900;
+        margin-bottom: 15px;
+        text-transform: uppercase;
+    }
+
+    .order-id {
+        display: inline-block;
+        background: rgba(255, 255, 255, 0.05);
+        padding: 8px 20px;
+        border-radius: 50px;
+        border: 1px solid var(--glass-border);
+        color: var(--primary-color);
+        font-weight: 700;
+        margin-bottom: 25px;
+        font-family: monospace;
+        letter-spacing: 1px;
+    }
+
+    .success-message {
+        opacity: 0.8;
+        line-height: 1.6;
+        margin-bottom: 35px;
+        font-size: 1.05rem;
+    }
+
+    .info-card {
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 20px;
+        padding: 20px;
+        border: 1px dashed var(--glass-border);
+        margin-bottom: 35px;
+        text-align: left;
+    }
+
+    .info-item {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 12px;
+        font-size: 0.9rem;
+        gap: 10px;
+    }
+
+    .info-label { opacity: 0.5; min-width: 100px; }
+    .info-value { font-weight: 600; text-align: right; }
+
+    .action-buttons {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .btn-continue {
+        background: var(--primary-color);
+        color: var(--secondary-color);
+        padding: 16px;
+        border-radius: 12px;
+        font-size: 1rem;
+        font-weight: 800;
+        text-decoration: none;
+        text-transform: uppercase;
+        transition: var(--transition-smooth);
+    }
+
+    .btn-continue:hover {
+        background: #fff;
+        transform: translateY(-5px);
+        box-shadow: 0 15px 30px rgba(79, 195, 247, 0.3);
+    }
+
+    /* تحسين العرض على الموبايل */
+    @media (max-width: 600px) {
+        .success-wrapper { padding-top: 100px; }
+        .success-container { padding: 40px 20px; }
+        .info-item { flex-direction: column; justify-content: flex-start; gap: 2px; }
+        .info-value { text-align: left; }
+    }
+</style>
+
+<div class="success-wrapper">
+    <div class="success-container-outer">
+        <div class="success-container">
+            
+            <div class="success-icon">
+                <i class="fas fa-check"></i>
+            </div>
+            
+            <h1 class="success-title">Order <span style="color: var(--primary-color);">Placed!</span></h1>
+            
+            <div class="order-id">#ID-{{ order.id }}</div>
+
+            <p class="success-message">
+                Thank you, <strong>{{ order.name }}</strong>! <br>
+                We've received your order and our team is already working on it.
+            </p>
+
+            <div class="info-card">
+                <div class="info-item">
+                    <span class="info-label"><i class="fas fa-map-marker-alt"></i> Address:</span>
+                    <span class="info-value">{{ order.governorate }}, {{ order.address }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label"><i class="fas fa-phone"></i> Contact:</span>
+                    <span class="info-value">{{ order.phone }}</span>
+                </div>
+                <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--glass-border);" class="info-item">
+                    <span class="info-label">Total Amount:</span>
+                    <span class="info-value" style="color: var(--primary-color); font-size: 1.2rem;">{{ order.total_price|floatformat:0 }} LE</span>
+                </div>
+            </div>
+
+            <div class="action-buttons">
+                <a href="{% url 'shop' %}" class="btn-continue">Continue Shopping</a>
+                <p style="opacity: 0.5; font-size: 0.8rem; font-style: italic;">
+                    Check your email ({{ order.email }}) for full order details.
+                </p>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

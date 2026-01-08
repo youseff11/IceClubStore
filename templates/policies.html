@@ -1,0 +1,206 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    /* الإعدادات العامة */
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+        margin: 0;
+        padding: 0;
+        color: #ffffff;
+        overflow-x: hidden;
+    }
+
+    .policy-container {
+        padding: 80px 20px;
+        max-width: 1000px;
+        margin: 0 auto;
+    }
+
+    /* Header Section */
+    .policy-header {
+        text-align: center;
+        margin-bottom: 60px;
+    }
+
+    .policy-header h1 {
+        font-size: 50px;
+        font-weight: 800;
+        color: #e6f4ff;
+        margin-bottom: 10px;
+    }
+
+    .policy-header h1 span {
+        color: #4fc3f7;
+    }
+
+    .policy-header p.subtitle {
+        color: #4fc3f7;
+        letter-spacing: 4px;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+    /* Policy Card Style (Modified Story Section) */
+    .policy-card {
+        position: relative;
+        border-radius: 25px;
+        margin-bottom: 40px;
+        display: flex;
+        overflow: hidden;
+        padding: 2px; /* سمك الإطار المضيء */
+        background: rgba(255, 255, 255, 0.05);
+    }
+
+    /* تأثير الضوء المتحرك للإطارات */
+    .policy-card::before {
+        content: '';
+        position: absolute;
+        width: 150%;
+        height: 150%;
+        background-image: conic-gradient(transparent, transparent, transparent, #4fc3f7);
+        animation: rotateLight 6s linear infinite;
+        top: -25%;
+        left: -25%;
+    }
+
+    @keyframes rotateLight {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    .policy-inner {
+        position: relative;
+        z-index: 2;
+        width: 100%;
+        background: #162d36; /* درجة أفتح قليلاً للتمييز */
+        border-radius: 23px;
+        padding: 40px;
+    }
+
+    .policy-inner h2 {
+        color: #4fc3f7;
+        font-size: 28px;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .policy-inner h2 i {
+        font-size: 24px;
+    }
+
+    .policy-content {
+        color: #d9ecff;
+        line-height: 1.8;
+        font-size: 16px;
+    }
+
+    .policy-content ul {
+        list-style: none;
+        padding: 0;
+    }
+
+    .policy-content ul li {
+        margin-bottom: 12px;
+        padding-left: 25px;
+        position: relative;
+    }
+
+    .policy-content ul li::before {
+        content: '→';
+        position: absolute;
+        left: 0;
+        color: #4fc3f7;
+        font-weight: bold;
+    }
+
+    /* Contact Section */
+    .contact-note {
+        text-align: center;
+        margin-top: 60px;
+        padding: 30px;
+        background: rgba(79, 195, 247, 0.1);
+        border-radius: 20px;
+        border: 1px dashed #4fc3f7;
+    }
+
+    .contact-note p {
+        margin: 0;
+        font-size: 18px;
+        color: #e6f4ff;
+    }
+
+    .contact-note a {
+        color: #4fc3f7;
+        text-decoration: none;
+        font-weight: bold;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .policy-header h1 { font-size: 32px; }
+        .policy-inner { padding: 25px; }
+        .policy-inner h2 { font-size: 22px; }
+    }
+</style>
+
+<div class="policy-container">
+    <header class="policy-header">
+        <p class="subtitle">Legal Center</p>
+        <h1>Store <span>Policies</span></h1>
+    </header>
+
+    <div class="policy-card">
+        <div class="policy-inner">
+            <h2>Privacy Policy</h2>
+            <div class="policy-content">
+                <p>At <strong>Ice Club</strong>, we prioritize the security of your personal data. Here’s how we handle your information:</p>
+                <ul>
+                    <li>We collect only the necessary data to process your orders and improve your shopping experience.</li>
+                    <li>Your payment information is encrypted and processed through secure certified gateways.</li>
+                    <li>We never share or sell your personal information to third-party marketing agencies.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="policy-card">
+        <div class="policy-inner">
+            <h2>Shipping & Returns</h2>
+            <div class="policy-content">
+                <p>We aim to deliver your style as fast as possible with total transparency:</p>
+                <ul>
+                    <li><strong>Shipping:</strong> Standard delivery takes 3-5 business days depending on your location.</li>
+                    <li><strong>Returns:</strong> You can return any item within 14 days of delivery, provided it is in its original condition.</li>
+                    <li><strong>Refunds:</strong> Once the item is inspected, refunds are processed within 7 working days.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="policy-card">
+        <div class="policy-inner">
+            <h2>Terms of Service</h2>
+            <div class="policy-content">
+                <p>By using our website, you agree to the following conditions:</p>
+                <ul>
+                    <li>All content, designs, and images are the intellectual property of Ice Club.</li>
+                    <li>Prices and availability of products are subject to change without prior notice.</li>
+                    <li>Users are responsible for maintaining the confidentiality of their account credentials.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="contact-note">
+        <p>Have questions about our policies? <a href="mailto:support@iceclub.com">Contact our legal team</a></p>
+    </div>
+</div>
+{% endblock %}

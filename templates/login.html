@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login | Ice Club Store</title>
+
+<style>
+    * {
+        box-sizing: border-box;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+        margin: 0;
+        min-height: 100vh;
+        background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        overflow: hidden;
+    }
+
+    /* --- الحاوية الأساسية مع تأثير الضوء --- */
+    .auth-box {
+        width: 100%;
+        max-width: 420px;
+        position: relative;
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden; /* لإخفاء الأشعة الخارجة عن الحدود */
+        box-shadow: 0 20px 50px rgba(0,0,0,.35);
+    }
+
+    /* الضوء الأول */
+    .auth-box::before {
+        content: '';
+        position: absolute;
+        width: 200%; /* عرض كبير لضمان التغطية أثناء الدوران */
+        height: 200%;
+        background-image: conic-gradient(transparent, transparent, transparent, #2196f3);
+        animation: rotateLight 4s linear infinite;
+    }
+
+    /* الضوء الثاني (مطارد) */
+    .auth-box::after {
+        content: '';
+        position: absolute;
+        width: 200%;
+        height: 200%;
+        background-image: conic-gradient(transparent, transparent, transparent, #4fc3f7);
+        animation: rotateLight 4s linear infinite;
+        animation-delay: -2s;
+    }
+
+    @keyframes rotateLight {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    /* الحاوية الداخلية (الواجهة الحقيقية) */
+    .auth-content {
+        position: relative;
+        z-index: 1;
+        width: calc(100% - 4px); /* ترك مساحة بسيطة للإطار المضيء */
+        height: calc(100% - 4px);
+        background: rgba(15, 32, 39, 0.95); /* خلفية داكنة لتبرز النص */
+        backdrop-filter: blur(12px);
+        border-radius: 18px;
+        padding: 40px;
+        color: #fff;
+    }
+
+    .auth-box h1 {
+        text-align: center;
+        margin-bottom: 10px;
+        font-size: 32px;
+    }
+
+    .auth-box p {
+        text-align: center;
+        margin-bottom: 30px;
+        color: #cfe9ff;
+        font-size: 14px;
+    }
+
+    .input-group {
+        margin-bottom: 20px;
+    }
+
+    .input-group label {
+        display: block;
+        margin-bottom: 6px;
+        font-size: 14px;
+        color: #d9ecff;
+    }
+
+    .input-group input {
+        width: 100%;
+        padding: 12px 15px;
+        border-radius: 12px;
+        border: none;
+        outline: none;
+        font-size: 14px;
+        background: rgba(255, 255, 255, 0.9);
+    }
+
+    .btn {
+        width: 100%;
+        padding: 14px;
+        border-radius: 30px;
+        border: none;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        background: linear-gradient(135deg, #2196f3, #21cbf3);
+        color: #fff;
+        box-shadow: 0 10px 25px rgba(33,150,243,.4);
+        transition: .3s;
+    }
+
+    .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 15px 30px rgba(33,150,243,.6);
+    }
+
+    .auth-footer {
+        text-align: center;
+        margin-top: 20px;
+        font-size: 14px;
+    }
+
+    .auth-footer a {
+        color: #4fc3f7;
+        text-decoration: none;
+        font-weight: 600;
+    }
+</style>
+</head>
+
+<body>
+
+<div class="auth-box">
+    <div class="auth-content">
+        <h1>Login</h1>
+        <p>Welcome back to Ice Club Store</p>
+
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="input-group">
+                <label>Username</label>
+                <input type="text" name="username" placeholder="Enter your username" required>
+            </div>
+
+            <div class="input-group">
+                <label>Password</label>
+                <input type="password" name="password" placeholder="Enter your password" required>
+            </div>
+
+            <button class="btn">Login</button>
+        </form>
+
+        <div class="auth-footer">
+            Don’t have an account?
+            <a href="{% url 'signup' %}">Sign Up</a>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

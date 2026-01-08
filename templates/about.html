@@ -1,0 +1,266 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    /* الإعدادات العامة */
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+        margin: 0;
+        padding: 0;
+        color: #ffffff;
+        overflow-x: hidden;
+    }
+
+    .about-container {
+        padding: 80px 20px;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    /* Header Section */
+    .about-header {
+        text-align: center;
+        margin-bottom: 60px;
+    }
+
+    .about-header h1 {
+        font-size: 56px;
+        font-weight: 800;
+        color: #e6f4ff;
+        margin-bottom: 10px;
+    }
+
+    .about-header h1 span {
+        color: #4fc3f7;
+    }
+
+    .about-header p.subtitle {
+        color: #4fc3f7;
+        letter-spacing: 4px;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+    /* --- قسم Who We Are مع تأثير الضوئين اللذين يجريان وراء بعضهما --- */
+    .story-section {
+        position: relative;
+        border-radius: 30px;
+        margin-bottom: 80px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden; /* ضروري لإخفاء الأجزاء الخارجة من الضوء */
+        padding: 3px; /* يمثل سمك المسار الذي يجري فيه الضوء */
+        background: rgba(255, 255, 255, 0.05);
+    }
+
+    /* الضوء الأول (يجري) */
+    .story-section::before {
+        content: '';
+        position: absolute;
+        width: 150%;
+        height: 150%;
+        background-image: conic-gradient(transparent, transparent, transparent, #4fc3f7);
+        animation: rotateLight 4s linear infinite;
+    }
+
+    /* الضوء الثاني (يجري وراء الأول) */
+    .story-section::after {
+        content: '';
+        position: absolute;
+        width: 150%;
+        height: 150%;
+        background-image: conic-gradient(transparent, transparent, transparent, #2196f3);
+        animation: rotateLight 4s linear infinite;
+        animation-delay: -2s; /* تأخير بمقدار نصف الدورة ليظهر الضوء في الجهة المقابلة */
+    }
+
+    @keyframes rotateLight {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    /* الحاوية الداخلية للمحتوى لضمان عدم تأثره بالدوران */
+    .story-inner {
+        position: relative;
+        z-index: 2;
+        width: 100%;
+        height: 100%;
+        background: #0f2027; /* نفس لون الخلفية الأساسية */
+        border-radius: 28px;
+        padding: 60px;
+        text-align: center;
+    }
+
+    .story-section h2 {
+        color: #4fc3f7;
+        font-size: 36px;
+        margin-bottom: 25px;
+    }
+
+    .story-section p {
+        font-size: 19px;
+        line-height: 1.8;
+        color: #d9ecff;
+        max-width: 900px;
+        margin: 0 auto 20px auto;
+    }
+
+    /* Stats Grid */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 25px;
+        margin-bottom: 80px;
+    }
+
+    .stat-card {
+        background: rgba(79, 195, 247, 0.08);
+        border-radius: 20px;
+        padding: 40px 20px;
+        text-align: center;
+        border: 1px solid rgba(79, 195, 247, 0.15);
+        transition: all 0.4s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-10px);
+        border-color: #4fc3f7;
+    }
+
+    .stat-card h3 {
+        font-size: 45px;
+        color: #4fc3f7;
+        margin: 0;
+        font-weight: 800;
+    }
+
+    .stat-card p {
+        font-size: 14px;
+        color: #e6f4ff;
+        margin-top: 10px;
+        text-transform: uppercase;
+    }
+
+    /* Values Section */
+    .values-header {
+        text-align: center;
+        margin-bottom: 40px;
+    }
+
+    .values-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 30px;
+    }
+
+    .value-item {
+        background: rgba(255, 255, 255, 0.03);
+        padding: 45px;
+        border-radius: 25px;
+        border-left: 5px solid #2196f3;
+        transition: transform 0.3s ease;
+    }
+
+    .value-item:hover {
+        transform: scale(1.02);
+    }
+
+    .value-item h4 {
+        font-size: 24px;
+        color: #4fc3f7;
+        margin-bottom: 15px;
+    }
+
+    .value-item p {
+        color: #b0c4de;
+        line-height: 1.7;
+    }
+
+    /* تحسينات الاستجابة الإضافية */
+    @media (max-width: 768px) {
+        .about-container { padding: 40px 15px; }
+        .about-header { margin-bottom: 40px; }
+        .about-header h1 { font-size: 38px; }
+        .about-header p.subtitle { font-size: 12px; letter-spacing: 2px; }
+        
+        .story-inner { padding: 35px 20px; }
+        .story-section h2 { font-size: 28px; }
+        .story-section p { font-size: 16px; }
+
+        .stat-card { padding: 30px 15px; }
+        .stat-card h3 { font-size: 35px; }
+
+        .values-grid { grid-template-columns: 1fr; }
+        .value-item { padding: 30px 20px; }
+    }
+
+    @media (max-width: 480px) {
+        .about-header h1 { font-size: 32px; }
+        .stats-grid { grid-template-columns: 1fr; }
+    }
+</style>
+
+<div class="about-container">
+    <header class="about-header">
+        <p class="subtitle">Our Journey</p>
+        <h1>About <span>Ice Club</span></h1>
+    </header>
+
+    <section class="story-section">
+        <div class="story-inner">
+            <h2>Who We Are</h2>
+            <p>
+                Founded in 2024, <strong>Ice Club Store</strong> was born out of a passion for high-end fashion and the desire to create a community where style meets comfort. We don't just sell clothes; we curate a lifestyle for those who dare to be different.
+            </p>
+            <p>
+                Every piece in our collection is carefully selected and designed to reflect the modern, bold spirit of today's fashion trends. We believe that what you wear is a reflection of your identity.
+            </p>
+        </div>
+    </section>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <h3>10k+</h3>
+            <p>Happy Customers</p>
+        </div>
+        <div class="stat-card">
+            <h3>500+</h3>
+            <p>Exclusive Styles</p>
+        </div>
+        <div class="stat-card">
+            <h3>24/7</h3>
+            <p>Customer Support</p>
+        </div>
+        <div class="stat-card">
+            <h3>100%</h3>
+            <p>Premium Quality</p>
+        </div>
+    </div>
+
+    <section class="values-section">
+        <div class="values-header">
+            <h2>Our Core <span>Values</span></h2>
+        </div>
+        <div class="values-grid">
+            <div class="value-item">
+                <h4>Innovation</h4>
+                <p>We are constantly pushing boundaries to bring you futuristic designs that stay ahead of the curve.</p>
+            </div>
+            <div class="value-item">
+                <h4>Integrity</h4>
+                <p>We believe in transparency and honesty in everything we do.</p>
+            </div>
+            <div class="value-item">
+                <h4>Excellence</h4>
+                <p>We never compromise on quality. Every thread and fabric is chosen to ensure the highest standards.</p>
+            </div>
+        </div>
+    </section>
+</div>
+{% endblock %}

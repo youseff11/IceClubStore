@@ -1,0 +1,326 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<style>
+    :root {
+        --primary-color: #4fc3f7;
+        --secondary-color: #0f2027;
+        --accent-gradient: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+    }
+
+    .cart-wrapper {
+        padding: 120px 5% 50px;
+        background: var(--accent-gradient);
+        min-height: 100vh;
+        color: #fff;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start; 
+    }
+
+    .cart-container-outer {
+        position: relative;
+        max-width: 1000px;
+        width: 100%;
+        border-radius: 30px;
+        overflow: hidden;
+        padding: 3px;
+        box-shadow: 0 30px 60px rgba(0,0,0,0.5);
+    }
+
+    /* تأثير الإضاءة المتحركة */
+    .cart-container-outer::before,
+    .cart-container-outer::after {
+        content: '';
+        position: absolute;
+        width: 250%;
+        height: 250%;
+        top: -75%;
+        left: -75%;
+        animation: rotateLight 5s linear infinite;
+        z-index: 1;
+    }
+
+    .cart-container-outer::before {
+        background-image: conic-gradient(transparent, transparent, transparent, var(--primary-color));
+    }
+
+    .cart-container-outer::after {
+        background-image: conic-gradient(transparent, transparent, transparent, #2196f3);
+        animation-delay: -2.5s;
+    }
+
+    @keyframes rotateLight {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    .cart-container {
+        position: relative;
+        z-index: 5;
+        width: 100%;
+        background: #0f2027;
+        backdrop-filter: blur(15px);
+        border-radius: 28px;
+        padding: 40px;
+    }
+
+    .cart-header {
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+        padding-bottom: 20px;
+        margin-bottom: 30px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .cart-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .cart-table th {
+        text-align: left;
+        color: var(--primary-color);
+        text-transform: uppercase;
+        font-size: 0.8rem;
+        letter-spacing: 1px;
+        padding-bottom: 15px;
+    }
+
+    .cart-item td {
+        padding: 20px 0;
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .item-detail {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+
+    .item-img {
+        width: 70px;
+        height: 70px;
+        object-fit: cover;
+        border-radius: 12px;
+        background: #1a1a1a;
+        border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .item-info {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .item-meta-tag {
+        font-size: 0.75rem;
+        color: var(--primary-color);
+        opacity: 0.8;
+        margin-top: 2px;
+    }
+
+    .qty-controls {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        background: rgba(255,255,255,0.05);
+        padding: 5px 10px;
+        border-radius: 12px;
+        width: fit-content;
+        border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .qty-btn {
+        width: 28px;
+        height: 28px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(79, 195, 247, 0.2);
+        color: var(--primary-color);
+        text-decoration: none;
+        border-radius: 6px;
+        font-weight: bold;
+        transition: 0.3s;
+    }
+
+    .qty-btn:hover {
+        background: var(--primary-color);
+        color: var(--secondary-color);
+    }
+
+    .btn-remove {
+        color: #ff5252;
+        text-decoration: none;
+        font-size: 0.8rem;
+        font-weight: 600;
+        transition: 0.3s;
+    }
+
+    .cart-summary {
+        margin-top: 40px;
+        padding-top: 20px;
+        border-top: 1px solid rgba(255,255,255,0.1);
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+    }
+
+    .total-price {
+        font-size: 2rem;
+        font-weight: 800;
+        margin-bottom: 20px;
+    }
+
+    .checkout-btn {
+        background: var(--primary-color);
+        color: var(--secondary-color);
+        padding: 15px 50px;
+        border-radius: 15px;
+        text-decoration: none;
+        font-weight: 700;
+        transition: 0.4s;
+        text-align: center;
+        box-shadow: 0 10px 20px rgba(79, 195, 247, 0.3);
+    }
+
+    @media (max-width: 768px) {
+        .cart-wrapper { padding-top: 100px; }
+        .cart-container { padding: 25px 15px; }
+        .cart-table thead { display: none; } 
+        
+        .cart-item {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            padding: 20px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .cart-item td {
+            display: block;
+            padding: 0;
+            border: none;
+            width: 100%;
+        }
+
+        .item-detail { gap: 15px; }
+        .item-img { width: 80px; height: 80px; }
+
+        .mobile-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+        }
+
+        .total-price { font-size: 1.5rem; width: 100%; text-align: center; }
+        .checkout-btn { width: 100%; padding: 15px 20px; }
+        .cart-summary { align-items: center; }
+    }
+</style>
+
+<div class="cart-wrapper">
+    <div class="cart-container-outer">
+        <div class="cart-container">
+            <div class="cart-header">
+                <h2 style="margin:0;">Shopping <span style="color: var(--primary-color);">Cart</span></h2>
+                <span>{{ cart_items|length }} Items</span>
+            </div>
+
+            {% if cart_items %}
+            <table class="cart-table">
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Price</th>
+                        <th>Quantity</th>
+                        <th>Subtotal</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in cart_items %}
+                    <tr class="cart-item">
+                        <td>
+                            <div class="item-detail">
+                                <img src="{{ item.display_image }}" class="item-img" alt="{{ item.product.name }}">
+                                <div class="item-info">
+                                    <span style="font-weight: 600; font-size: 1.1rem;">{{ item.product.name }}</span>
+                                    <span class="item-meta-tag">Color: {{ item.color }}</span>
+                                    <span class="item-meta-tag">Size: {{ item.size }}</span>
+                                    
+                                    <div class="mobile-only" style="display: none; margin-top: 5px;">
+                                        <span style="color: var(--primary-color); font-weight: bold;">{{ item.actual_price|floatformat:0 }} LE</span>
+                                        {% if item.product.discount_price %}
+                                            <span style="text-decoration: line-through; opacity: 0.4; font-size: 0.75rem; margin-left: 5px;">{{ item.product.price|floatformat:0 }} LE</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+
+                        <td class="desktop-only">
+                            <div class="cart-item-price">
+                                <span>{{ item.actual_price|floatformat:0 }} LE</span>
+                                {% if item.product.discount_price %}
+                                    <span style="text-decoration: line-through; opacity: 0.4; font-size: 0.8rem;">{{ item.product.price|floatformat:0 }} LE</span>
+                                {% endif %}
+                            </div>
+                        </td>
+
+                        <td>
+                            <div class="mobile-row">
+                                <span class="mobile-label" style="display: none; opacity: 0.6; font-size: 0.8rem;">Quantity:</span>
+                                <div class="qty-controls">
+                                    <a href="{% url 'update_cart' item.item_key 'decrease' %}" class="qty-btn">-</a>
+                                    <span class="qty-box">{{ item.quantity }}</span>
+                                    <a href="{% url 'update_cart' item.item_key 'increase' %}" class="qty-btn">+</a>
+                                </div>
+                                <div class="mobile-subtotal" style="display: none; color: var(--primary-color); font-weight: 700;">
+                                    {{ item.subtotal|floatformat:0 }} LE
+                                </div>
+                            </div>
+                        </td>
+
+                        <td class="desktop-only" style="color: var(--primary-color); font-weight: 700;">
+                            {{ item.subtotal|floatformat:0 }} LE
+                        </td>
+
+                        <td style="text-align: right;">
+                            <a href="{% url 'remove_from_cart' item.item_key %}" class="btn-remove">
+                                <i class="fas fa-trash-alt"></i> Remove
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <div class="cart-summary">
+                <div class="total-price">Total: {{ total_price|floatformat:0 }} LE</div>
+                <a href="{% url 'checkout' %}" class="checkout-btn">Proceed to Checkout</a>
+            </div>
+            
+            {% else %}
+            <div style="text-align: center; padding: 60px 20px;">
+                <div style="font-size: 4rem; margin-bottom: 20px; opacity: 0.2;">🛒</div>
+                <p style="opacity: 0.6; font-size: 1.2rem; margin-bottom: 25px;">Your cart is empty.</p>
+                <a href="{% url 'shop' %}" class="checkout-btn" style="display: inline-block;">Start Shopping</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+    @media (min-width: 769px) {
+        .desktop-only { display: table-cell; }
+    }
+    @media (max-width: 768px) {
+        .desktop-only { display: none !important; }
+        .mobile-only, .mobile-label, .mobile-subtotal { display: block !important; }
+    }
+</style>
+{% endblock %}

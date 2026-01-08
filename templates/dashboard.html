@@ -1,0 +1,323 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    /* الإعدادات العامة للداشبورد */
+    :root {
+        --primary-color: #4fc3f7;
+        --accent-gradient: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+        --glass-bg: rgba(255, 255, 255, 0.03);
+    }
+
+    .dashboard-container {
+        padding: 120px 5% 50px;
+        min-height: 100vh;
+        background: var(--accent-gradient);
+        color: white;
+    }
+
+    /* كروت الإحصائيات */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-bottom: 50px;
+    }
+
+    .stat-card {
+        height: 140px;
+        border-radius: 20px;
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(255, 255, 255, 0.05);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        width: 150%; height: 150%;
+        background-image: conic-gradient(transparent, transparent, transparent, var(--primary-color));
+        animation: rotateLight 4s linear infinite;
+    }
+
+    @keyframes rotateLight {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    .stat-inner {
+        position: absolute;
+        inset: 2px;
+        background: #162d3a;
+        border-radius: 18px;
+        z-index: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .stat-inner h3 { font-size: 28px; margin: 0; color: var(--primary-color); font-weight: 800; }
+    .stat-inner p { color: #b0c4de; margin: 5px 0 0; text-transform: uppercase; font-size: 11px; letter-spacing: 1px; }
+
+    /* الجداول والأقسام */
+    .management-section {
+        background: var(--glass-bg);
+        backdrop-filter: blur(15px);
+        border-radius: 25px;
+        padding: 25px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        margin-bottom: 40px;
+    }
+
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 25px;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+
+    .btn-add {
+        background: var(--primary-color);
+        color: #0f2027;
+        padding: 10px 22px;
+        border-radius: 12px;
+        text-decoration: none;
+        font-weight: bold;
+        transition: 0.3s;
+        font-size: 13px;
+    }
+
+    .btn-add:hover { background: #fff; transform: translateY(-3px); }
+
+    /* تحسين الجدول */
+    .table-responsive { 
+        width: 100%;
+        overflow-x: auto; 
+        -webkit-overflow-scrolling: touch;
+    }
+
+    table { width: 100%; border-collapse: collapse; min-width: 600px; }
+
+    th {
+        text-align: left;
+        padding: 15px;
+        border-bottom: 2px solid rgba(79, 195, 247, 0.2);
+        color: var(--primary-color);
+        font-size: 12px;
+        text-transform: uppercase;
+    }
+
+    td { padding: 15px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); font-size: 14px; vertical-align: middle; }
+
+    /* صورة المنتج واللون */
+    .img-stack { position: relative; width: 45px; height: 45px; }
+    .product-img { width: 45px; height: 45px; object-fit: cover; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); }
+    .color-preview-small {
+        position: absolute;
+        bottom: -2px;
+        right: -2px;
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        border: 2px solid #162d3a;
+        box-shadow: 0 0 5px rgba(0,0,0,0.5);
+    }
+
+    .action-link { text-decoration: none; font-size: 13px; font-weight: 700; margin-right: 12px; transition: 0.3s; }
+    .edit-link { color: var(--primary-color); }
+    .delete-link { color: #ff4d4d; }
+
+    /* الحالات */
+    .badge { padding: 6px 14px; border-radius: 50px; font-size: 11px; font-weight: 700; }
+    .status-pending { background: rgba(255, 193, 7, 0.1); color: #ffc107; border: 1px solid #ffc107; }
+    .status-delivered { background: rgba(40, 167, 69, 0.1); color: #28a745; border: 1px solid #28a745; }
+
+    /* الموبايل */
+    @media (max-width: 768px) {
+        .dashboard-container { padding-top: 100px; }
+        .section-header h3 { font-size: 20px; }
+        .stat-card { height: 120px; }
+        .stat-inner h3 { font-size: 22px; }
+    }
+</style>
+
+<div class="dashboard-container">
+    <div class="section-title">
+        <h2 style="color: white; font-weight: 800; font-size: 2.5rem;">Admin <span style="color: var(--primary-color);">Dashboard</span></h2>
+        <p style="color: #b0c4de;">Store management and real-time analytics</p>
+    </div>
+
+    <div style="display: flex; gap: 20px; margin-bottom: 30px; flex-wrap: wrap;">
+        <a href="#messages-section" style="color: var(--primary-color); text-decoration: none; font-weight: 600;">
+            <i class="fas fa-envelope"></i> Customer Messages
+        </a>
+        <a href="{% url 'add_product' %}" style="color: #fff; text-decoration: none; font-weight: 600;">
+            <i class="fas fa-plus-circle"></i> Quick Add Product
+        </a>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-inner">
+                <h3>{{ orders_count }}</h3>
+                <p>Total Orders</p>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-inner">
+                <h3>{{ products_count }}</h3>
+                <p>Inventory Items</p>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-inner">
+                <h3>{{ pending_orders }}</h3>
+                <p>Pending Processing</p>
+            </div>
+        </div>
+        <div class="stat-card" style="border: 1px solid var(--primary-color);">
+            <div class="stat-inner">
+                <h3>{{ total_revenue|floatformat:0 }} LE</h3>
+                <p>Total Revenue</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="management-section">
+        <div class="section-header">
+            <h3><i class="fas fa-box-open" style="color: var(--primary-color);"></i> Inventory Management</h3>
+            <a href="{% url 'add_product' %}" class="btn-add">+ New Product</a>
+        </div>
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Preview</th>
+                        <th>Product Details</th>
+                        <th>Price</th>
+                        <th>Category</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for product in products %}
+                    <tr>
+                        <td>
+                            <div class="img-stack">
+                                {% with first_variant=product.variants.first %}
+                                    {% if first_variant and first_variant.variant_image %}
+                                        <img src="{{ first_variant.variant_image.url }}" class="product-img" alt="Variant">
+                                        <div class="color-preview-small" style="background: {{ first_variant.color_code }};" title="{{ first_variant.color_name }}"></div>
+                                    {% else %}
+                                        <img src="{{ product.main_image|default:'https://via.placeholder.com/100' }}" class="product-img" alt="Main">
+                                    {% endif %}
+                                {% endwith %}
+                            </div>
+                        </td>
+                        <td>
+                            <strong>{{ product.name }}</strong><br>
+                            {% with first_variant=product.variants.first %}
+                                {% if first_variant %}
+                                    <small style="opacity: 0.6;">Primary Color: {{ first_variant.color_name }}</small>
+                                {% endif %}
+                            {% endwith %}
+                        </td>
+                        <td>{{ product.price|floatformat:0 }} LE</td>
+                        <td><span style="opacity: 0.7;">{{ product.category.name }}</span></td>
+                        <td>
+                            <a href="{% url 'edit_product' product.id %}" class="action-link edit-link">Edit</a>
+                            <a href="{% url 'delete_product' product.id %}" class="action-link delete-link" onclick="return confirm('Delete this item?')">Delete</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="management-section">
+        <div class="section-header">
+            <h3><i class="fas fa-shopping-cart" style="color: var(--primary-color);"></i> Recent Orders</h3>
+        </div>
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Customer</th>
+                        <th>Total Amount</th>
+                        <th>Status</th>
+                        <th>Order Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in orders %}
+                    <tr>
+                        <td>#{{ order.id }}</td>
+                        <td>{{ order.name }}</td>
+                        <td style="font-weight: 700;">{{ order.total_price|floatformat:0 }} LE</td>
+                        <td>
+                            <span class="badge status-{{ order.status|lower }}">
+                                {{ order.get_status_display }}
+                            </span>
+                        </td>
+                        <td>{{ order.created_at|date:"d M, Y" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="5" style="text-align: center; padding: 40px;">No recent orders.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="management-section" id="messages-section">
+        <div class="section-header">
+            <h3><i class="fas fa-comment-dots" style="color: var(--primary-color);"></i> Customer Inquiries</h3>
+        </div>
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Sender</th>
+                        <th>Message Content</th>
+                        <th>Contact Detail</th>
+                        <th>Date</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for msg in messages %}
+                    <tr>
+                        <td><strong>{{ msg.name }}</strong></td>
+                        <td>
+                            <div style="max-width: 250px;">
+                                <div style="color: var(--primary-color); font-weight: 600; font-size: 13px;">{{ msg.subject }}</div>
+                                <div style="font-size: 12px; opacity: 0.7; margin-top: 4px;">{{ msg.message|truncatechars:100 }}</div>
+                            </div>
+                        </td>
+                        <td>
+                            <span style="font-size: 12px; display: block;">{{ msg.email }}</span>
+                            <span style="font-size: 12px; opacity: 0.6;">{{ msg.phone }}</span>
+                        </td>
+                        <td>{{ msg.created_at|date:"d/m/Y" }}</td>
+                        <td>
+                            <a href="mailto:{{ msg.email }}" class="btn-add" style="padding: 5px 12px; font-size: 11px;">Reply</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="5" style="text-align: center; padding: 40px;">Inbox is empty.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,208 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<style>
+    :root {
+        --primary: #4fc3f7; --secondary: #0f2027;
+        --accent-grad: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+        --glass: rgba(255, 255, 255, 0.05); --border: rgba(255, 255, 255, 0.1);
+        --smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        --red: #ff5252; --grey: #888;
+    }
+
+    body { margin: 0; background: #0f2027; color: #fff; overflow-x: hidden; }
+    .shop-wrapper { padding: 120px 40px 100px; background: var(--accent-grad); min-height: 100vh; box-sizing: border-box; }
+    
+    .shop-header { text-align: center; margin-bottom: 40px; animation: fadeIn 0.8s; }
+    .shop-header h1 { font-size: clamp(2.5rem, 6vw, 4rem); font-weight: 900; background: linear-gradient(#fff 40%, var(--primary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin:0; }
+
+    .category-filter { display: flex; justify-content: center; gap: 12px; margin-bottom: 50px; flex-wrap: wrap; align-items: center; }
+    
+    .cat-link, .drop-btn { 
+        padding: 10px 25px; border: 1px solid var(--border); border-radius: 30px; 
+        color: rgba(255,255,255,0.7); text-decoration: none; transition: var(--smooth); 
+        background: var(--glass); backdrop-filter: blur(5px); cursor: pointer;
+        font-family: inherit; font-size: 1rem; outline: none;
+    }
+    
+    .cat-link.active, .cat-link:hover, .drop-btn:hover, .drop-btn.active-btn { 
+        background: var(--primary); color: var(--secondary); border-color: var(--primary); transform: translateY(-3px); 
+    }
+
+    .dropdown { position: relative; display: inline-block; }
+    .dropdown-content {
+        display: none; 
+        position: absolute; top: 110%; left: 50%; transform: translateX(-50%);
+        background: #162d35; min-width: 200px; border-radius: 15px; overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 100; border: 1px solid var(--border);
+    }
+    
+    .dropdown-content.show { display: block; animation: fadeIn 0.3s; }
+    .dropdown-content a {
+        color: white; padding: 12px 20px; text-decoration: none; display: block;
+        transition: background 0.2s; border-bottom: 1px solid var(--border);
+    }
+    .dropdown-content a:hover { background: var(--primary); color: var(--secondary); }
+
+    .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 40px; max-width: 1400px; margin: 0 auto; }
+    .product-card { background: var(--glass); backdrop-filter: blur(12px); border: 1px solid var(--border); border-radius: 24px; padding: 25px; transition: var(--smooth); display: flex; flex-direction: column; position: relative; }
+    .product-card:hover { transform: translateY(-12px); border-color: var(--primary); box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
+
+    .badge { position: absolute; top: 15px; padding: 5px 12px; border-radius: 12px; font-size: 0.8rem; font-weight: bold; z-index: 10; text-transform: uppercase; }
+    .discount-badge { right: 15px; background: var(--red); animation: pulse 2s infinite; }
+    
+    .sold-out-overlay { 
+        position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-15deg); 
+        background: rgba(220, 20, 20, 0.9); color: #fff; padding: 10px 20px; border: 2px solid #fff; 
+        font-weight: 900; z-index: 15; display: none; pointer-events: none; white-space: nowrap; border-radius: 8px;
+        box-shadow: 0 0 20px rgba(255, 82, 82, 0.4);
+    }
+
+    .product-card__image-wrap { width: 100%; aspect-ratio: 4/5; border-radius: 18px; overflow: hidden; margin-bottom: 20px; background: #1a1a1a; position: relative; }
+    .main-product-img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.6s, opacity 0.3s, filter 0.5s; }
+    
+    /* فلاتر نفاد الكمية */
+    .is-sold-out img { filter: grayscale(1) brightness(0.5); }
+
+    .color-options { display: flex; gap: 8px; margin-bottom: 15px; justify-content: center; }
+    .color-dot { width: 22px; height: 22px; border-radius: 50%; cursor: pointer; border: 2px solid rgba(255,255,255,0.2); transition: var(--smooth); }
+    .color-dot.active { transform: scale(1.3); border-color: var(--primary); box-shadow: 0 0 10px var(--primary); }
+
+    .current-price { color: var(--primary); font-weight: bold; font-size: 1.4rem; }
+    .old-price { text-decoration: line-through; color: rgba(255,255,255,0.4); margin-left: 10px; }
+
+    .product-card__btn { margin-top: auto; padding: 16px; background: var(--primary); color: var(--secondary); border-radius: 14px; text-decoration: none; font-weight: 700; text-align: center; transition: var(--smooth); text-transform: uppercase; }
+    .product-card__btn.btn-disabled { background: #222 !important; color: #555 !important; cursor: not-allowed; border: 1px solid #444; }
+
+    @media (max-width: 768px) {
+        .product-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 15px; }
+        .product-card { padding: 12px; }
+    }
+
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+</style>
+
+<section class="shop-wrapper">
+    <header class="shop-header">
+        <h1>Ice Club <span>Catalog</span></h1>
+        <p>Premium Collection & Unique Lifestyle</p>
+    </header>
+
+    <nav class="category-filter">
+        <a href="{% url 'shop' %}" class="cat-link {% if not selected_category %}active{% endif %}">All Products</a>
+        <div class="dropdown">
+            <button class="drop-btn {% if selected_category %}active-btn{% endif %}" onclick="toggleDropdown(event)">
+                Categories {% if selected_category %}: {{ selected_category.name }}{% endif %} ▾
+            </button>
+            <div class="dropdown-content" id="myDropdown">
+                {% for cat in categories %}
+                    <a href="{% url 'shop_by_category' cat.slug %}">{{ cat.name }}</a>
+                {% endfor %}
+            </div>
+        </div>
+    </nav>
+
+    <div class="product-grid">
+        {% for product in products %}
+        <article class="product-card" id="prod-{{ product.id }}">
+            <div class="sold-out-overlay" id="ovl-{{ product.id }}">SOLD OUT</div>
+            {% if product.discount_percentage > 0 %}<div class="badge discount-badge">-{{ product.discount_percentage }}%</div>{% endif %}
+
+            <div class="product-card__image-wrap" id="img-wrap-{{ product.id }}">
+                <img src="{{ product.main_image.url }}" class="main-product-img" id="img-{{ product.id }}" loading="lazy">
+            </div>
+
+            <div class="color-options">
+                {% for v in product.variants.all %}
+                <div class="color-dot {% if forloop.first %}active{% endif %}" 
+                     style="background: {{ v.color_code }};" 
+                     data-image="{{ v.variant_image.url }}" 
+                     data-variant-stock="{{ v.total_variant_stock }}" 
+                     onclick="updateVariant(this, '{{ product.id }}')">
+                </div>
+                {% endfor %}
+            </div>
+
+            <h3 class="product-card__name" style="margin:0 0 10px; text-align:center;">{{ product.name }}</h3>
+            
+            <div style="margin-bottom:20px; text-align:center;">
+                <span class="current-price">{{ product.discount_price|default:product.price|floatformat:0 }} LE</span>
+                {% if product.discount_price %}<span class="old-price">{{ product.price|floatformat:0 }} LE</span>{% endif %}
+            </div>
+
+            <a href="{% url 'product_detail' product.id %}" class="product-card__btn" id="btn-{{ product.id }}">View Details</a>
+        </article>
+        {% empty %}
+        <div class="empty-catalog" style="grid-column:1/-1; text-align:center; padding:80px; border:2px dashed var(--border); border-radius:30px;">
+            <h2 style="color:var(--primary)">Next Drop Soon</h2>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+<script>
+    function toggleDropdown(event) {
+        event.stopPropagation();
+        document.getElementById("myDropdown").classList.toggle("show");
+    }
+
+    window.onclick = function(event) {
+        if (!event.target.matches('.drop-btn')) {
+            var dropdowns = document.getElementsByClassName("dropdown-content");
+            for (var i = 0; i < dropdowns.length; i++) {
+                var openDropdown = dropdowns[i];
+                if (openDropdown.classList.contains('show')) openDropdown.classList.remove('show');
+            }
+        }
+    }
+
+    function updateVariant(el, productId) {
+        const card = document.getElementById('prod-' + productId),
+              img = document.getElementById('img-' + productId),
+              imgWrap = document.getElementById('img-wrap-' + productId),
+              ovl = document.getElementById('ovl-' + productId),
+              btn = document.getElementById('btn-' + productId),
+              variantStock = parseInt(el.dataset.variantStock);
+
+        // 1. تغيير الصورة فوراً لصورة اللون المختار (حتى لو خلصان)
+        img.style.opacity = '0.3';
+        setTimeout(() => { 
+            img.src = el.dataset.image; 
+            img.style.opacity = '1'; 
+        }, 150);
+
+        // 2. تحديث حالة النقطة النشطة
+        card.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
+        el.classList.add('active');
+
+        // 3. فحص المخزون وتطبيق التصميم المطلوب
+        if (variantStock === 0) {
+            // حالة نافد الكمية: الصورة تصبح أبيض وأسود ويظهر الملصق
+            imgWrap.classList.add('is-sold-out');
+            ovl.style.display = 'block';
+            btn.classList.add('btn-disabled');
+            btn.innerText = 'Sold Out';
+            btn.style.pointerEvents = 'none'; // منع الضغط على الزر
+        } else {
+            // حالة متوفر: الصورة طبيعية ويختفي الملصق
+            imgWrap.classList.remove('is-sold-out');
+            ovl.style.display = 'none';
+            btn.classList.remove('btn-disabled');
+            btn.innerText = 'View Details';
+            btn.style.pointerEvents = 'auto';
+        }
+    }
+
+    // تشغيل التحديث التلقائي عند التحميل لأول لون في كل منتج
+    document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('.product-card').forEach(c => {
+            const firstColor = c.querySelector('.color-dot.active');
+            if(firstColor) {
+                const productId = c.id.replace('prod-', '');
+                updateVariant(firstColor, productId);
+            }
+        });
+    });
+</script>
+{% endblock %}

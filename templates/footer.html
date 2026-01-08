@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        .footer {
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            color: #d9ecff;
+            padding: 80px 5% 30px;
+            position: relative;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 40px;
+            margin-bottom: 50px;
+        }
+
+        .footer h3 {
+            font-size: 20px;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .footer h3::after {
+            content: '';
+            width: 40px;
+            height: 3px;
+            background: #4fc3f7;
+            position: absolute;
+            bottom: -8px;
+            left: 0;
+            border-radius: 2px;
+        }
+
+        .footer p {
+            font-size: 14px;
+            line-height: 1.8;
+            color: #b0c4de;
+        }
+
+        .footer-links {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .footer-links li {
+            margin-bottom: 12px;
+        }
+
+        .footer-links a {
+            color: #b0c4de;
+            text-decoration: none;
+            font-size: 14px;
+            transition: 0.3s;
+        }
+
+        .footer-links a:hover {
+            color: #4fc3f7;
+            padding-left: 5px;
+        }
+
+        .footer-social {
+            display: flex;
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+        .footer-social a {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff; /* الأيقونات باللون الأبيض كما طلبت */
+            font-size: 20px;
+            text-decoration: none;
+            transition: 0.3s;
+        }
+
+        .footer-social a:hover {
+            background: #4fc3f7;
+            color: #0f2027;
+            transform: translateY(-4px);
+        }
+
+        .footer-bottom {
+            border-top: 1px solid rgba(255,255,255,0.1);
+            padding-top: 25px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            font-size: 14px;
+            color: #b0c4de;
+        }
+
+        .footer-brand {
+            font-size: 24px;
+            font-weight: 900;
+            color: #ffffff;
+            letter-spacing: 1px;
+            margin-bottom: 15px;
+        }
+
+        .footer-brand span {
+            color: #4fc3f7;
+        }
+
+        @media (max-width: 768px) {
+            .footer-bottom {
+                text-align: center;
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<footer class="footer">
+    <div class="footer-grid">
+
+        <div>
+            <div class="footer-brand">ICE<span>WEAR</span></div>
+            <p>
+                Premium streetwear brand inspired by cold aesthetics and bold souls.
+                Designed for comfort, crafted for confidence.
+            </p>
+
+            <div class="footer-social">
+                <a href="#" title="Facebook"><i class="fab fa-facebook-f"></i></a>
+                <a href="#" title="Instagram"><i class="fab fa-instagram"></i></a>
+                <a href="https://wa.me/yournumber" title="WhatsApp"><i class="fab fa-whatsapp"></i></a>
+            </div>
+        </div>
+
+        <div>
+            <h3>Shop</h3>
+            <ul class="footer-links">
+                <li><a href="{% url 'shop' %}">Men</a></li>
+                <li><a href="{% url 'shop' %}">Women</a></li>
+                <li><a href="{% url 'shop' %}">Accessories</a></li>
+                <li><a href="{% url 'shop' %}">New Arrivals</a></li>
+                <li><a href="{% url 'offers' %}">Best Sellers</a></li>
+            </ul>
+        </div>
+
+        <div>
+            <h3>Company</h3>
+            <ul class="footer-links">
+                <li><a href="{% url 'about' %}">About Us</a></li>
+                <li><a href="{% url 'about' %}">Careers</a></li>
+                <li><a href="{% url 'about' %}">Press</a></li>
+                <li><a href="{% url 'about' %}">Sustainability</a></li>
+            </ul>
+        </div>
+
+        <div>
+            <h3>Support</h3>
+            <ul class="footer-links">
+                <li><a href="{% url 'contact' %}">Contact Us</a></li>
+                <li><a href="{% url 'contact' %}">FAQs</a></li>
+                <li><a href="{% url 'policies' %}">Shipping & Returns</a></li>
+                <li><a href="{% url 'policies' %}">Privacy policies</a></li>
+                <li><a href="{% url 'policies' %}">Terms & Conditions</a></li>
+            </ul>
+        </div>
+
+    </div>
+
+    <div class="footer-bottom">
+        <div>© 2026 ICEWEAR. All Rights Reserved.</div>
+        <div>Designed with ❄️ for cold souls</div>
+    </div>
+</footer>
+
+</body>
+</html>
