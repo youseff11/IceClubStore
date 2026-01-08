@@ -2,9 +2,10 @@ import os
 from pathlib import Path
 from dotenv import load_dotenv
 
-load_dotenv()
-
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+env_path = BASE_DIR / '.env'
+load_dotenv(dotenv_path=env_path)
 
 SECRET_KEY = os.getenv('SECRET_KEY')
 
@@ -59,8 +60,6 @@ WSGI_APPLICATION = 'Core.wsgi.application'
 
 
 # Database
-# https://docs.djangoproject.com/en/6.0/ref/settings/#databases
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -98,6 +97,7 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'iceclubstore44@gmail.com' 
 
-# القيمة الآن تُجلب من ملف الـ .env
+# جلب كلمة سر التطبيق من .env
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
+
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
