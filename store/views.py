@@ -195,7 +195,7 @@ def checkout(request):
     total_price = 0
     checkout_items = []
     
-    # 1. التحقق من توافر الكمية
+    # 1. التحقق من توافر الكمية وتجهيز البيانات
     for item_key, item_data in cart.items():
         product = get_object_or_404(Product, id=item_data['product_id'])
         color_name = item_data.get('color')
@@ -221,14 +221,16 @@ def checkout(request):
         subtotal = price * quantity_requested
         total_price += subtotal
 
-        # جلب صورة المنتج أو اللون مع تحويل الرابط لرابط كامل للإيميل
+        # --- الجزء المعدل لضمان ظهور الصور في الإيميل ---
         variant = ProductVariant.objects.filter(product=product, color_name=color_name).first()
         if variant and variant.variant_image:
             img_path = variant.variant_image.url
         else:
             img_path = product.main_image.url
         
-        image_url = request.build_absolute_uri(img_path)
+        # بناء رابط كامل يبدأ بـ https ودومين الموقع الخاص بك
+        domain = request.get_host()
+        image_url = f"https://{domain}{img_path}"
 
         checkout_items.append({
             'product': product, 
@@ -261,18 +263,18 @@ def checkout(request):
             size = item['data']['size']
             price_each = item['unit_price']
             img = item['image_url']
-            sku = product.sku if product.sku else "N/A" # جلب الـ SKU
+            sku = product.sku if hasattr(product, 'sku') and product.sku else "N/A"
 
             OrderItem.objects.create(
                 order=order, product=product, color=color, size=size,
                 quantity=qty, price_at_purchase=price_each
             )
 
-            # --- بناء صف الجدول مع إضافة الـ SKU ---
+            # بناء صف الجدول للإيميل
             email_items_html += f"""
                 <tr>
                     <td style="padding: 12px; border-bottom: 1px solid #eee; vertical-align: middle;">
-                        <img src="{img}" width="60" style="border-radius:8px; margin-right:12px; vertical-align:middle; border:1px solid #ddd;">
+                        <img src="{img}" width="60" height="60" style="border-radius:8px; margin-right:12px; vertical-align:middle; border:1px solid #ddd; object-fit: cover;">
                         <div style="display: inline-block; vertical-align: middle;">
                             <strong style="font-size: 15px; color: #333;">{product.name}</strong><br>
                             <span style="font-size: 12px; color: #888;">SKU: {sku}</span><br>
@@ -284,6 +286,7 @@ def checkout(request):
                 </tr>
             """
 
+            # تحديث المخزون
             if variant_size:
                 variant_size.stock -= qty
                 variant_size.save()
@@ -291,7 +294,7 @@ def checkout(request):
                 product.stock -= qty
                 product.save()
 
-        # التصميم النهائي للإيميل
+        # التصميم النهائي للهيكل (HTML)
         html_message = f"""
         <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: auto; border: 1px solid #f0f0f0; border-radius: 15px; overflow: hidden; background-color: #ffffff;">
             <div style="background-color: #000000; color: #ffffff; padding: 30px; text-align: center;">
