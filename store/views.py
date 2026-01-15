@@ -12,7 +12,6 @@ from django import forms
 from django.utils.html import strip_tags
 from django.template.loader import render_to_string
 
-# التحديث: تم حذف 'stock' من هنا لأنه انتقل لموديل ProductSize
 VariantFormSet = inlineformset_factory(
     Product, 
     ProductVariant, 
@@ -34,7 +33,6 @@ VariantFormSet = inlineformset_factory(
 def home(request):
     return render(request, 'home.html')
 
-# --- 2. صفحة المتجر (SHOP) ---
 def shop_view(request, category_slug=None):
     categories = Category.objects.all()
     products = Product.objects.all()
@@ -51,12 +49,10 @@ def shop_view(request, category_slug=None):
     }
     return render(request, 'shop.html', context)
 
-# --- 3. صفحة تفاصيل المنتج (Product Detail) ---
 def product_detail(request, id):
     product = get_object_or_404(Product, id=id)
     return render(request, 'product_detail.html', {'product': product})
 
-# --- 4. صفحة اتصل بنا (Contact Us) ---
 def contact_view(request):
     if request.method == 'POST':
         name = request.POST.get('name')
@@ -91,17 +87,16 @@ def contact_view(request):
 
     return render(request, 'contact.html')
 
-# --- 5. منطق عربة التسوق المطور (تم تحديثه ليدعم المقاس) ---
-
-@login_required(login_url='login')
 def add_to_cart(request, product_id):
-    user_cart_key = f"cart_{request.user.id}"
+    if request.user.is_authenticated:
+        user_cart_key = f"cart_{request.user.id}"
+    else:
+        user_cart_key = "cart_guest"
+        
     cart = request.session.get(user_cart_key, {})
-    
     selected_color = request.GET.get('color', 'Default') 
-    selected_size = request.GET.get('size', 'N/A') # استقبال المقاس الجديد
+    selected_size = request.GET.get('size', 'N/A')
     
-    # جعل مفتاح العنصر يعتمد على المنتج واللون والمقاس معاً
     item_key = f"{product_id}_{selected_color}_{selected_size}"
     
     if item_key in cart:
@@ -119,9 +114,12 @@ def add_to_cart(request, product_id):
     messages.success(request, f'Added to cart ({selected_color} - {selected_size})!')
     return redirect(request.META.get('HTTP_REFERER', 'shop'))
 
-@login_required(login_url='login')
 def cart_view(request):
-    user_cart_key = f"cart_{request.user.id}"
+    if request.user.is_authenticated:
+        user_cart_key = f"cart_{request.user.id}"
+    else:
+        user_cart_key = "cart_guest"
+        
     cart = request.session.get(user_cart_key, {})
     cart_items = []
     total_price = 0
@@ -142,7 +140,6 @@ def cart_view(request):
             total_price += subtotal
             
             variant = ProductVariant.objects.filter(product=product, color_name=item_data.get('color')).first()
-            # استخدام صورة اللون أو الصورة الافتراضية
             display_image = variant.variant_image.url if variant else product.main_image
             
             cart_items.append({
@@ -150,7 +147,7 @@ def cart_view(request):
                 'product': product,
                 'quantity': quantity,
                 'color': item_data.get('color'),
-                'size': item_data.get('size', 'N/A'), # عرض المقاس في السلة
+                'size': item_data.get('size', 'N/A'),
                 'display_image': display_image,
                 'subtotal': subtotal,
                 'actual_price': actual_price
@@ -160,9 +157,12 @@ def cart_view(request):
         
     return render(request, 'cart.html', {'cart_items': cart_items, 'total_price': total_price})
 
-@login_required(login_url='login')
 def update_cart(request, item_key, action):
-    user_cart_key = f"cart_{request.user.id}"
+    if request.user.is_authenticated:
+        user_cart_key = f"cart_{request.user.id}"
+    else:
+        user_cart_key = "cart_guest"
+        
     cart = request.session.get(user_cart_key, {})
     if item_key in cart:
         if action == 'increase': cart[item_key]['quantity'] += 1
@@ -173,9 +173,12 @@ def update_cart(request, item_key, action):
         request.session.modified = True
     return redirect('cart_view')
 
-@login_required(login_url='login')
 def remove_from_cart(request, item_key):
-    user_cart_key = f"cart_{request.user.id}"
+    if request.user.is_authenticated:
+        user_cart_key = f"cart_{request.user.id}"
+    else:
+        user_cart_key = "cart_guest"
+        
     cart = request.session.get(user_cart_key, {})
     if item_key in cart:
         del cart[item_key]
@@ -183,19 +186,21 @@ def remove_from_cart(request, item_key):
         request.session.modified = True
     return redirect('cart_view')
 
-@login_required(login_url='login')
 def checkout(request):
-    user_cart_key = f"cart_{request.user.id}"
+    if request.user.is_authenticated:
+        user_cart_key = f"cart_{request.user.id}"
+    else:
+        user_cart_key = "cart_guest"
+        
     cart = request.session.get(user_cart_key, {})
     
     if not cart:
         messages.warning(request, "Your cart is empty!")
-        return redirect('shop_view')
+        return redirect('shop')
 
     total_price = 0
     checkout_items = []
     
-    # 1. التحقق من توافر الكمية وتجهيز البيانات
     for item_key, item_data in cart.items():
         product = get_object_or_404(Product, id=item_data['product_id'])
         color_name = item_data.get('color')
@@ -221,16 +226,12 @@ def checkout(request):
         subtotal = price * quantity_requested
         total_price += subtotal
 
-        # --- الجزء المعدل لضمان ظهور الصور في الإيميل ---
         variant = ProductVariant.objects.filter(product=product, color_name=color_name).first()
-        if variant and variant.variant_image:
-            img_path = variant.variant_image.url
-        else:
-            img_path = product.main_image.url
+        img_path = variant.variant_image.url if variant and variant.variant_image else product.main_image.url
         
-        # بناء رابط كامل يبدأ بـ https ودومين الموقع الخاص بك
         domain = request.get_host()
-        image_url = f"https://{domain}{img_path}"
+        protocol = 'https' if request.is_secure() else 'http'
+        image_url = f"{protocol}://{domain}{img_path}"
 
         checkout_items.append({
             'product': product, 
@@ -253,6 +254,10 @@ def checkout(request):
             governorate=governorate, address=address,
             total_price=total_price
         )
+        
+        if request.user.is_authenticated:
+            order.user = request.user
+            order.save()
 
         email_items_html = ""
         for item in checkout_items:
@@ -270,7 +275,6 @@ def checkout(request):
                 quantity=qty, price_at_purchase=price_each
             )
 
-            # بناء صف الجدول للإيميل
             email_items_html += f"""
                 <tr>
                     <td style="padding: 12px; border-bottom: 1px solid #eee; vertical-align: middle;">
@@ -286,7 +290,6 @@ def checkout(request):
                 </tr>
             """
 
-            # تحديث المخزون
             if variant_size:
                 variant_size.stock -= qty
                 variant_size.save()
@@ -294,7 +297,6 @@ def checkout(request):
                 product.stock -= qty
                 product.save()
 
-        # التصميم النهائي للهيكل (HTML)
         html_message = f"""
         <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: auto; border: 1px solid #f0f0f0; border-radius: 15px; overflow: hidden; background-color: #ffffff;">
             <div style="background-color: #000000; color: #ffffff; padding: 30px; text-align: center;">
@@ -304,7 +306,6 @@ def checkout(request):
             <div style="padding: 30px;">
                 <h2 style="color: #333; margin-top: 0;">Hi {name},</h2>
                 <p style="color: #666; line-height: 1.6;">Thank you for your purchase! We've received your order and we're getting it ready for shipment.</p>
-                
                 <table style="width: 100%; border-collapse: collapse; margin-top: 25px;">
                     <thead>
                         <tr style="background-color: #fafafa; border-bottom: 2px solid #333;">
@@ -313,9 +314,7 @@ def checkout(request):
                             <th style="text-align: right; padding: 12px; color: #333;">Subtotal</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        {email_items_html}
-                    </tbody>
+                    <tbody>{email_items_html}</tbody>
                     <tfoot>
                         <tr>
                             <td colspan="2" style="padding: 20px 10px; text-align: right; font-size: 16px; color: #777;">Grand Total:</td>
@@ -323,7 +322,6 @@ def checkout(request):
                         </tr>
                     </tfoot>
                 </table>
-
                 <div style="margin-top: 30px; padding: 20px; background-color: #f9f9f9; border-radius: 10px;">
                     <h4 style="margin: 0 0 10px 0; color: #333; border-bottom: 1px solid #ddd; padding-bottom: 5px;">Shipping Information</h4>
                     <p style="margin: 5px 0; font-size: 14px; color: #555;"><strong>Address:</strong> {address}</p>
@@ -358,8 +356,6 @@ def checkout(request):
         return render(request, 'order_success.html', {'order': order})
 
     return render(request, 'checkout.html', {'total_price': total_price})
-
-# --- 7. لوحة تحكم الإدارة الكاملة ---
 
 def is_admin(user):
     return user.is_superuser
@@ -437,8 +433,6 @@ def delete_product(request, pk):
     messages.error(request, 'Product has been deleted! 🗑️')
     return redirect('dashboard')
 
-# --- 8. تسجيل الدخول والاشتراك ---
-
 def login_view(request):
     if request.method == 'POST':
         username = request.POST.get('username')
@@ -465,8 +459,6 @@ def signup_view(request):
 def logout_view(request):
     logout(request)
     return redirect('home')
-
-# --- 9. صفحات إضافية ---
 
 def about_view(request):
     return render(request, 'about.html')
