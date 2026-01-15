@@ -28,14 +28,13 @@ class ProductVariantInline(nested_admin.NestedStackedInline):
 class ProductAdmin(nested_admin.NestedModelAdmin):
     inlines = [ProductVariantInline]
     
-    # تحسين عرض الجدول الرئيسي
-    list_display = ['sku', 'name', 'category', 'colored_stock', 'display_price', 'display_discount', 'created_at']
+    # تمت إضافة display_new_status هنا
+    list_display = ['sku', 'name', 'category', 'display_new_status', 'colored_stock', 'display_price', 'display_discount', 'created_at']
     list_display_links = ['name'] 
     list_editable = ['sku', 'category'] 
     list_filter = ['category', 'created_at']
     search_fields = ['sku', 'name', 'description']
 
-    # تنظيم الحقول داخل صفحة المنتج
     fieldsets = (
         ('Basic Information', {
             'fields': ('name', 'sku', 'category', 'description'),
@@ -45,13 +44,19 @@ class ProductAdmin(nested_admin.NestedModelAdmin):
             'fields': (('price', 'discount_price'), 'stock'),
         }),
     )
-    readonly_fields = ['stock'] # جعل الإجمالي للقراءة فقط لأنه يُحسب تلقائياً
+    readonly_fields = ['stock']
+
+    # دالة لإظهار حالة "وصل حديثاً" في لوحة التحكم
+    def display_new_status(self, obj):
+        if obj.is_new:
+            return format_html('<span style="color: #fff; background: #4fc3f7; padding: 2px 10px; border-radius: 12px; font-size: 11px; font-weight: bold;">NEW</span>')
+        return format_html('<span style="color: #999; font-size: 11px;">Standard</span>')
+    display_new_status.short_description = 'Arrival'
 
     def save_related(self, request, form, formsets, change):
         super().save_related(request, form, formsets, change)
         form.instance.update_total_stock()
 
-    # تحسين بصري للمخزون (لون أحمر إذا نفد)
     def colored_stock(self, obj):
         color = 'green' if obj.stock > 10 else 'orange' if obj.stock > 0 else 'red'
         return format_html('<b style="color: {};">{}</b>', color, obj.stock)

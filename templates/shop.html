@@ -49,7 +49,17 @@
     .product-card:hover { transform: translateY(-12px); border-color: var(--primary); box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
 
     .badge { position: absolute; top: 15px; padding: 5px 12px; border-radius: 12px; font-size: 0.8rem; font-weight: bold; z-index: 10; text-transform: uppercase; }
-    .discount-badge { right: 15px; background: var(--red); animation: pulse 2s infinite; }
+    
+    /* تنسيق وسم الخصم */
+    .discount-badge { right: 15px; background: var(--red); animation: pulse 2s infinite; color: white; }
+    
+    /* تنسيق وسم "وصل حديثاً" */
+    .new-badge { 
+        left: 15px; 
+        background: var(--primary); 
+        color: var(--secondary);
+        box-shadow: 0 0 15px rgba(79, 195, 247, 0.4);
+    }
     
     .sold-out-overlay { 
         position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-15deg); 
@@ -61,7 +71,6 @@
     .product-card__image-wrap { width: 100%; aspect-ratio: 4/5; border-radius: 18px; overflow: hidden; margin-bottom: 20px; background: #1a1a1a; position: relative; }
     .main-product-img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.6s, opacity 0.3s, filter 0.5s; }
     
-    /* فلاتر نفاد الكمية */
     .is-sold-out img { filter: grayscale(1) brightness(0.5); }
 
     .color-options { display: flex; gap: 8px; margin-bottom: 15px; justify-content: center; }
@@ -71,8 +80,8 @@
     .current-price { color: var(--primary); font-weight: bold; font-size: 1.4rem; }
     .old-price { text-decoration: line-through; color: rgba(255,255,255,0.4); margin-left: 10px; }
 
-    .product-card__btn { margin-top: auto; padding: 16px; background: var(--primary); color: var(--secondary); border-radius: 14px; text-decoration: none; font-weight: 700; text-align: center; transition: var(--smooth); text-transform: uppercase; }
-    .product-card__btn.btn-disabled { background: #222 !important; color: #555 !important; cursor: not-allowed; border: 1px solid #444; }
+    .product-card__btn { margin-top: auto; padding: 16px; background: var(--primary); color: var(--secondary); border-radius: 14px; text-decoration: none; font-weight: 700; text-align: center; transition: var(--smooth); text-transform: uppercase; border: none; outline: none; display: block; }
+    .product-card__btn.btn-disabled { background: #222 !important; color: #555 !important; cursor: not-allowed; border: 1px solid #444; pointer-events: none; }
 
     @media (max-width: 768px) {
         .product-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 15px; }
@@ -107,7 +116,14 @@
         {% for product in products %}
         <article class="product-card" id="prod-{{ product.id }}">
             <div class="sold-out-overlay" id="ovl-{{ product.id }}">SOLD OUT</div>
-            {% if product.discount_percentage > 0 %}<div class="badge discount-badge">-{{ product.discount_percentage }}%</div>{% endif %}
+            
+            {% if product.discount_percentage > 0 %}
+                <div class="badge discount-badge">-{{ product.discount_percentage }}%</div>
+            {% endif %}
+
+            {% if product.is_new %}
+                <div class="badge new-badge">New Arrival</div>
+            {% endif %}
 
             <div class="product-card__image-wrap" id="img-wrap-{{ product.id }}">
                 <img src="{{ product.main_image.url }}" class="main-product-img" id="img-{{ product.id }}" loading="lazy">
@@ -165,36 +181,28 @@
               btn = document.getElementById('btn-' + productId),
               variantStock = parseInt(el.dataset.variantStock);
 
-        // 1. تغيير الصورة فوراً لصورة اللون المختار (حتى لو خلصان)
         img.style.opacity = '0.3';
         setTimeout(() => { 
             img.src = el.dataset.image; 
             img.style.opacity = '1'; 
         }, 150);
 
-        // 2. تحديث حالة النقطة النشطة
         card.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
         el.classList.add('active');
 
-        // 3. فحص المخزون وتطبيق التصميم المطلوب
         if (variantStock === 0) {
-            // حالة نافد الكمية: الصورة تصبح أبيض وأسود ويظهر الملصق
             imgWrap.classList.add('is-sold-out');
             ovl.style.display = 'block';
             btn.classList.add('btn-disabled');
             btn.innerText = 'Sold Out';
-            btn.style.pointerEvents = 'none'; // منع الضغط على الزر
         } else {
-            // حالة متوفر: الصورة طبيعية ويختفي الملصق
             imgWrap.classList.remove('is-sold-out');
             ovl.style.display = 'none';
             btn.classList.remove('btn-disabled');
             btn.innerText = 'View Details';
-            btn.style.pointerEvents = 'auto';
         }
     }
 
-    // تشغيل التحديث التلقائي عند التحميل لأول لون في كل منتج
     document.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll('.product-card').forEach(c => {
             const firstColor = c.querySelector('.color-dot.active');

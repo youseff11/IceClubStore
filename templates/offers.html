@@ -60,20 +60,34 @@
         box-shadow: 0 20px 40px rgba(0,0,0,0.5);
     }
 
-    .sale-badge {
+    /* أوسمة الحالة */
+    .badge-common {
         position: absolute;
+        padding: 8px 18px;
+        border-radius: 12px;
+        font-weight: 900;
+        font-size: 0.9rem;
+        z-index: 5;
+        text-transform: uppercase;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    }
+
+    .sale-badge {
         top: -10px;
         left: -10px;
         background: var(--discount-color);
         color: white;
-        padding: 8px 18px;
-        border-radius: 12px;
-        font-weight: 900;
-        font-size: 1.1rem;
-        z-index: 5;
-        box-shadow: 0 5px 15px rgba(255, 82, 82, 0.4);
         transform: rotate(-10deg);
         animation: pulse 2s infinite;
+    }
+
+    .new-arrival-badge {
+        top: -10px;
+        right: -10px;
+        background: var(--primary-color);
+        color: #0f2027;
+        transform: rotate(10deg);
+        box-shadow: 0 5px 15px rgba(79, 195, 247, 0.4);
     }
 
     .sold-out-badge {
@@ -88,7 +102,7 @@
         border-radius: 10px;
         font-size: 1.4rem;
         font-weight: 900;
-        display: none; /* يتم التحكم به عبر JS */
+        display: none;
         z-index: 10;
         pointer-events: none;
         text-transform: uppercase;
@@ -122,7 +136,6 @@
         transition: var(--transition);
     }
 
-    /* تأثير اللون الخالصان */
     .img-container.is-sold-out img {
         filter: grayscale(1) brightness(0.5);
         opacity: 0.7;
@@ -221,7 +234,11 @@
             <div class="sold-out-badge" id="badge-{{ product.id }}">SOLD OUT</div>
 
             {% if product.discount_percentage > 0 %}
-                <div class="sale-badge">-{{ product.discount_percentage }}%</div>
+                <div class="badge-common sale-badge">-{{ product.discount_percentage }}%</div>
+            {% endif %}
+
+            {% if product.is_new %}
+                <div class="badge-common new-arrival-badge">New Arrival</div>
             {% endif %}
 
             <div class="img-container" id="img-cont-{{ product.id }}">
@@ -273,22 +290,19 @@
         const stock = parseInt(element.dataset.stock);
         const isOut = stock <= 0;
 
-        // 1. تحديث الصورة لصورة اللون المختار دائماً
         img.style.opacity = '0.3';
         setTimeout(() => {
             img.src = imageUrl;
             img.style.opacity = '1';
         }, 150);
 
-        // 2. تحديث النقاط الملونة
         card.querySelectorAll('.swatch').forEach(s => s.classList.remove('active'));
         element.classList.add('active');
 
-        // 3. تطبيق منطق الـ Sold Out
         if (isOut) {
-            imgCont.classList.add('is-sold-out'); // تجعل الصورة أبيض وأسود
-            badge.style.display = 'block';        // تظهر ملصق SOLD OUT
-            btn.classList.add('disabled');        // تغيير شكل الزر
+            imgCont.classList.add('is-sold-out');
+            badge.style.display = 'block';
+            btn.classList.add('disabled');
             btn.innerText = 'Sold Out';
         } else {
             imgCont.classList.remove('is-sold-out');
@@ -298,7 +312,6 @@
         }
     }
 
-    // الفحص المبدئي لكل المنتجات عند تحميل الصفحة
     document.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll('.offer-card').forEach(card => {
             const activeSwatch = card.querySelector('.swatch.active');
