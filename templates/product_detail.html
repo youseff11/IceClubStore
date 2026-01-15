@@ -9,13 +9,12 @@
         --transition-smooth: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         --discount-color: #ff5252;
         --text-muted: rgba(255, 255, 255, 0.6);
-        /* تم جعل الارتفاع تلقائياً ليكون ريسبونسف */
     }
 
-    body { margin: 0; background: #0f2027; color: #fff; font-family: 'Segoe UI', sans-serif; }
+    body { margin: 0; background: #0f2027; color: #fff; font-family: 'Segoe UI', sans-serif; overflow-x: hidden; }
 
     .detail-wrapper { 
-        padding: 60px 20px; 
+        padding: 20px 10px; 
         background: var(--accent-gradient); 
         min-height: 100vh; 
         display: flex; 
@@ -25,103 +24,102 @@
 
     .detail-container-outer {
         position: relative; 
-        max-width: 1000px; 
+        max-width: 900px; 
         width: 100%; 
-        border-radius: 30px; 
+        border-radius: 20px; 
         display: flex; 
         align-items: center; 
         justify-content: center;
         overflow: hidden; 
-        padding: 2px; 
-        box-shadow: 0 40px 100px rgba(0,0,0,0.6);
+        padding: 1.5px; 
+        box-shadow: 0 30px 60px rgba(0,0,0,0.5);
     }
 
-    /* تأثير الإضاءة الدوارة خلف الكارد */
     .detail-container-outer::before {
-        content: ''; position: absolute; width: 150%; height: 150%;
+        content: ''; position: absolute; width: 160%; height: 160%;
         background-image: conic-gradient(transparent, transparent, transparent, var(--primary-color));
-        animation: rotateLight 5s linear infinite;
+        animation: rotateLight 4s linear infinite;
     }
 
     @keyframes rotateLight { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
     .detail-container {
         position: relative; z-index: 5; width: 100%; background: #0f2027;
-        border-radius: 28px; overflow: hidden;
+        border-radius: 19px; overflow: hidden;
         display: grid;
-        grid-template-columns: 1fr 1fr; /* تقسيم الكارد لنصفين في الشاشات الكبيرة */
+        grid-template-columns: 1fr 1.1fr;
     }
 
-    /* جعل الكارد عمودياً في الشاشات الصغيرة */
     @media (max-width: 850px) {
         .detail-container { grid-template-columns: 1fr; }
-        .image-section { border-right: none !important; border-bottom: 1px solid var(--glass-border); height: 400px; }
-        .info-section { padding: 30px 20px !important; }
+        .image-section { border-right: none !important; border-bottom: 1px solid var(--glass-border); height: 320px; padding: 20px !important; }
+        .info-section { padding: 25px 15px !important; }
+        .product-title { font-size: 1.6rem !important; }
+        .current-price { font-size: 1.5rem !important; }
+        .action-btns { flex-direction: column; gap: 10px !important; }
+        .btn-primary, .btn-back { padding: 14px !important; font-size: 0.95rem; }
     }
 
     .image-section {
         position: relative; background: #15262d; display: flex; align-items: center;
-        justify-content: center; padding: 40px; border-right: 1px solid var(--glass-border);
+        justify-content: center; padding: 30px; border-right: 1px solid var(--glass-border);
     }
 
     .detail-sold-out-badge {
-        position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-15deg);
-        background: rgba(0,0,0,0.85); color: #ff5252; padding: 15px 30px;
-        border: 3px solid #ff5252; font-size: 2rem; font-weight: 900;
-        z-index: 20; display: none; border-radius: 15px;
+        position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-10deg);
+        background: rgba(0,0,0,0.9); color: #ff5252; padding: 10px 20px;
+        border: 2px solid #ff5252; font-size: 1.5rem; font-weight: 900;
+        z-index: 20; display: none; border-radius: 8px;
     }
 
     .detail-discount-badge {
-        position: absolute; top: 20px; left: 20px; background: var(--discount-color);
-        color: white; padding: 8px 16px; border-radius: 12px; font-weight: 800; z-index: 10;
-        font-size: 0.9rem; box-shadow: 0 5px 15px rgba(255, 82, 82, 0.4);
+        position: absolute; top: 15px; left: 15px; background: var(--discount-color);
+        color: white; padding: 5px 12px; border-radius: 8px; font-weight: 800; z-index: 10;
+        font-size: 0.75rem;
     }
 
-    .product-main-img { width: 100%; height: 100%; object-fit: contain; transition: var(--transition-smooth); }
+    .product-main-img { width: 100%; height: 100%; max-height: 100%; object-fit: contain; transition: var(--transition-smooth); }
     .is-out-of-stock img { filter: grayscale(0.8) brightness(0.4); }
 
-    .info-section { padding: 50px; display: flex; flex-direction: column; justify-content: center; }
+    .info-section { padding: 40px; display: flex; flex-direction: column; justify-content: center; }
 
-    /* تكبير اسم القسم وتجميله */
     .category-label { 
         color: var(--primary-color); 
-        font-size: 1rem; /* تم تكبيره */
-        font-weight: 800; 
+        font-size: 0.8rem;
+        font-weight: 700; 
         text-transform: uppercase; 
-        letter-spacing: 4px; 
-        margin-bottom: 12px; 
+        letter-spacing: 2px; 
+        margin-bottom: 8px; 
         display: block;
-        opacity: 0.9;
     }
 
-    .product-title { font-size: 2.5rem; font-weight: 800; margin: 0 0 20px 0; line-height: 1.1; }
+    .product-title { font-size: 2rem; font-weight: 800; margin: 0 0 15px 0; line-height: 1.2; }
 
-    .price-group { display: flex; align-items: baseline; gap: 15px; margin-bottom: 25px; }
-    .current-price { font-size: 2rem; font-weight: 700; color: #fff; }
-    .old-price { font-size: 1.2rem; text-decoration: line-through; color: var(--text-muted); }
+    .price-group { display: flex; align-items: baseline; gap: 12px; margin-bottom: 20px; }
+    .current-price { font-size: 1.8rem; font-weight: 700; color: #fff; }
+    .old-price { font-size: 1.1rem; text-decoration: line-through; color: var(--text-muted); }
 
     .size-chip, .color-dot { cursor: pointer; transition: var(--transition-smooth); }
-    .size-options { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 10px; }
+    .size-options { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
     
     .size-chip { 
-        padding: 10px 20px; border: 1px solid var(--glass-border); border-radius: 12px; 
-        font-weight: 600; background: rgba(255,255,255,0.05); color: #fff;
+        padding: 8px 15px; border: 1px solid var(--glass-border); border-radius: 10px; 
+        font-weight: 600; font-size: 0.85rem; background: rgba(255,255,255,0.05); color: #fff;
     }
-    .size-chip.active { background: var(--primary-color); color: var(--secondary-color); border-color: var(--primary-color); transform: translateY(-3px); }
+    .size-chip.active { background: var(--primary-color); color: var(--secondary-color); border-color: var(--primary-color); }
     .size-chip.out-of-stock { opacity: 0.2; text-decoration: line-through; cursor: not-allowed; }
 
-    .color-dots { display: flex; gap: 15px; margin: 15px 0 30px; }
-    .color-dot { width: 38px; height: 38px; border-radius: 50%; border: 2px solid transparent; padding: 3px; background-clip: content-box; }
-    .color-dot.active { border-color: var(--primary-color); transform: scale(1.2); box-shadow: 0 0 15px var(--primary-color); }
+    .color-dots { display: flex; gap: 12px; margin: 12px 0 25px; }
+    .color-dot { width: 32px; height: 32px; border-radius: 50%; border: 2px solid transparent; padding: 2px; background-clip: content-box; }
+    .color-dot.active { border-color: var(--primary-color); transform: scale(1.1); box-shadow: 0 0 10px var(--primary-color); }
     .sold-out-dot { opacity: 0.4; }
 
-    .action-btns { display: flex; gap: 15px; margin-top: 35px; }
-    .btn-primary, .btn-back { padding: 18px; border-radius: 15px; font-weight: 700; text-decoration: none; text-align: center; flex: 1; transition: var(--transition-smooth); }
-    .btn-primary { flex: 2; background: var(--primary-color); color: var(--secondary-color); box-shadow: 0 10px 20px rgba(79, 195, 247, 0.3); }
-    .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 15px 30px rgba(79, 195, 247, 0.4); }
+    .action-btns { display: flex; gap: 12px; margin-top: 25px; }
+    .btn-primary, .btn-back { padding: 15px; border-radius: 12px; font-weight: 700; text-decoration: none; text-align: center; flex: 1; transition: var(--transition-smooth); font-size: 0.9rem; }
+    .btn-primary { flex: 2; background: var(--primary-color); color: var(--secondary-color); }
+    .btn-primary:active { transform: scale(0.98); }
     .btn-back { border: 1px solid var(--glass-border); color: #fff; background: rgba(255,255,255,0.05); }
-    .btn-back:hover { background: rgba(255,255,255,0.1); }
-    .btn-disabled { background: #222 !important; color: #555 !important; cursor: not-allowed; pointer-events: none; transform: none !important; box-shadow: none !important; }
+    .btn-disabled { background: #222 !important; color: #555 !important; cursor: not-allowed; pointer-events: none; opacity: 0.6; }
 </style>
 
 <div class="detail-wrapper">
@@ -136,7 +134,7 @@
             </div>
 
             <div class="info-section">
-                <span class="category-label">{{ product.category.name|default:"Premium Collection" }}</span>
+                <span class="category-label">{{ product.category.name|default:"Premium" }}</span>
                 <h1 class="product-title">{{ product.name }}</h1>
                 
                 <div class="price-group">
@@ -147,7 +145,7 @@
                 </div>
 
                 <div class="selection-group">
-                    <h4 style="font-size: 0.9rem; color: var(--text-muted); margin: 0; margin-bottom: 5px;">Color: <span id="selected-color-name" style="color: var(--primary-color); font-weight: 700;">Choose</span></h4>
+                    <h4 style="font-size: 0.8rem; color: var(--text-muted); margin: 0 0 5px 0;">Color: <span id="selected-color-name" style="color: var(--primary-color);">Choose</span></h4>
                     <div class="color-dots">
                         {% for variant in product.variants.all|dictsortreversed:"total_variant_stock" %}
                         <div class="color-dot {% if variant.total_variant_stock == 0 %}sold-out-dot{% endif %}" 
@@ -159,11 +157,11 @@
                         {% endfor %}
                     </div>
 
-                    <h4 style="font-size: 0.9rem; color: var(--text-muted); margin: 0;">Size: <span id="selected-size-name" style="color: var(--primary-color); font-weight: 700;">Choose</span></h4>
+                    <h4 style="font-size: 0.8rem; color: var(--text-muted); margin: 0;">Size: <span id="selected-size-name" style="color: var(--primary-color);">Choose</span></h4>
                     <div class="size-options" id="sizeOptionsContainer"></div>
                 </div>
 
-                <p style="color:var(--text-muted); font-size:1rem; line-height: 1.6; margin: 25px 0;">{{ product.description|truncatewords:30 }}</p>
+                <p style="color:var(--text-muted); font-size:0.9rem; line-height: 1.5; margin: 20px 0;">{{ product.description|truncatewords:20 }}</p>
 
                 <div class="action-btns">
                     <a href="#" id="add-to-cart-btn" class="btn-primary">Add to Cart</a>
@@ -180,26 +178,19 @@
     function selectVariant(el) {
         const cName = el.dataset.color, img = el.dataset.img, stock = parseInt(el.dataset.stock);
         const data = JSON.parse(el.querySelector('.v-data').textContent);
-        
         document.getElementById('selected-color-name').innerText = cName;
         selColor = cName;
-        
         const mainImg = document.getElementById('mainDetailImg');
         mainImg.style.opacity = '0.3';
-        mainImg.style.transform = 'scale(0.9)';
-        
         setTimeout(() => { 
             mainImg.src = img; 
             mainImg.style.opacity = '1'; 
-            mainImg.style.transform = 'scale(1)';
             document.getElementById('imgSection').classList.toggle('is-out-of-stock', stock === 0);
             document.getElementById('soldOutLabel').style.display = stock === 0 ? 'block' : 'none';
         }, 150);
-
         const container = document.getElementById('sizeOptionsContainer');
         container.innerHTML = ""; selSize = "";
         document.getElementById('selected-size-name').innerText = "Choose";
-
         data.forEach(s => {
             const chip = document.createElement('div');
             chip.className = `size-chip ${s.s === 0 ? 'out-of-stock' : ''}`;
@@ -215,7 +206,6 @@
             }
             container.appendChild(chip);
         });
-
         document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
         el.classList.add('active');
         updateBtn();
