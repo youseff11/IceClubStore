@@ -2,6 +2,7 @@
 {% block content %}
 
 <style>
+    /* ... (نفس التنسيقات السابقة بدون تغيير) ... */
     :root {
         --primary: #4fc3f7; --secondary: #0f2027;
         --accent-grad: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
@@ -49,17 +50,8 @@
     .product-card:hover { transform: translateY(-12px); border-color: var(--primary); box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
 
     .badge { position: absolute; top: 15px; padding: 5px 12px; border-radius: 12px; font-size: 0.8rem; font-weight: bold; z-index: 10; text-transform: uppercase; }
-    
-    /* تنسيق وسم الخصم */
     .discount-badge { right: 15px; background: var(--red); animation: pulse 2s infinite; color: white; }
-    
-    /* تنسيق وسم "وصل حديثاً" */
-    .new-badge { 
-        left: 15px; 
-        background: var(--primary); 
-        color: var(--secondary);
-        box-shadow: 0 0 15px rgba(79, 195, 247, 0.4);
-    }
+    .new-badge { left: 15px; background: var(--primary); color: var(--secondary); box-shadow: 0 0 15px rgba(79, 195, 247, 0.4); }
     
     .sold-out-overlay { 
         position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-15deg); 
@@ -70,12 +62,12 @@
 
     .product-card__image-wrap { width: 100%; aspect-ratio: 4/5; border-radius: 18px; overflow: hidden; margin-bottom: 20px; background: #1a1a1a; position: relative; }
     .main-product-img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.6s, opacity 0.3s, filter 0.5s; }
-    
     .is-sold-out img { filter: grayscale(1) brightness(0.5); }
 
     .color-options { display: flex; gap: 8px; margin-bottom: 15px; justify-content: center; }
     .color-dot { width: 22px; height: 22px; border-radius: 50%; cursor: pointer; border: 2px solid rgba(255,255,255,0.2); transition: var(--smooth); }
     .color-dot.active { transform: scale(1.3); border-color: var(--primary); box-shadow: 0 0 10px var(--primary); }
+    .color-dot.is-sold-out-dot { opacity: 0.4; position: relative; } /* شكل باهت للألوان المخلصة */
 
     .current-price { color: var(--primary); font-weight: bold; font-size: 1.4rem; }
     .old-price { text-decoration: line-through; color: rgba(255,255,255,0.4); margin-left: 10px; }
@@ -130,8 +122,9 @@
             </div>
 
             <div class="color-options">
-                {% for v in product.variants.all %}
-                <div class="color-dot {% if forloop.first %}active{% endif %}" 
+                {# ترتيب الألوان: المتاح أولاً ثم المخلص #}
+                {% for v in product.variants.all|dictsortreversed:"total_variant_stock" %}
+                <div class="color-dot {% if v.total_variant_stock == 0 %}is-sold-out-dot{% endif %}" 
                      style="background: {{ v.color_code }};" 
                      data-image="{{ v.variant_image.url }}" 
                      data-variant-stock="{{ v.total_variant_stock }}" 
@@ -205,10 +198,17 @@
 
     document.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll('.product-card').forEach(c => {
-            const firstColor = c.querySelector('.color-dot.active');
-            if(firstColor) {
-                const productId = c.id.replace('prod-', '');
-                updateVariant(firstColor, productId);
+            const productId = c.id.replace('prod-', '');
+            // البحث عن أول لون متوفر (Stock > 0)
+            let targetColor = Array.from(c.querySelectorAll('.color-dot')).find(d => parseInt(d.dataset.variantStock) > 0);
+            
+            // إذا كانت كل الألوان مخلصة، نأخذ أول واحد وخلاص
+            if (!targetColor) {
+                targetColor = c.querySelector('.color-dot');
+            }
+
+            if (targetColor) {
+                updateVariant(targetColor, productId);
             }
         });
     });
