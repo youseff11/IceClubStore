@@ -1,3 +1,7 @@
+import requests
+import hashlib
+import time
+import json
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required, user_passes_test
@@ -11,6 +15,48 @@ from .forms import ProductForm
 from django import forms
 from django.utils.html import strip_tags
 from django.template.loader import render_to_string
+
+# --- إعدادات Facebook CAPI (استبدل القيم بالبيانات الخاصة بك) ---
+FB_PIXEL_ID = 'YOUR_PIXEL_ID'  # ضع هنا رقم البيكسل
+FB_ACCESS_TOKEN = 'YOUR_ACCESS_TOKEN'  # ضع هنا التوكن الخاص بك
+FB_API_VERSION = 'v18.0'
+
+def send_fb_capi_event(request, event_name, user_data=None, custom_data=None):
+    """دالة مساعدة لإرسال الأحداث إلى سيرفرات فيسبوك مباشرة"""
+    url = f"https://graph.facebook.com/{FB_API_VERSION}/{FB_PIXEL_ID}/events"
+    
+    # تجهيز بيانات المستخدم وتشفيرها (Hashing) كما يطلب فيسبوك
+    payload_user_data = {
+        "client_ip_address": request.META.get('REMOTE_ADDR'),
+        "client_user_agent": request.META.get('HTTP_USER_AGENT'),
+    }
+    
+    if user_data:
+        for key, value in user_data.items():
+            if value:
+                # تشفير البيانات الشخصية باستخدام SHA256
+                payload_user_data[key] = hashlib.sha256(str(value).lower().strip().encode()).hexdigest()
+
+    data = {
+        "data": [
+            {
+                "event_name": event_name,
+                "event_time": int(time.time()),
+                "action_source": "website",
+                "event_source_url": request.build_absolute_uri(),
+                "user_data": payload_user_data,
+                "custom_data": custom_data or {}
+            }
+        ],
+        "access_token": FB_ACCESS_TOKEN
+    }
+
+    try:
+        requests.post(url, json=data)
+    except Exception as e:
+        print(f"Facebook CAPI Error: {e}")
+
+# --- كودك الأصلي مع الإضافات ---
 
 VariantFormSet = inlineformset_factory(
     Product, 
@@ -51,6 +97,21 @@ def shop_view(request, category_slug=None):
 
 def product_detail(request, id):
     product = get_object_or_404(Product, id=id)
+    
+    # تتبع حدث: مشاهدة منتج (ViewContent)
+    price = float(product.discount_price if product.discount_price else product.price)
+    send_fb_capi_event(
+        request, 
+        "ViewContent", 
+        custom_data={
+            "content_ids": [str(product.id)],
+            "content_name": product.name,
+            "content_type": "product",
+            "value": price,
+            "currency": "EGP"
+        }
+    )
+    
     return render(request, 'product_detail.html', {'product': product})
 
 def contact_view(request):
@@ -108,6 +169,20 @@ def add_to_cart(request, product_id):
             'color': selected_color,
             'size': selected_size
         }
+    
+    # تتبع حدث: إضافة للسلة (AddToCart)
+    product = get_object_or_404(Product, id=product_id)
+    price = float(product.discount_price if product.discount_price else product.price)
+    send_fb_capi_event(
+        request, 
+        "AddToCart", 
+        custom_data={
+            "content_ids": [str(product_id)],
+            "content_type": "product",
+            "value": price,
+            "currency": "EGP"
+        }
+    )
         
     request.session[user_cart_key] = cart
     request.session.modified = True
@@ -242,6 +317,14 @@ def checkout(request):
             'image_url': image_url
         })
 
+    # تتبع حدث: بدء الدفع (InitiateCheckout) عند تحميل الصفحة
+    if request.method == 'GET' and total_price > 0:
+        send_fb_capi_event(
+            request, 
+            "InitiateCheckout", 
+            custom_data={"value": float(total_price), "currency": "EGP"}
+        )
+
     if request.method == 'POST':
         name = request.POST.get('name')
         email = request.POST.get('email')
@@ -258,6 +341,14 @@ def checkout(request):
         if request.user.is_authenticated:
             order.user = request.user
             order.save()
+
+        # تتبع حدث: عملية الشراء (Purchase)
+        send_fb_capi_event(
+            request, 
+            "Purchase", 
+            user_data={"em": email, "ph": phone},
+            custom_data={"value": float(total_price), "currency": "EGP", "order_id": str(order.id)}
+        )
 
         email_items_html = ""
         for item in checkout_items:

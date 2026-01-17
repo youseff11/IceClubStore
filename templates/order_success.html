@@ -202,4 +202,17 @@
         </div>
     </div>
 </div>
+
+<script>
+    if (typeof fbq !== 'undefined') {
+        fbq('track', 'Purchase', {
+            value: {{ order.total_price|floatformat:2 }},
+            currency: 'EGP',
+            content_ids: ['{{ order.id }}'], 
+            content_type: 'product',
+            // يمكنك إضافة تفاصيل إضافية مثل البريد الإلكتروني للمطابقة المتقدمة
+            external_id: '{{ order.id }}'
+        });
+    }
+</script>
 {% endblock %}
