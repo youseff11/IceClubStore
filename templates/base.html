@@ -1,11 +1,10 @@
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ice Club</title>
 
-    <!-- Meta Pixel Code -->
     <script>
     !function(f,b,e,v,n,t,s)
     {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
@@ -21,25 +20,32 @@
     <noscript><img height="1" width="1" style="display:none"
     src="https://www.facebook.com/tr?id=792214427202379&ev=PageView&noscript=1"
     /></noscript>
-    <!-- End Meta Pixel Code -->
-    </head>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
 <body>
     {% include 'navbar.html' %}
 
-    <div class="container mt-4">
-        {% if messages and request.resolver_match.url_name != 'dashboard' %}
-            {% for message in messages %}
-                <div class="alert alert-{{ message.tags }}">
-                    {{ message }}
-                </div>
-            {% endfor %}
-        {% endif %}
-    </div>
+    {% if messages and request.resolver_match.url_name != 'dashboard' %}
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                {% for message in messages %}
+                    Swal.fire({
+                        icon: '{% if message.tags == "error" %}error{% elif message.tags == "warning" %}warning{% else %}success{% endif %}',
+                        title: 'Notification',
+                        text: '{{ message }}',
+                        confirmButtonColor: '#4fc3f7',
+                        timer: 3500,
+                        timerProgressBar: true
+                    });
+                {% endfor %}
+            });
+        </script>
+    {% endif %}
 
     {% block content %}
     {% endblock %}
 
     {% include 'footer.html' %}
-
-    </body>
+</body>
 </html>

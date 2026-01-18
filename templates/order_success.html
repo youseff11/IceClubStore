@@ -212,9 +212,8 @@
           currency: 'EGP',
           content_ids: [orderId], 
           content_type: 'product',
-          // إضافة الفلاتر لضمان توافق البيانات مع معايير فيسبوك
-          em: '{{ order.email|lower|trim }}',
-          ph: '{{ order.phone|trim }}',
+          em: '{{ order.email|lower }}'.trim(),
+          ph: '{{ order.phone }}'.trim(),
           external_id: orderId 
       }, {
           eventID: orderId 
