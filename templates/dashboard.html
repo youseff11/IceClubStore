@@ -74,6 +74,50 @@
         margin-bottom: 40px;
     }
 
+    /* --- التعديل الجديد: شريط التمرير للجدول --- */
+    .scrollable-table {
+        max-height: 450px; /* طول الجدول الأقصى */
+        overflow-y: auto;
+        padding-right: 5px;
+    }
+
+    .scrollable-table::-webkit-scrollbar {
+        width: 6px;
+    }
+    .scrollable-table::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.05);
+    }
+    .scrollable-table::-webkit-scrollbar-thumb {
+        background: var(--primary-color);
+        border-radius: 10px;
+    }
+
+    /* تنسيق قائمة اختيار الحالة */
+    .status-select {
+        background: #1c3a4d;
+        color: white;
+        border: 1px solid rgba(79, 195, 247, 0.3);
+        padding: 6px;
+        border-radius: 8px;
+        font-size: 12px;
+        cursor: pointer;
+        outline: none;
+    }
+
+    .btn-save-status {
+        background: var(--primary-color);
+        border: none;
+        color: #0f2027;
+        padding: 6px 10px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 12px;
+        transition: 0.3s;
+    }
+
+    .btn-save-status:hover { background: #fff; }
+    /* -------------------------------------- */
+
     .section-header {
         display: flex;
         justify-content: space-between;
@@ -96,14 +140,12 @@
 
     .btn-add:hover { background: #fff; transform: translateY(-3px); }
 
-    /* تحسين الجدول */
     .table-responsive { 
         width: 100%;
         overflow-x: auto; 
-        -webkit-overflow-scrolling: touch;
     }
 
-    table { width: 100%; border-collapse: collapse; min-width: 600px; }
+    table { width: 100%; border-collapse: collapse; min-width: 700px; }
 
     th {
         text-align: left;
@@ -112,11 +154,14 @@
         color: var(--primary-color);
         font-size: 12px;
         text-transform: uppercase;
+        position: sticky; /* جعل الهيدر ثابت عند التمرير */
+        top: 0;
+        background: #1a3341; 
+        z-index: 2;
     }
 
     td { padding: 15px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); font-size: 14px; vertical-align: middle; }
 
-    /* صورة المنتج واللون */
     .img-stack { position: relative; width: 45px; height: 45px; }
     .product-img { width: 45px; height: 45px; object-fit: cover; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); }
     .color-preview-small {
@@ -134,12 +179,11 @@
     .edit-link { color: var(--primary-color); }
     .delete-link { color: #ff4d4d; }
 
-    /* الحالات */
     .badge { padding: 6px 14px; border-radius: 50px; font-size: 11px; font-weight: 700; }
     .status-pending { background: rgba(255, 193, 7, 0.1); color: #ffc107; border: 1px solid #ffc107; }
     .status-delivered { background: rgba(40, 167, 69, 0.1); color: #28a745; border: 1px solid #28a745; }
+    .status-processing { background: rgba(79, 195, 247, 0.1); color: #4fc3f7; border: 1px solid #4fc3f7; }
 
-    /* الموبايل */
     @media (max-width: 768px) {
         .dashboard-container { padding-top: 100px; }
         .section-header h3 { font-size: 20px; }
@@ -195,7 +239,7 @@
             <h3><i class="fas fa-box-open" style="color: var(--primary-color);"></i> Inventory Management</h3>
             <a href="{% url 'add_product' %}" class="btn-add">+ New Product</a>
         </div>
-        <div class="table-responsive">
+        <div class="table-responsive scrollable-table">
             <table>
                 <thead>
                     <tr>
@@ -246,14 +290,15 @@
         <div class="section-header">
             <h3><i class="fas fa-shopping-cart" style="color: var(--primary-color);"></i> Recent Orders</h3>
         </div>
-        <div class="table-responsive">
+        <div class="table-responsive scrollable-table">
             <table>
                 <thead>
                     <tr>
                         <th>Order ID</th>
                         <th>Customer</th>
                         <th>Total Amount</th>
-                        <th>Status</th>
+                        <th>Status Control</th>
+                        <th>Current State</th>
                         <th>Order Date</th>
                     </tr>
                 </thead>
@@ -264,6 +309,21 @@
                         <td>{{ order.name }}</td>
                         <td style="font-weight: 700;">{{ order.total_price|floatformat:0 }} LE</td>
                         <td>
+                            <form method="POST" action="{% url 'update_order_status' order.id %}" style="display: flex; gap: 8px; align-items: center;">
+                                {% csrf_token %}
+                                <select name="status" class="status-select">
+                                    <option value="Pending" {% if order.status == 'Pending' %}selected{% endif %}>Pending</option>
+                                    <option value="Processing" {% if order.status == 'Processing' %}selected{% endif %}>Processing</option>
+                                    <option value="Shipped" {% if order.status == 'Shipped' %}selected{% endif %}>Shipped</option>
+                                    <option value="Delivered" {% if order.status == 'Delivered' %}selected{% endif %}>Delivered</option>
+                                    <option value="Cancelled" {% if order.status == 'Cancelled' %}selected{% endif %}>Cancelled</option>
+                                </select>
+                                <button type="submit" class="btn-save-status" title="Update Status">
+                                    <i class="fas fa-check"></i>
+                                </button>
+                            </form>
+                        </td>
+                        <td>
                             <span class="badge status-{{ order.status|lower }}">
                                 {{ order.get_status_display }}
                             </span>
@@ -271,7 +331,7 @@
                         <td>{{ order.created_at|date:"d M, Y" }}</td>
                     </tr>
                     {% empty %}
-                    <tr><td colspan="5" style="text-align: center; padding: 40px;">No recent orders.</td></tr>
+                    <tr><td colspan="6" style="text-align: center; padding: 40px;">No recent orders.</td></tr>
                     {% endfor %}
                 </tbody>
             </table>
@@ -282,7 +342,7 @@
         <div class="section-header">
             <h3><i class="fas fa-comment-dots" style="color: var(--primary-color);"></i> Customer Inquiries</h3>
         </div>
-        <div class="table-responsive">
+        <div class="table-responsive scrollable-table">
             <table>
                 <thead>
                     <tr>
