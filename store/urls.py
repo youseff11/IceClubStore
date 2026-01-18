@@ -17,6 +17,7 @@ urlpatterns = [
     path('dashboard/add-product/', views.add_product, name='add_product'),
     path('dashboard/delete-product/<int:pk>/', views.delete_product, name='delete_product'),
     path('dashboard/edit-product/<int:pk>/', views.edit_product, name='edit_product'),
+    path('order/update/<int:order_id>/', views.update_order_status, name='update_order_status'),
 
     # --- المتجر والمنتجات ---
     path('shop/', views.shop_view, name='shop'),     
