@@ -22,6 +22,7 @@ FB_ACCESS_TOKEN = 'EAAXY0i6ZArdwBQUwZAq4Mx7ArysubuZAELX8l1XnZBVA1gqWwklibClR6Hrw
 FB_API_VERSION = 'v18.0'
 
 def send_fb_capi_event(request, event_name, event_id=None, user_data=None, custom_data=None):
+    """دالة مساعدة لإرسال الأحداث إلى سيرفرات فيسبوك مباشرة مع منع التكرار"""
     url = f"https://graph.facebook.com/{FB_API_VERSION}/{FB_PIXEL_ID}/events"
     
     if not event_id:
@@ -246,38 +247,22 @@ def cart_view(request):
         
     return render(request, 'cart.html', {'cart_items': cart_items, 'total_price': total_price})
 
-@user_passes_test(is_admin, login_url='login')
-def update_order_status(request, order_id):
-    if request.method == 'POST':
-        order = get_object_or_404(Order, id=order_id)
-        new_status = request.POST.get('status')
+def update_cart(request, item_key, action):
+    if request.user.is_authenticated:
+        user_cart_key = f"cart_{request.user.id}"
+    else:
+        user_cart_key = "cart_guest"
         
-        # التأكد من أن الحالة المرسلة موجودة ضمن الخيارات المتاحة في الموديل
-        if new_status in dict(Order.STATUS_CHOICES):
-            old_status = order.status
-            order.status = new_status
-            order.save()
-            
-            # إرسال إشعار للعميل عبر الإيميل في حالة تغيير الحالة (اختياري ولكن احترافي)
-            if old_status != new_status:
-                try:
-                    subject = f"Update on your Order #{order.id} - Ice Club"
-                    message = f"Hi {order.name},\n\nThe status of your order #{order.id} has been updated to: {order.get_status_display()}.\n\nThank you for shopping with us!"
-                    send_mail(
-                        subject,
-                        message,
-                        settings.EMAIL_HOST_USER,
-                        [order.email],
-                        fail_silently=True,
-                    )
-                except Exception as e:
-                    print(f"Email error: {e}")
-
-            messages.success(request, f'Order #{order.id} status updated to {new_status} successfully!')
-        else:
-            messages.error(request, 'Invalid status selected.')
-            
-    return redirect('dashboard')
+    cart = request.session.get(user_cart_key, {})
+    if item_key in cart:
+        if action == 'increase': cart[item_key]['quantity'] += 1
+        elif action == 'decrease':
+            cart[item_key]['quantity'] -= 1
+            if cart[item_key]['quantity'] <= 0: del cart[item_key]
+        request.session[user_cart_key] = cart
+        request.session.modified = True
+    return redirect('cart_view')
+    
 
 def remove_from_cart(request, item_key):
     if request.user.is_authenticated:
@@ -559,6 +544,39 @@ def delete_product(request, pk):
     product = get_object_or_404(Product, pk=pk)
     product.delete()
     messages.error(request, 'Product has been deleted! 🗑️')
+    return redirect('dashboard')
+
+@user_passes_test(is_admin, login_url='login')
+def update_order_status(request, order_id):
+    if request.method == 'POST':
+        order = get_object_or_404(Order, id=order_id)
+        new_status = request.POST.get('status')
+        
+        # التأكد من أن الحالة المرسلة موجودة ضمن الخيارات المتاحة في الموديل
+        if new_status in dict(Order.STATUS_CHOICES):
+            old_status = order.status
+            order.status = new_status
+            order.save()
+            
+            # إرسال إشعار للعميل عبر الإيميل في حالة تغيير الحالة (اختياري ولكن احترافي)
+            if old_status != new_status:
+                try:
+                    subject = f"Update on your Order #{order.id} - Ice Club"
+                    message = f"Hi {order.name},\n\nThe status of your order #{order.id} has been updated to: {order.get_status_display()}.\n\nThank you for shopping with us!"
+                    send_mail(
+                        subject,
+                        message,
+                        settings.EMAIL_HOST_USER,
+                        [order.email],
+                        fail_silently=True,
+                    )
+                except Exception as e:
+                    print(f"Email error: {e}")
+
+            messages.success(request, f'Order #{order.id} status updated to {new_status} successfully!')
+        else:
+            messages.error(request, 'Invalid status selected.')
+            
     return redirect('dashboard')
 
 def login_view(request):
