@@ -27,7 +27,7 @@
     {% include 'navbar.html' %}
 
     <div class="container mt-4">
-        {% if messages %}
+        {% if messages and request.resolver_match.url_name != 'dashboard' %}
             {% for message in messages %}
                 <div class="alert alert-{{ message.tags }}">
                     {{ message }}

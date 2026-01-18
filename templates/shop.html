@@ -151,21 +151,7 @@
 </section>
 
 <script>
-    function toggleDropdown(event) {
-        event.stopPropagation();
-        document.getElementById("myDropdown").classList.toggle("show");
-    }
-
-    window.onclick = function(event) {
-        if (!event.target.matches('.drop-btn')) {
-            var dropdowns = document.getElementsByClassName("dropdown-content");
-            for (var i = 0; i < dropdowns.length; i++) {
-                var openDropdown = dropdowns[i];
-                if (openDropdown.classList.contains('show')) openDropdown.classList.remove('show');
-            }
-        }
-    }
-
+    // دالة التبديل الأساسية مع التتبع مدمج داخلها
     function updateVariant(el, productId) {
         const card = document.getElementById('prod-' + productId),
               img = document.getElementById('img-' + productId),
@@ -174,6 +160,7 @@
               btn = document.getElementById('btn-' + productId),
               variantStock = parseInt(el.dataset.variantStock);
 
+        // 1. الجزء البصري (UI)
         img.style.opacity = '0.3';
         setTimeout(() => { 
             img.src = el.dataset.image; 
@@ -194,23 +181,57 @@
             btn.classList.remove('btn-disabled');
             btn.innerText = 'View Details';
         }
+
+        // 2. جزء التتبع (Meta Pixel)
+        if (typeof fbq !== 'undefined') {
+            fbq('trackCustom', 'LeadColorChange', {
+                product_id: productId,
+                stock_status: variantStock > 0 ? 'In Stock' : 'Out of Stock'
+            });
+        }
     }
 
+    // تشغيل الإعدادات عند تحميل الصفحة
     document.addEventListener('DOMContentLoaded', () => {
+        // تتبع التصنيف إذا وُجد
+        {% if selected_category %}
+            fbq('track', 'ViewContent', {
+                content_name: '{{ selected_category.name }}',
+                content_type: 'product_group'
+            });
+        {% endif %}
+
+        // ضبط الحالة الابتدائية لكل منتج
         document.querySelectorAll('.product-card').forEach(c => {
             const productId = c.id.replace('prod-', '');
-            // البحث عن أول لون متوفر (Stock > 0)
-            let targetColor = Array.from(c.querySelectorAll('.color-dot')).find(d => parseInt(d.dataset.variantStock) > 0);
+            let targetColor = Array.from(c.querySelectorAll('.color-dot')).find(d => parseInt(d.dataset.variantStock) > 0) || c.querySelector('.color-dot');
             
-            // إذا كانت كل الألوان مخلصة، نأخذ أول واحد وخلاص
-            if (!targetColor) {
-                targetColor = c.querySelector('.color-dot');
-            }
-
             if (targetColor) {
                 updateVariant(targetColor, productId);
             }
         });
+
+        // تتبع النقر على التفاصيل
+        document.querySelectorAll('.product-card__btn').forEach(button => {
+            button.addEventListener('click', function() {
+                fbq('track', 'ClickToViewProduct', { product_id: this.id.replace('btn-', '') });
+            });
+        });
     });
+
+    // وظيفة القائمة المنسدلة
+    function toggleDropdown(event) {
+        event.stopPropagation();
+        document.getElementById("myDropdown").classList.toggle("show");
+    }
+
+    window.onclick = function(event) {
+        if (!event.target.matches('.drop-btn')) {
+            var dropdowns = document.getElementsByClassName("dropdown-content");
+            for (var i = 0; i < dropdowns.length; i++) {
+                if (dropdowns[i].classList.contains('show')) dropdowns[i].classList.remove('show');
+            }
+        }
+    }
 </script>
 {% endblock %}

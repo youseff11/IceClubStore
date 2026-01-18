@@ -331,5 +331,36 @@
         });
     });
 </script>
+<script>
+  // 1. حدث تتبع عرض صفحة العروض بشكل عام
+  fbq('trackCustom', 'ViewDiscountedProducts', {
+    content_name: 'Hot Offers Page',
+    promo_code: 'Winter_Sale_2026' // يمكنك تغييره حسب الموسم
+  });
 
+  // 2. تتبع التفاعل مع تبديل ألوان العروض
+  const originalChangeOfferVariant = changeOfferVariant;
+  changeOfferVariant = function(productId, element) {
+    originalChangeOfferVariant(productId, element); // تشغيل الكود الأصلي
+    
+    // إرسال حدث تخصيص لفيسبوك
+    fbq('track', 'CustomizeProduct', {
+        content_ids: [productId],
+        content_type: 'product',
+        description: 'User viewing offer color: ' + element.title
+    });
+  };
+
+  // 3. تتبع الضغط على زر "Grab it Now"
+  document.querySelectorAll('.buy-btn').forEach(button => {
+    button.addEventListener('click', function() {
+      // نرسل حدث "الرغبة في الشراء" لمنتج مخفض
+      fbq('track', 'ViewContent', {
+        content_ids: [this.id.replace('btn-', '')],
+        content_type: 'product',
+        content_category: 'Offers/Discounts'
+      });
+    });
+  });
+</script>
 {% endblock %}

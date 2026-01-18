@@ -17,15 +17,13 @@ from django.utils.html import strip_tags
 from django.template.loader import render_to_string
 
 # --- إعدادات Facebook CAPI (استبدل القيم بالبيانات الخاصة بك) ---
-FB_PIXEL_ID = '792214427202379'  # ضع هنا رقم البيكسل
+FB_PIXEL_ID = '792214427202379'  
 FB_ACCESS_TOKEN = 'EAAXY0i6ZArdwBQUwZAq4Mx7ArysubuZAELX8l1XnZBVA1gqWwklibClR6Hrw5Ves0DhZCK5SjjtrqwZAfWeX6yZBCmzsqNlUlW4cwTk4NQFHcCqT2rKPxfPLKMbr6DxvK4Gg0XlNqJGhBVTWqvgQR92MvT9CamOHpNDiUQ2X7bDc7s3LxXQZB6I9vSKs9R8u0ZCWv8gZDZD'  # ضع هنا التوكن الخاص بك
 FB_API_VERSION = 'v18.0'
 
 def send_fb_capi_event(request, event_name, event_id=None, user_data=None, custom_data=None):
-    """دالة مساعدة لإرسال الأحداث إلى سيرفرات فيسبوك مباشرة مع منع التكرار"""
     url = f"https://graph.facebook.com/{FB_API_VERSION}/{FB_PIXEL_ID}/events"
     
-    # إذا لم يتم تمرير event_id، ننشئ واحد فريد بناءً على الوقت
     if not event_id:
         event_id = f"server_{int(time.time())}_{hashlib.md5(request.META.get('HTTP_USER_AGENT', '').encode()).hexdigest()[:6]}"
 
@@ -37,14 +35,13 @@ def send_fb_capi_event(request, event_name, event_id=None, user_data=None, custo
     if user_data:
         for key, value in user_data.items():
             if value:
-                # تشفير البيانات الشخصية باستخدام SHA256
                 payload_user_data[key] = hashlib.sha256(str(value).lower().strip().encode()).hexdigest()
 
     data = {
         "data": [
             {
                 "event_name": event_name,
-                "event_id": event_id,  # المعرف المشترك مع المتصفح
+                "event_id": event_id,  
                 "event_time": int(time.time()),
                 "action_source": "website",
                 "event_source_url": request.build_absolute_uri(),
@@ -166,9 +163,7 @@ def add_to_cart(request, product_id):
     selected_size = request.GET.get('size', 'N/A')
     
     # جلب الـ event_id من الـ Frontend (مهم جداً لمنع تكرار البيانات في فيسبوك)
-    e_id = request.GET.get('eid')
-    
-    # إنشاء مفتاح فريد للمنتج داخل السلة بناءً على اللون والمقاس
+    e_id = request.GET.get('eid')    
     item_key = f"{product_id}_{selected_color}_{selected_size}"
     
     if item_key in cart:

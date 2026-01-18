@@ -323,4 +323,22 @@
         .mobile-only, .mobile-label, .mobile-subtotal { display: block !important; }
     }
 </style>
+<script>
+  // 1. حدث عرض سلة المشتريات
+  fbq('track', 'AddToCart', {
+    content_ids: [{% for item in cart_items %}'{{ item.product.id }}'{% if not forloop.last %}, {% endif %}{% endfor %}],
+    content_type: 'product',
+    value: {{ total_price }},
+    currency: 'EGP'
+  });
+
+  // 2. ربط زر "Proceed to Checkout" بحدث بدء الدفع
+  document.querySelector('.checkout-btn').addEventListener('click', function() {
+    fbq('track', 'InitiateCheckout', {
+      num_items: {{ cart_items|length }},
+      value: {{ total_price }},
+      currency: 'EGP'
+    });
+  });
+</script>
 {% endblock %}

@@ -202,23 +202,25 @@
         </div>
     </div>
 </div>
-
 <script>
-    if (typeof fbq !== 'undefined') {
-        fbq('track', 'Purchase', {
-            value: {{ order.total_price|floatformat:2 }},
-            currency: 'EGP',
-            content_ids: ['{{ order.id }}'], 
-            content_type: 'product',
-            // بيانات إضافية للمطابقة المتقدمة (تزيد جودة الحدث)
-            em: '{{ order.email }}',
-            ph: '{{ order.phone }}',
-            external_id: '{{ order.id }}' 
-        }, {
-            // المعرف الفريد لمنع تكرار الطلب (Deduplication)
-            // يجب أن يتطابق مع event_id المرسل من السيرفر
-            eventID: '{{ order.id }}' 
-        });
-    }
+  const orderId = '{{ order.id }}';
+  const hasTracked = sessionStorage.getItem('tracked_purchase_' + orderId);
+
+  if (typeof fbq !== 'undefined' && !hasTracked) {
+      fbq('track', 'Purchase', {
+          value: {{ order.total_price|floatformat:2 }},
+          currency: 'EGP',
+          content_ids: [orderId], 
+          content_type: 'product',
+          // إضافة الفلاتر لضمان توافق البيانات مع معايير فيسبوك
+          em: '{{ order.email|lower|trim }}',
+          ph: '{{ order.phone|trim }}',
+          external_id: orderId 
+      }, {
+          eventID: orderId 
+      });
+
+      sessionStorage.setItem('tracked_purchase_' + orderId, 'true');
+  }
 </script>
 {% endblock %}

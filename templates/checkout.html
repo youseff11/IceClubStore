@@ -325,4 +325,41 @@
         </div>
     </div>
 </div>
+<script>
+  // 1. حدث بدء الدفع: يرسل فور تحميل الصفحة
+  if (typeof fbq !== 'undefined') {
+    fbq('track', 'InitiateCheckout', {
+      value: {{ total_price }},
+      currency: 'EGP',
+      content_category: 'Checkout'
+    });
+  }
+
+  // 2. تتبع إضافة المعلومات (يتنفذ مرة واحدة عند أول كتابة في الفورم)
+  const checkoutForm = document.querySelector('.checkout-form');
+  const formInputs = checkoutForm.querySelectorAll('input, select');
+  
+  let infoTracked = false;
+  formInputs.forEach(input => {
+    input.addEventListener('input', function() {
+      if (!infoTracked && typeof fbq !== 'undefined') {
+        fbq('track', 'AddPaymentInfo', {
+          content_category: 'Checkout',
+          value: {{ total_price }},
+          currency: 'EGP'
+        });
+        infoTracked = true; // لضمان عدم تكرار الحدث مع كل حرف يكتبه العميل
+      }
+    });
+  });
+
+  // 3. تتبع محاولة الإرسال (اختياري - لمراقبة نية الشراء القوية)
+  checkoutForm.addEventListener('submit', function() {
+    if (typeof fbq !== 'undefined') {
+        fbq('trackCustom', 'AttemptedOrderConfirmation', {
+            total_value: {{ total_price }}
+        });
+    }
+  });
+</script>
 {% endblock %}
