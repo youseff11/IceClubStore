@@ -17,15 +17,18 @@ from django.utils.html import strip_tags
 from django.template.loader import render_to_string
 
 # --- إعدادات Facebook CAPI (استبدل القيم بالبيانات الخاصة بك) ---
-FB_PIXEL_ID = 'YOUR_PIXEL_ID'  # ضع هنا رقم البيكسل
-FB_ACCESS_TOKEN = 'YOUR_ACCESS_TOKEN'  # ضع هنا التوكن الخاص بك
+FB_PIXEL_ID = '792214427202379'  # ضع هنا رقم البيكسل
+FB_ACCESS_TOKEN = 'EAAXY0i6ZArdwBQUwZAq4Mx7ArysubuZAELX8l1XnZBVA1gqWwklibClR6Hrw5Ves0DhZCK5SjjtrqwZAfWeX6yZBCmzsqNlUlW4cwTk4NQFHcCqT2rKPxfPLKMbr6DxvK4Gg0XlNqJGhBVTWqvgQR92MvT9CamOHpNDiUQ2X7bDc7s3LxXQZB6I9vSKs9R8u0ZCWv8gZDZD'  # ضع هنا التوكن الخاص بك
 FB_API_VERSION = 'v18.0'
 
-def send_fb_capi_event(request, event_name, user_data=None, custom_data=None):
-    """دالة مساعدة لإرسال الأحداث إلى سيرفرات فيسبوك مباشرة"""
+def send_fb_capi_event(request, event_name, event_id=None, user_data=None, custom_data=None):
+    """دالة مساعدة لإرسال الأحداث إلى سيرفرات فيسبوك مباشرة مع منع التكرار"""
     url = f"https://graph.facebook.com/{FB_API_VERSION}/{FB_PIXEL_ID}/events"
     
-    # تجهيز بيانات المستخدم وتشفيرها (Hashing) كما يطلب فيسبوك
+    # إذا لم يتم تمرير event_id، ننشئ واحد فريد بناءً على الوقت
+    if not event_id:
+        event_id = f"server_{int(time.time())}_{hashlib.md5(request.META.get('HTTP_USER_AGENT', '').encode()).hexdigest()[:6]}"
+
     payload_user_data = {
         "client_ip_address": request.META.get('REMOTE_ADDR'),
         "client_user_agent": request.META.get('HTTP_USER_AGENT'),
@@ -41,6 +44,7 @@ def send_fb_capi_event(request, event_name, user_data=None, custom_data=None):
         "data": [
             {
                 "event_name": event_name,
+                "event_id": event_id,  # المعرف المشترك مع المتصفح
                 "event_time": int(time.time()),
                 "action_source": "website",
                 "event_source_url": request.build_absolute_uri(),
@@ -149,15 +153,22 @@ def contact_view(request):
     return render(request, 'contact.html')
 
 def add_to_cart(request, product_id):
+    # تحديد مفتاح السلة بناءً على حالة تسجيل الدخول
     if request.user.is_authenticated:
         user_cart_key = f"cart_{request.user.id}"
     else:
         user_cart_key = "cart_guest"
         
     cart = request.session.get(user_cart_key, {})
+    
+    # جلب البيانات المختارة من الرابط (Query Parameters)
     selected_color = request.GET.get('color', 'Default') 
     selected_size = request.GET.get('size', 'N/A')
     
+    # جلب الـ event_id من الـ Frontend (مهم جداً لمنع تكرار البيانات في فيسبوك)
+    e_id = request.GET.get('eid')
+    
+    # إنشاء مفتاح فريد للمنتج داخل السلة بناءً على اللون والمقاس
     item_key = f"{product_id}_{selected_color}_{selected_size}"
     
     if item_key in cart:
@@ -170,23 +181,31 @@ def add_to_cart(request, product_id):
             'size': selected_size
         }
     
-    # تتبع حدث: إضافة للسلة (AddToCart)
+    # جلب بيانات المنتج لإرسالها لفيسبوك
     product = get_object_or_404(Product, id=product_id)
     price = float(product.discount_price if product.discount_price else product.price)
+    
+    # إرسال حدث "إضافة إلى السلة" إلى Facebook CAPI
     send_fb_capi_event(
         request, 
         "AddToCart", 
+        event_id=e_id, # تمرير المعرف الفريد هنا
         custom_data={
             "content_ids": [str(product_id)],
+            "content_name": product.name,
             "content_type": "product",
             "value": price,
             "currency": "EGP"
         }
     )
         
+    # حفظ التعديلات في الجلسة (Session)
     request.session[user_cart_key] = cart
     request.session.modified = True
+    
     messages.success(request, f'Added to cart ({selected_color} - {selected_size})!')
+    
+    # العودة للصفحة السابقة أو لصفحة المتجر
     return redirect(request.META.get('HTTP_REFERER', 'shop'))
 
 def cart_view(request):
@@ -346,8 +365,14 @@ def checkout(request):
         send_fb_capi_event(
             request, 
             "Purchase", 
+            event_id=str(order.id), # نستخدم رقم الطلب كمعرف فريد
             user_data={"em": email, "ph": phone},
-            custom_data={"value": float(total_price), "currency": "EGP", "order_id": str(order.id)}
+            custom_data={
+                "value": float(total_price), 
+                "currency": "EGP", 
+                "order_id": str(order.id),
+                "content_type": "product",
+            }
         )
 
         email_items_html = ""

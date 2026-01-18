@@ -178,7 +178,12 @@
     const productName = "{{ product.name }}";
     const productId = "{{ product.id }}";
 
-    // حدث تتبع: مشاهدة المنتج (ViewContent) بمجرد تحميل الصفحة
+    // دالة لتوليد معرف حدث فريد لمنع التكرار (Deduplication)
+    function generateEventID() {
+        return "evt_" + Date.now() + "_" + Math.floor(Math.random() * 1000);
+    }
+
+    // 1. تتبع مشاهدة المنتج (ViewContent)
     if (typeof fbq !== 'undefined') {
         fbq('track', 'ViewContent', {
             content_name: productName,
@@ -186,7 +191,7 @@
             content_type: 'product',
             value: productPrice,
             currency: 'EGP'
-        });
+        }, { eventID: generateEventID() });
     }
 
     function selectVariant(el) {
@@ -231,7 +236,10 @@
         if (selColor && selSize && !isOut) {
             btn.classList.remove('btn-disabled');
             btn.innerText = "Add to Cart";
-            btn.href = `/add-to-cart/{{product.id}}/?color=${encodeURIComponent(selColor)}&size=${encodeURIComponent(selSize)}`;
+            // نقوم بتوليد ID للحدث هنا لنرسله للسيرفر لاحقاً عند الضغط
+            const currentEventId = generateEventID();
+            btn.dataset.eventId = currentEventId;
+            btn.href = `/add-to-cart/{{product.id}}/?color=${encodeURIComponent(selColor)}&size=${encodeURIComponent(selSize)}&event_id=${currentEventId}`;
         } else {
             btn.classList.add('btn-disabled');
             if (isOut) btn.innerText = "Out of Stock";
@@ -240,9 +248,10 @@
         }
     }
 
-    // حدث تتبع: عند الضغط على زر الإضافة للسلة (AddToCart)
+    // 2. تتبع الإضافة للسلة (AddToCart) من المتصفح
     document.getElementById('add-to-cart-btn').addEventListener('click', function(e) {
         if (!this.classList.contains('btn-disabled')) {
+            const eventId = this.dataset.eventId; // نأخذ نفس المعرف المرسل في الرابط
             if (typeof fbq !== 'undefined') {
                 fbq('track', 'AddToCart', {
                     content_name: productName,
@@ -250,12 +259,8 @@
                     content_type: 'product',
                     value: productPrice,
                     currency: 'EGP',
-                    content_category: '{{ product.category.name }}',
-                    custom_data: {
-                        selected_color: selColor,
-                        selected_size: selSize
-                    }
-                });
+                    content_category: '{{ product.category.name }}'
+                }, { eventID: eventId }); // إرسال نفس الـ ID لمنع التكرار
             }
         }
     });
