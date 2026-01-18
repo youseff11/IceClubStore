@@ -552,30 +552,18 @@ def update_order_status(request, order_id):
         order = get_object_or_404(Order, id=order_id)
         new_status = request.POST.get('status')
         
-        # التأكد من أن الحالة المرسلة موجودة ضمن الخيارات المتاحة في الموديل
-        if new_status in dict(Order.STATUS_CHOICES):
-            old_status = order.status
-            order.status = new_status
-            order.save()
-            
-            # إرسال إشعار للعميل عبر الإيميل في حالة تغيير الحالة (اختياري ولكن احترافي)
-            if old_status != new_status:
-                try:
-                    subject = f"Update on your Order #{order.id} - Ice Club"
-                    message = f"Hi {order.name},\n\nThe status of your order #{order.id} has been updated to: {order.get_status_display()}.\n\nThank you for shopping with us!"
-                    send_mail(
-                        subject,
-                        message,
-                        settings.EMAIL_HOST_USER,
-                        [order.email],
-                        fail_silently=True,
-                    )
-                except Exception as e:
-                    print(f"Email error: {e}")
+        # طباعة للتأكد من القيمة في سطر الأوامر (Terminal)
+        print(f"Trying to update Order {order_id} to: {new_status}")
 
-            messages.success(request, f'Order #{order.id} status updated to {new_status} successfully!')
+        # التحقق المباشر من القيم الموجودة في STATUS_CHOICES
+        valid_choices = [choice[0] for choice in Order.STATUS_CHOICES]
+        
+        if new_status in valid_choices:
+            order.status = new_status
+            order.save() # سيقوم الموديل تلقائياً بإرسال الإيميل بناءً على كود الموديل عندك
+            messages.success(request, f'Order #{order.id} updated to {new_status}')
         else:
-            messages.error(request, 'Invalid status selected.')
+            messages.error(request, f'Error: {new_status} is not a valid status.')
             
     return redirect('dashboard')
 

@@ -309,18 +309,15 @@
                         <td>{{ order.name }}</td>
                         <td style="font-weight: 700;">{{ order.total_price|floatformat:0 }} LE</td>
                         <td>
-                            <form method="POST" action="{% url 'update_order_status' order.id %}" style="display: flex; gap: 8px; align-items: center;">
+                            <form method="POST" action="{% url 'update_order_status' order.id %}" style="display: flex; gap: 8px;">
                                 {% csrf_token %}
-                                <select name="status" class="status-select">
+                                <select name="status" class="form-select form-select-sm">
                                     <option value="Pending" {% if order.status == 'Pending' %}selected{% endif %}>Pending</option>
-                                    <option value="Processing" {% if order.status == 'Processing' %}selected{% endif %}>Processing</option>
                                     <option value="Shipped" {% if order.status == 'Shipped' %}selected{% endif %}>Shipped</option>
                                     <option value="Delivered" {% if order.status == 'Delivered' %}selected{% endif %}>Delivered</option>
-                                    <option value="Cancelled" {% if order.status == 'Cancelled' %}selected{% endif %}>Cancelled</option>
+                                    <option value="Canceled" {% if order.status == 'Canceled' %}selected{% endif %}>Canceled</option>
                                 </select>
-                                <button type="submit" class="btn-save-status" title="Update Status">
-                                    <i class="fas fa-check"></i>
-                                </button>
+                                <button type="submit" class="btn btn-sm btn-primary">Update</button>
                             </form>
                         </td>
                         <td>
