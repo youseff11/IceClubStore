@@ -21,20 +21,37 @@ class Product(models.Model):
     name = models.CharField(max_length=200)
     sku = models.CharField(max_length=50, unique=True, blank=True, null=True, verbose_name="SKU (Stock Keeping Unit)")
     category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='products', null=True, blank=True)
-    description = models.TextField()
+    description = models.TextField(blank=True, null=True)
     price = models.DecimalField(max_digits=10, decimal_places=2) 
     discount_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True) 
     stock = models.PositiveIntegerField(default=0, verbose_name="Total Stock Quantity", editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
+    
+    # الحقول الجديدة للتحكم في حالة "وصل حديثاً"
+    is_new_arrival = models.BooleanField(default=False, verbose_name="New Arrival?")
+    new_arrival_updated_at = models.DateTimeField(null=True, blank=True, editable=False)
 
     def __str__(self):
         return f"{self.name} ({self.sku if self.sku else 'No SKU'})"
 
     def save(self, *args, **kwargs):
+        # منطق تحديث تاريخ التفعيل لـ New Arrival
+        if self.pk:
+            old_instance = Product.objects.filter(pk=self.pk).first()
+            if old_instance and self.is_new_arrival and not old_instance.is_new_arrival:
+                self.new_arrival_updated_at = timezone.now()
+            elif not self.is_new_arrival:
+                self.new_arrival_updated_at = None
+        else:
+            if self.is_new_arrival:
+                self.new_arrival_updated_at = timezone.now()
+
+        # منطق الـ SKU الأصلي الخاص بك
         if not self.sku:
             prefix = self.name[:3].upper() if self.name else "PRD"
             unique_id = str(uuid.uuid4().hex[:6].upper())
             self.sku = f"{prefix}-{unique_id}"
+        
         super().save(*args, **kwargs)
 
     def update_total_stock(self):
@@ -43,7 +60,11 @@ class Product(models.Model):
 
     @property
     def is_new(self):
-        return timezone.now() < self.created_at + timedelta(days=7)
+        # إذا لم يتم تفعيل الخيار أو مر عليه أكثر من 7 أيام يختفي
+        if self.is_new_arrival and self.new_arrival_updated_at:
+            expiry_date = self.new_arrival_updated_at + timedelta(days=7)
+            return timezone.now() < expiry_date
+        return False
 
     @property
     def main_image(self):
@@ -62,7 +83,6 @@ class Product(models.Model):
             discount = ((self.price - self.discount_price) / self.price) * 100
             return int(discount)
         return 0
-
 class ProductVariant(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='variants')
     color_name = models.CharField(max_length=50)

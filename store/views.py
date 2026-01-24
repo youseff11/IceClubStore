@@ -15,14 +15,13 @@ from .forms import ProductForm
 from django import forms
 from django.utils.html import strip_tags
 from django.template.loader import render_to_string
+from django.db import connection
 
-# --- إعدادات Facebook CAPI (استبدل القيم بالبيانات الخاصة بك) ---
 FB_PIXEL_ID = '792214427202379'  
 FB_ACCESS_TOKEN = 'EAAXY0i6ZArdwBQUwZAq4Mx7ArysubuZAELX8l1XnZBVA1gqWwklibClR6Hrw5Ves0DhZCK5SjjtrqwZAfWeX6yZBCmzsqNlUlW4cwTk4NQFHcCqT2rKPxfPLKMbr6DxvK4Gg0XlNqJGhBVTWqvgQR92MvT9CamOHpNDiUQ2X7bDc7s3LxXQZB6I9vSKs9R8u0ZCWv8gZDZD'  # ضع هنا التوكن الخاص بك
 FB_API_VERSION = 'v18.0'
 
 def send_fb_capi_event(request, event_name, event_id=None, user_data=None, custom_data=None):
-    """دالة مساعدة لإرسال الأحداث إلى سيرفرات فيسبوك مباشرة مع منع التكرار"""
     url = f"https://graph.facebook.com/{FB_API_VERSION}/{FB_PIXEL_ID}/events"
     
     if not event_id:
@@ -83,24 +82,24 @@ def home(request):
 
 def shop_view(request, category_slug=None):
     categories = Category.objects.all()
-    products = Product.objects.all()
+    products_queryset = Product.objects.all().order_by('-created_at')
     selected_category = None
 
     if category_slug:
         selected_category = get_object_or_404(Category, slug=category_slug)
-        products = products.filter(category=selected_category)
+        products_queryset = products_queryset.filter(category=selected_category)
+
+    products = sorted(products_queryset, key=lambda p: p.is_new, reverse=True)
 
     context = {
-        'products': products.order_by('-created_at'),
+        'products': products,
         'categories': categories,
         'selected_category': selected_category,
     }
     return render(request, 'shop.html', context)
 
 def product_detail(request, id):
-    product = get_object_or_404(Product, id=id)
-    
-    # تتبع حدث: مشاهدة منتج (ViewContent)
+    product = get_object_or_404(Product, id=id)    
     price = float(product.discount_price if product.discount_price else product.price)
     send_fb_capi_event(
         request, 
@@ -151,19 +150,13 @@ def contact_view(request):
     return render(request, 'contact.html')
 
 def add_to_cart(request, product_id):
-    # تحديد مفتاح السلة بناءً على حالة تسجيل الدخول
     if request.user.is_authenticated:
         user_cart_key = f"cart_{request.user.id}"
     else:
         user_cart_key = "cart_guest"
-        
     cart = request.session.get(user_cart_key, {})
-    
-    # جلب البيانات المختارة من الرابط (Query Parameters)
     selected_color = request.GET.get('color', 'Default') 
-    selected_size = request.GET.get('size', 'N/A')
-    
-    # جلب الـ event_id من الـ Frontend (مهم جداً لمنع تكرار البيانات في فيسبوك)
+    selected_size = request.GET.get('size', 'N/A')    
     e_id = request.GET.get('eid')    
     item_key = f"{product_id}_{selected_color}_{selected_size}"
     
@@ -177,15 +170,12 @@ def add_to_cart(request, product_id):
             'size': selected_size
         }
     
-    # جلب بيانات المنتج لإرسالها لفيسبوك
     product = get_object_or_404(Product, id=product_id)
-    price = float(product.discount_price if product.discount_price else product.price)
-    
-    # إرسال حدث "إضافة إلى السلة" إلى Facebook CAPI
+    price = float(product.discount_price if product.discount_price else product.price)    
     send_fb_capi_event(
         request, 
         "AddToCart", 
-        event_id=e_id, # تمرير المعرف الفريد هنا
+        event_id=e_id,
         custom_data={
             "content_ids": [str(product_id)],
             "content_name": product.name,
@@ -195,13 +185,10 @@ def add_to_cart(request, product_id):
         }
     )
         
-    # حفظ التعديلات في الجلسة (Session)
     request.session[user_cart_key] = cart
     request.session.modified = True
     
-    messages.success(request, f'Added to cart ({selected_color} - {selected_size})!')
-    
-    # العودة للصفحة السابقة أو لصفحة المتجر
+    messages.success(request, f'Added to cart ({selected_color} - {selected_size})!')    
     return redirect(request.META.get('HTTP_REFERER', 'shop'))
 
 def cart_view(request):
@@ -333,7 +320,6 @@ def checkout(request):
             'image_url': image_url
         })
 
-    # تتبع حدث: بدء الدفع (InitiateCheckout) عند تحميل الصفحة
     if request.method == 'GET' and total_price > 0:
         send_fb_capi_event(
             request, 
@@ -358,11 +344,10 @@ def checkout(request):
             order.user = request.user
             order.save()
 
-        # تتبع حدث: عملية الشراء (Purchase)
         send_fb_capi_event(
             request, 
             "Purchase", 
-            event_id=str(order.id), # نستخدم رقم الطلب كمعرف فريد
+            event_id=str(order.id), 
             user_data={"em": email, "ph": phone},
             custom_data={
                 "value": float(total_price), 
@@ -501,11 +486,13 @@ def add_product(request):
         formset = VariantFormSet(request.POST, request.FILES)
         if form.is_valid() and formset.is_valid():
             product = form.save()
+            
             instances = formset.save(commit=False)
             for instance in instances:
                 instance.product = product
                 instance.save()
             formset.save_m2m() 
+            
             messages.success(request, 'Product and colors added! Go to Admin to add sizes. ✅')
             return redirect('dashboard')
     else:
@@ -527,6 +514,7 @@ def edit_product(request, pk):
         if form.is_valid() and formset.is_valid():
             form.save()
             formset.save()
+            
             messages.success(request, 'Product updated successfully! ✨')
             return redirect('dashboard')
     else:
@@ -538,7 +526,6 @@ def edit_product(request, pk):
         'formset': formset,
         'title': f'Edit: {product.name}'
     })
-
 @user_passes_test(is_admin, login_url='login')
 def delete_product(request, pk):
     product = get_object_or_404(Product, pk=pk)
@@ -550,17 +537,12 @@ def delete_product(request, pk):
 def update_order_status(request, order_id):
     if request.method == 'POST':
         order = get_object_or_404(Order, id=order_id)
-        new_status = request.POST.get('status')
-        
-        # طباعة للتأكد من القيمة في سطر الأوامر (Terminal)
+        new_status = request.POST.get('status')        
         print(f"Trying to update Order {order_id} to: {new_status}")
-
-        # التحقق المباشر من القيم الموجودة في STATUS_CHOICES
         valid_choices = [choice[0] for choice in Order.STATUS_CHOICES]
-        
         if new_status in valid_choices:
             order.status = new_status
-            order.save() # سيقوم الموديل تلقائياً بإرسال الإيميل بناءً على كود الموديل عندك
+            order.save() 
             messages.success(request, f'Order #{order.id} updated to {new_status}')
         else:
             messages.error(request, f'Error: {new_status} is not a valid status.')
@@ -598,8 +580,34 @@ def about_view(request):
     return render(request, 'about.html')
 
 def offers_view(request):
-    offered_products = Product.objects.filter(discount_price__gt=0).order_by('-created_at')
-    return render(request, 'offers.html', {'products': offered_products, 'title': 'Exclusive Offers'})
+    offered_products_queryset = Product.objects.filter(
+        discount_price__gt=0
+    ).order_by('-created_at')
+    offered_products = sorted(
+        offered_products_queryset, 
+        key=lambda p: p.is_new, 
+        reverse=True
+    )
+
+    context = {
+        'products': offered_products,
+        'title': 'Exclusive Offers'
+    }
+    
+    return render(request, 'offers.html', context)
 
 def policies(request):
     return render(request, 'policies.html')
+
+def reset_orders(request):
+    if request.method == "POST":
+        try:
+            Order.objects.all().delete()            
+            with connection.cursor() as cursor:
+                cursor.execute("DELETE FROM sqlite_sequence WHERE name='store_order'")
+            
+            messages.success(request, "All Orders Are Deleted")
+        except Exception as e:
+            messages.error(request, f"حدث خطأ أثناء محاولة التصفير: {e}")
+            
+    return redirect('dashboard')

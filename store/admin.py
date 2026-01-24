@@ -28,16 +28,16 @@ class ProductVariantInline(nested_admin.NestedStackedInline):
 class ProductAdmin(nested_admin.NestedModelAdmin):
     inlines = [ProductVariantInline]
     
-    # تمت إضافة display_new_status هنا
-    list_display = ['sku', 'name', 'category', 'display_new_status', 'colored_stock', 'display_price', 'display_discount', 'created_at']
+    # أضفنا 'is_new_arrival' في list_display و list_editable للتعديل السريع
+    list_display = ['sku', 'name', 'category', 'is_new_arrival', 'display_new_status', 'colored_stock', 'display_price', 'display_discount', 'created_at']
     list_display_links = ['name'] 
-    list_editable = ['sku', 'category'] 
-    list_filter = ['category', 'created_at']
+    list_editable = ['sku', 'category', 'is_new_arrival'] # يمكنك الآن تفعيل New Arrival بضغطة واحدة من القائمة
+    list_filter = ['category', 'is_new_arrival', 'created_at']
     search_fields = ['sku', 'name', 'description']
 
     fieldsets = (
         ('Basic Information', {
-            'fields': ('name', 'sku', 'category', 'description'),
+            'fields': ('name', 'sku', 'category', 'description', 'is_new_arrival'), # أضفنا الحقل هنا
             'classes': ('wide',),
         }),
         ('Pricing & Inventory', {
@@ -46,12 +46,14 @@ class ProductAdmin(nested_admin.NestedModelAdmin):
     )
     readonly_fields = ['stock']
 
-    # دالة لإظهار حالة "وصل حديثاً" في لوحة التحكم
+    # دالة لإظهار حالة "وصل حديثاً" بشكل جمالي
     def display_new_status(self, obj):
-        if obj.is_new:
-            return format_html('<span style="color: #fff; background: #4fc3f7; padding: 2px 10px; border-radius: 12px; font-size: 11px; font-weight: bold;">NEW</span>')
+        if obj.is_new: # تستدعي الـ property التي تحسب الـ 7 أيام
+            return format_html('<span style="color: #fff; background: #4fc3f7; padding: 2px 10px; border-radius: 12px; font-size: 11px; font-weight: bold;">LIVE NOW</span>')
+        if obj.is_new_arrival: # مفعلة ولكن الوقت انتهى
+            return format_html('<span style="color: #d32f2f; font-size: 11px; font-weight: bold;">EXPIRED</span>')
         return format_html('<span style="color: #999; font-size: 11px;">Standard</span>')
-    display_new_status.short_description = 'Arrival'
+    display_new_status.short_description = 'Timer Status'
 
     def save_related(self, request, form, formsets, change):
         super().save_related(request, form, formsets, change)
