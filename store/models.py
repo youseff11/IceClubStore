@@ -87,7 +87,7 @@ class ProductVariant(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='variants')
     color_name = models.CharField(max_length=50)
     color_code = ColorField(default='#FF0000') 
-    variant_image = models.ImageField(upload_to='variants/')
+    variant_image = models.ImageField(upload_to='variants/', verbose_name="Main Image for this Color")
 
     @property
     def total_stock(self):
@@ -99,6 +99,14 @@ class ProductVariant(models.Model):
 
     def __str__(self):
         return f"{self.product.name} - {self.color_name}"
+
+class ProductImage(models.Model):
+    variant = models.ForeignKey(ProductVariant, on_delete=models.CASCADE, related_name='additional_images')
+    image = models.ImageField(upload_to='variants/extra/')
+    alt_text = models.CharField(max_length=200, blank=True, null=True, help_text="description")
+
+    def __str__(self):
+        return f"Image for {self.variant.product.name} - {self.variant.color_name}"
 
 class ProductSize(models.Model):
     variant = models.ForeignKey(ProductVariant, on_delete=models.CASCADE, related_name='sizes')

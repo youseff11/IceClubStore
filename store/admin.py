@@ -1,43 +1,56 @@
 from django.contrib import admin
 from django.utils.html import format_html
 import nested_admin
-from .models import Product, Category, ContactMessage, ProductVariant, ProductSize, Order, OrderItem
+from .models import Product, Category, ContactMessage, ProductVariant, ProductSize, Order, OrderItem, ProductImage
 
-# --- 1. ProductSizeInline ---
+# --- 1. ProductImageInline (الجديد: للصور المتعددة لكل لون) ---
+class ProductImageInline(nested_admin.NestedTabularInline):
+    model = ProductImage
+    extra = 2  # عدد الحقول الفارغة للصور الإضافية
+    fields = ['image', 'image_preview']
+    readonly_fields = ['image_preview']
+
+    def image_preview(self, obj):
+        if obj.image:
+            return format_html('<img src="{}" style="width: 70px; height: auto; border-radius: 5px;" />', obj.image.url)
+        return "No Image"
+    image_preview.short_description = 'Preview'
+
+# --- 2. ProductSizeInline ---
 class ProductSizeInline(nested_admin.NestedTabularInline):
     model = ProductSize
     extra = 1
     fields = ['size_name', 'stock']
 
-# --- 2. ProductVariantInline ---
+# --- 3. ProductVariantInline (تعديل: إضافة الصور المتعددة هنا) ---
 class ProductVariantInline(nested_admin.NestedStackedInline):
     model = ProductVariant
     extra = 1
     fields = ['color_name', 'color_code', 'variant_image', 'image_preview']
     readonly_fields = ['image_preview']
-    inlines = [ProductSizeInline]
+    # أضفنا هنا كلاً من المقاسات والصور المتعددة كـ Inlines داخل اللون
+    inlines = [ProductSizeInline, ProductImageInline]
 
     def image_preview(self, obj):
         if obj.variant_image:
             return format_html('<img src="{}" style="width: 100px; height: auto; border-radius: 5px; border: 1px solid #ddd;" />', obj.variant_image.url)
         return "No Image"
-    image_preview.short_description = 'Preview'
+    image_preview.short_description = 'Main Image Preview'
 
-# --- 3. ProductAdmin ---
+# --- 4. ProductAdmin ---
 @admin.register(Product)
 class ProductAdmin(nested_admin.NestedModelAdmin):
     inlines = [ProductVariantInline]
     
-    # أضفنا 'is_new_arrival' في list_display و list_editable للتعديل السريع
     list_display = ['sku', 'name', 'category', 'is_new_arrival', 'display_new_status', 'colored_stock', 'display_price', 'display_discount', 'created_at']
     list_display_links = ['name'] 
-    list_editable = ['sku', 'category', 'is_new_arrival'] # يمكنك الآن تفعيل New Arrival بضغطة واحدة من القائمة
+    list_editable = ['sku', 'category', 'is_new_arrival']
     list_filter = ['category', 'is_new_arrival', 'created_at']
     search_fields = ['sku', 'name', 'description']
 
     fieldsets = (
         ('Basic Information', {
-            'fields': ('name', 'sku', 'category', 'description', 'is_new_arrival'), # أضفنا الحقل هنا
+            'fields': ('name', 'sku', 'category', 'description', 'is_new_arrival'),
             'classes': ('wide',),
         }),
         ('Pricing & Inventory', {
@@ -46,11 +59,10 @@ class ProductAdmin(nested_admin.NestedModelAdmin):
     )
     readonly_fields = ['stock']
 
-    # دالة لإظهار حالة "وصل حديثاً" بشكل جمالي
     def display_new_status(self, obj):
-        if obj.is_new: # تستدعي الـ property التي تحسب الـ 7 أيام
+        if obj.is_new:
             return format_html('<span style="color: #fff; background: #4fc3f7; padding: 2px 10px; border-radius: 12px; font-size: 11px; font-weight: bold;">LIVE NOW</span>')
-        if obj.is_new_arrival: # مفعلة ولكن الوقت انتهى
+        if obj.is_new_arrival:
             return format_html('<span style="color: #d32f2f; font-size: 11px; font-weight: bold;">EXPIRED</span>')
         return format_html('<span style="color: #999; font-size: 11px;">Standard</span>')
     display_new_status.short_description = 'Timer Status'
@@ -72,19 +84,19 @@ class ProductAdmin(nested_admin.NestedModelAdmin):
         return int(obj.discount_price) if obj.discount_price else "-"
     display_discount.short_description = 'Discount'
 
-# --- 4. CategoryAdmin ---
+# --- 5. CategoryAdmin ---
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
     list_display = ['name', 'slug']
     prepopulated_fields = {'slug': ('name',)}
 
-# --- 5. ContactMessageAdmin ---
+# --- 6. ContactMessageAdmin ---
 @admin.register(ContactMessage)
 class ContactMessageAdmin(admin.ModelAdmin):
     list_display = ['name', 'subject', 'email', 'created_at']
     readonly_fields = ['name', 'email', 'phone', 'subject', 'message', 'created_at']
 
-# --- 6. OrderItemInline & OrderAdmin ---
+# --- 7. OrderItemInline & OrderAdmin ---
 class OrderItemInline(admin.TabularInline):
     model = OrderItem
     extra = 0
@@ -112,6 +124,3 @@ class OrderAdmin(admin.ModelAdmin):
     def display_total(self, obj):
         return int(obj.total_price)
     display_total.short_description = 'Total Price'
-
-# admin.site.register(ProductVariant)
-# admin.site.register(ProductSize)

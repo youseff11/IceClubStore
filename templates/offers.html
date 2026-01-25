@@ -140,6 +140,36 @@
         opacity: 0.7;
     }
 
+    /* تنسيق أسهم التنقل للصور المتعددة */
+    .image-nav-arrows {
+        position: absolute;
+        top: 50%;
+        width: 100%;
+        transform: translateY(-50%);
+        display: none;
+        justify-content: space-between;
+        padding: 0 10px;
+        pointer-events: none;
+        z-index: 6;
+    }
+
+    .nav-arrow {
+        background: rgba(0, 0, 0, 0.6);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 32px;
+        height: 32px;
+        cursor: pointer;
+        pointer-events: auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: 0.3s;
+        backdrop-filter: blur(5px);
+    }
+    .nav-arrow:hover { background: var(--primary-color); color: #000; }
+
     .color-swatches {
         display: flex;
         gap: 8px;
@@ -216,9 +246,58 @@
         border: 1px solid #444;
     }
 
-    @media (max-width: 600px) {
-        .offers-wrapper { padding-top: 100px; }
-        .product-grid { grid-template-columns: 1fr; gap: 25px; }
+    @media (max-width: 768px) {
+        .offers-wrapper { 
+            padding: 100px 10px 50px; 
+        }
+        
+        .product-grid { 
+            grid-template-columns: repeat(2, 1fr); 
+            gap: 10px; 
+        }
+
+        .offer-card { 
+            padding: 10px; 
+            border-radius: 15px; 
+        }
+
+        .offers-header h1 { font-size: 2.5rem; }
+        .offer-card h3 { 
+            font-size: 0.9rem !important; 
+            height: 2.4rem; 
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
+
+        .new-price { font-size: 1.1rem; }
+        .old-price { font-size: 0.8rem; }
+        .price-box { margin: 8px 0; gap: 5px; }
+
+        .swatch { width: 18px; height: 18px; }
+        .badge-common { 
+            font-size: 0.6rem; 
+            padding: 4px 8px; 
+            top: -5px; 
+        }
+        .sale-badge { left: -5px; }
+        .new-arrival-badge { right: -5px; }
+
+        .buy-btn { 
+            padding: 10px 5px; 
+            font-size: 0.75rem; 
+            border-radius: 10px; 
+        }
+
+        .sold-out-badge { 
+            font-size: 0.8rem; 
+            padding: 5px 10px; 
+            width: 80%;
+            text-align: center;
+        }
+
+        .nav-arrow { width: 24px; height: 24px; font-size: 0.7rem; }
     }
 </style>
 
@@ -246,6 +325,11 @@
 
             <div class="img-container" id="img-cont-{{ product.id }}">
                 <img src="{{ product.main_image.url|default:'https://via.placeholder.com/400' }}" alt="{{ product.name }}" id="offer-img-{{ product.id }}">
+                
+                <div class="image-nav-arrows" id="arrows-{{ product.id }}">
+                    <button class="nav-arrow prev" onclick="changeOfferImage('{{ product.id }}', -1, event)">❮</button>
+                    <button class="nav-arrow next" onclick="changeOfferImage('{{ product.id }}', 1, event)">❯</button>
+                </div>
             </div>
 
             <h3 style="font-size: 1.2rem; margin: 0; text-align: center; font-weight: 700;">{{ product.name }}</h3>
@@ -256,6 +340,8 @@
                      style="background: {{ variant.color_code }};" 
                      title="{{ variant.color_name }}"
                      data-image="{{ variant.variant_image.url }}"
+                     {# تخزين الصور الإضافية #}
+                     data-extra-images="{% for extra in variant.additional_images.all %}{{ extra.image.url }}{% if not forloop.last %},{% endif %}{% endfor %}"
                      data-stock="{{ variant.total_variant_stock }}" 
                      onclick="changeOfferVariant('{{ product.id }}', this)">
                 </div>
@@ -282,22 +368,40 @@
 </div>
 
 <script>
+    // خريطة لتخزين صور كل منتج حسب اللون المختار
+    let offerImagesData = {};
+
     function changeOfferVariant(productId, element) {
         const card = document.getElementById('product-card-' + productId);
         const img = document.getElementById('offer-img-' + productId);
         const imgCont = document.getElementById('img-cont-' + productId);
         const badge = document.getElementById('badge-' + productId);
         const btn = document.getElementById('btn-' + productId);
+        const arrows = document.getElementById('arrows-' + productId);
         
-        const imageUrl = element.dataset.image;
+        const mainImageUrl = element.dataset.image;
+        const extraImgs = element.dataset.extraImages ? element.dataset.extraImages.split(',') : [];
+        const allImages = [mainImageUrl, ...extraImgs].filter(url => url.trim() !== "");
         const stock = parseInt(element.dataset.stock);
         const isOut = stock <= 0;
 
+        // تحديث مصفوفة الصور لهذا المنتج
+        offerImagesData[productId] = {
+            images: allImages,
+            currentIndex: 0
+        };
+
+        // تغيير الصورة الأساسية مع أنيميشن
         img.style.opacity = '0.3';
         setTimeout(() => {
-            img.src = imageUrl;
+            img.src = mainImageUrl;
             img.style.opacity = '1';
         }, 150);
+
+        // إظهار الأسهم فقط إذا كان هناك أكثر من صورة
+        if(arrows) {
+            arrows.style.display = allImages.length > 1 ? 'flex' : 'none';
+        }
 
         card.querySelectorAll('.swatch').forEach(s => s.classList.remove('active'));
         element.classList.add('active');
@@ -313,54 +417,66 @@
             btn.classList.remove('disabled');
             btn.innerText = 'Grab it Now';
         }
+
+        // تتبع Pixel (تم دمج المنطق هنا)
+        if (typeof fbq !== 'undefined') {
+            fbq('track', 'CustomizeProduct', {
+                content_ids: [productId],
+                content_type: 'product',
+                description: 'User viewing offer color: ' + element.title
+            });
+        }
+    }
+
+    // دالة التقليب بين الصور بالأسهم
+    function changeOfferImage(productId, direction, event) {
+        event.preventDefault();
+        event.stopPropagation();
+        
+        const data = offerImagesData[productId];
+        if (!data || data.images.length <= 1) return;
+
+        data.currentIndex += direction;
+        if (data.currentIndex >= data.images.length) data.currentIndex = 0;
+        if (data.currentIndex < 0) data.currentIndex = data.images.length - 1;
+
+        const img = document.getElementById('offer-img-' + productId);
+        img.style.opacity = '0.5';
+        setTimeout(() => {
+            img.src = data.images[data.currentIndex];
+            img.style.opacity = '1';
+        }, 100);
     }
 
     document.addEventListener('DOMContentLoaded', () => {
+        // تتبع عام لصفحة العروض
+        if (typeof fbq !== 'undefined') {
+            fbq('trackCustom', 'ViewDiscountedProducts', {
+                content_name: 'Hot Offers Page'
+            });
+        }
+
         document.querySelectorAll('.offer-card').forEach(card => {
             const productId = card.id.replace('product-card-', '');
-            
             let targetSwatch = Array.from(card.querySelectorAll('.swatch')).find(s => parseInt(s.dataset.stock) > 0);
-            
-            if (!targetSwatch) {
-                targetSwatch = card.querySelector('.swatch');
-            }
+            if (!targetSwatch) targetSwatch = card.querySelector('.swatch');
 
             if (targetSwatch) {
                 changeOfferVariant(productId, targetSwatch);
             }
         });
-    });
-</script>
-<script>
-  // 1. حدث تتبع عرض صفحة العروض بشكل عام
-  fbq('trackCustom', 'ViewDiscountedProducts', {
-    content_name: 'Hot Offers Page',
-    promo_code: 'Winter_Sale_2026' // يمكنك تغييره حسب الموسم
-  });
 
-  // 2. تتبع التفاعل مع تبديل ألوان العروض
-  const originalChangeOfferVariant = changeOfferVariant;
-  changeOfferVariant = function(productId, element) {
-    originalChangeOfferVariant(productId, element); // تشغيل الكود الأصلي
-    
-    // إرسال حدث تخصيص لفيسبوك
-    fbq('track', 'CustomizeProduct', {
-        content_ids: [productId],
-        content_type: 'product',
-        description: 'User viewing offer color: ' + element.title
+        document.querySelectorAll('.buy-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                if (typeof fbq !== 'undefined') {
+                    fbq('track', 'ViewContent', {
+                        content_ids: [this.id.replace('btn-', '')],
+                        content_type: 'product',
+                        content_category: 'Offers/Discounts'
+                    });
+                }
+            });
+        });
     });
-  };
-
-  // 3. تتبع الضغط على زر "Grab it Now"
-  document.querySelectorAll('.buy-btn').forEach(button => {
-    button.addEventListener('click', function() {
-      // نرسل حدث "الرغبة في الشراء" لمنتج مخفض
-      fbq('track', 'ViewContent', {
-        content_ids: [this.id.replace('btn-', '')],
-        content_type: 'product',
-        content_category: 'Offers/Discounts'
-      });
-    });
-  });
 </script>
 {% endblock %}

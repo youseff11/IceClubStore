@@ -14,7 +14,7 @@
     body { margin: 0; background: #0f2027; color: #fff; font-family: 'Segoe UI', sans-serif; overflow-x: hidden; }
 
     .detail-wrapper { 
-        padding: 20px 10px; 
+        padding: 100px 10px 50px; /* زيادة الـ padding العلوي ليتناسب مع الـ Navbar */
         background: var(--accent-gradient); 
         min-height: 100vh; 
         display: flex; 
@@ -24,7 +24,7 @@
 
     .detail-container-outer {
         position: relative; 
-        max-width: 900px; 
+        max-width: 1000px; 
         width: 100%; 
         border-radius: 20px; 
         display: flex; 
@@ -47,24 +47,45 @@
         position: relative; z-index: 5; width: 100%; background: #0f2027;
         border-radius: 19px; overflow: hidden;
         display: grid;
-        grid-template-columns: 1fr 1.1fr;
+        grid-template-columns: 1.2fr 1fr;
     }
 
     @media (max-width: 850px) {
         .detail-container { grid-template-columns: 1fr; }
-        .image-section { border-right: none !important; border-bottom: 1px solid var(--glass-border); height: 320px; padding: 20px !important; }
+        .image-section { border-right: none !important; border-bottom: 1px solid var(--glass-border); min-height: 450px; }
         .info-section { padding: 25px 15px !important; }
-        .product-title { font-size: 1.6rem !important; }
-        .current-price { font-size: 1.5rem !important; }
-        .action-btns { flex-direction: column; gap: 10px !important; }
-        .btn-primary, .btn-back { padding: 14px !important; font-size: 0.95rem; }
     }
 
+    /* --- تنسيق معرض الصور الجديد --- */
     .image-section {
-        position: relative; background: #15262d; display: flex; align-items: center;
-        justify-content: center; padding: 30px; border-right: 1px solid var(--glass-border);
+        position: relative; background: #15262d; display: flex; flex-direction: column; 
+        align-items: center; justify-content: center; padding: 20px; border-right: 1px solid var(--glass-border);
     }
 
+    .main-display {
+        width: 100%; height: 400px; display: flex; align-items: center; justify-content: center;
+        position: relative; overflow: hidden;
+    }
+
+    .product-main-img { 
+        width: 100%; height: 100%; object-fit: contain; 
+        transition: var(--transition-smooth); 
+    }
+
+    .thumbnail-gallery {
+        display: flex; gap: 10px; margin-top: 15px; justify-content: center; flex-wrap: wrap;
+        z-index: 10;
+    }
+
+    .thumb {
+        width: 60px; height: 60px; border-radius: 8px; border: 2px solid transparent;
+        overflow: hidden; cursor: pointer; transition: 0.3s; opacity: 0.6; background: #000;
+    }
+
+    .thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .thumb.active { border-color: var(--primary-color); opacity: 1; transform: scale(1.1); }
+
+    /* --- باقي التنسيقات --- */
     .detail-sold-out-badge {
         position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-10deg);
         background: rgba(0,0,0,0.9); color: #ff5252; padding: 10px 20px;
@@ -78,46 +99,26 @@
         font-size: 0.75rem;
     }
 
-    .product-main-img { width: 100%; height: 100%; max-height: 100%; object-fit: contain; transition: var(--transition-smooth); }
-    .is-out-of-stock img { filter: grayscale(0.8) brightness(0.4); }
-
     .info-section { padding: 40px; display: flex; flex-direction: column; justify-content: center; }
-
-    .category-label { 
-        color: var(--primary-color); 
-        font-size: 0.8rem;
-        font-weight: 700; 
-        text-transform: uppercase; 
-        letter-spacing: 2px; 
-        margin-bottom: 8px; 
-        display: block;
-    }
-
+    .category-label { color: var(--primary-color); font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 8px; }
     .product-title { font-size: 2rem; font-weight: 800; margin: 0 0 15px 0; line-height: 1.2; }
-
     .price-group { display: flex; align-items: baseline; gap: 12px; margin-bottom: 20px; }
     .current-price { font-size: 1.8rem; font-weight: 700; color: #fff; }
     .old-price { font-size: 1.1rem; text-decoration: line-through; color: var(--text-muted); }
 
-    .size-chip, .color-dot { cursor: pointer; transition: var(--transition-smooth); }
     .size-options { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
-    
-    .size-chip { 
-        padding: 8px 15px; border: 1px solid var(--glass-border); border-radius: 10px; 
-        font-weight: 600; font-size: 0.85rem; background: rgba(255,255,255,0.05); color: #fff;
-    }
+    .size-chip { padding: 8px 15px; border: 1px solid var(--glass-border); border-radius: 10px; font-weight: 600; background: rgba(255,255,255,0.05); color: #fff; cursor: pointer; transition: 0.3s; }
     .size-chip.active { background: var(--primary-color); color: var(--secondary-color); border-color: var(--primary-color); }
     .size-chip.out-of-stock { opacity: 0.2; text-decoration: line-through; cursor: not-allowed; }
 
     .color-dots { display: flex; gap: 12px; margin: 12px 0 25px; }
-    .color-dot { width: 32px; height: 32px; border-radius: 50%; border: 2px solid transparent; padding: 2px; background-clip: content-box; }
-    .color-dot.active { border-color: var(--primary-color); transform: scale(1.1); box-shadow: 0 0 10px var(--primary-color); }
+    .color-dot { width: 35px; height: 35px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; transition: 0.4s; padding: 2px; background-clip: content-box; }
+    .color-dot.active { border-color: var(--primary-color); transform: scale(1.15); box-shadow: 0 0 15px var(--primary-color); }
     .sold-out-dot { opacity: 0.4; }
 
     .action-btns { display: flex; gap: 12px; margin-top: 25px; }
-    .btn-primary, .btn-back { padding: 15px; border-radius: 12px; font-weight: 700; text-decoration: none; text-align: center; flex: 1; transition: var(--transition-smooth); font-size: 0.9rem; }
+    .btn-primary, .btn-back { padding: 15px; border-radius: 12px; font-weight: 700; text-decoration: none; text-align: center; flex: 1; transition: 0.3s; }
     .btn-primary { flex: 2; background: var(--primary-color); color: var(--secondary-color); }
-    .btn-primary:active { transform: scale(0.98); }
     .btn-back { border: 1px solid var(--glass-border); color: #fff; background: rgba(255,255,255,0.05); }
     .btn-disabled { background: #222 !important; color: #555 !important; cursor: not-allowed; pointer-events: none; opacity: 0.6; }
 </style>
@@ -130,11 +131,17 @@
                 {% if product.discount_price %}
                     <div class="detail-discount-badge">{{ product.discount_percentage }}% OFF</div>
                 {% endif %}
-                <img src="{{ product.main_image.url }}" alt="{{ product.name }}" id="mainDetailImg" class="product-main-img">
+                
+                <div class="main-display">
+                    <img src="{{ product.main_image.url }}" alt="{{ product.name }}" id="mainDetailImg" class="product-main-img">
+                </div>
+
+                <div class="thumbnail-gallery" id="thumbGallery">
+                    </div>
             </div>
 
             <div class="info-section">
-                <span class="category-label">{{ product.category.name|default:"Premium" }}</span>
+                <span class="category-label">{{ product.category.name|default:"Premium Edition" }}</span>
                 <h1 class="product-title">{{ product.name }}</h1>
                 
                 <div class="price-group">
@@ -150,9 +157,25 @@
                         {% for variant in product.variants.all|dictsortreversed:"total_variant_stock" %}
                         <div class="color-dot {% if variant.total_variant_stock == 0 %}sold-out-dot{% endif %}" 
                              style="background-color: {{ variant.color_code }};" 
-                             data-color="{{ variant.color_name }}" data-img="{{ variant.variant_image.url }}"
-                             data-stock="{{ variant.total_variant_stock }}" onclick="selectVariant(this)">
-                             <script type="application/json" class="v-data">[{% for s in variant.sizes.all %}{"n":"{{s.size_name}}","s":{{s.stock}}}{% if not forloop.last %},{% endif %}{% endfor %}]</script>
+                             data-color="{{ variant.color_name }}" 
+                             data-main-img="{{ variant.variant_image.url }}"
+                             data-stock="{{ variant.total_variant_stock }}" 
+                             onclick="selectVariant(this)">
+                             
+                             {# تخزين الصور الإضافية للـ Variant في JSON #}
+                             <script type="application/json" class="v-images">
+                                [
+                                    "{{ variant.variant_image.url }}",
+                                    {% for extra in variant.additional_images.all %}
+                                        "{{ extra.image.url }}"{% if not forloop.last %},{% endif %}
+                                    {% endfor %}
+                                ]
+                             </script>
+
+                             {# تخزين بيانات المقاسات #}
+                             <script type="application/json" class="v-data">
+                                [{% for s in variant.sizes.all %}{"n":"{{s.size_name}}","s":{{s.stock}}}{% if not forloop.last %},{% endif %}{% endfor %}]
+                             </script>
                         </div>
                         {% endfor %}
                     </div>
@@ -161,16 +184,18 @@
                     <div class="size-options" id="sizeOptionsContainer"></div>
                 </div>
 
-                <p style="color:var(--text-muted); font-size:0.9rem; line-height: 1.5; margin: 20px 0;">{{ product.description|truncatewords:20 }}</p>
+                <p style="color:var(--text-muted); font-size:0.9rem; line-height: 1.6; margin: 25px 0;">{{ product.description }}</p>
 
                 <div class="action-btns">
                     <a href="#" id="add-to-cart-btn" class="btn-primary">Add to Cart</a>
-                    <a href="{% url 'shop' %}" class="btn-back">Back</a>
+                    <a href="{% url 'shop' %}" class="btn-back">Back to Shop</a>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+
 
 <script>
     let selColor = "", selSize = "";
@@ -178,39 +203,57 @@
     const productName = "{{ product.name }}";
     const productId = "{{ product.id }}";
 
-    // دالة لتوليد معرف حدث فريد لمنع التكرار (Deduplication)
-    function generateEventID() {
-        return "evt_" + Date.now() + "_" + Math.floor(Math.random() * 1000);
-    }
+    function generateEventID() { return "evt_" + Date.now() + "_" + Math.floor(Math.random() * 1000); }
 
-    // 1. تتبع مشاهدة المنتج (ViewContent)
+    // تتبع الفيسبوك
     if (typeof fbq !== 'undefined') {
         fbq('track', 'ViewContent', {
-            content_name: productName,
-            content_ids: [productId],
-            content_type: 'product',
-            value: productPrice,
-            currency: 'EGP'
+            content_name: productName, content_ids: [productId], content_type: 'product',
+            value: productPrice, currency: 'EGP'
         }, { eventID: generateEventID() });
     }
 
     function selectVariant(el) {
-        const cName = el.dataset.color, img = el.dataset.img, stock = parseInt(el.dataset.stock);
-        const data = JSON.parse(el.querySelector('.v-data').textContent);
-        document.getElementById('selected-color-name').innerText = cName;
+        const cName = el.dataset.color;
+        const stock = parseInt(el.dataset.stock);
+        const images = JSON.parse(el.querySelector('.v-images').textContent);
+        const sizes = JSON.parse(el.querySelector('.v-data').textContent);
+
         selColor = cName;
+        document.getElementById('selected-color-name').innerText = cName;
+
+        // 1. تحديث معرض الصور
+        const thumbGallery = document.getElementById('thumbGallery');
         const mainImg = document.getElementById('mainDetailImg');
-        mainImg.style.opacity = '0.3';
-        setTimeout(() => { 
-            mainImg.src = img; 
-            mainImg.style.opacity = '1'; 
-            document.getElementById('imgSection').classList.toggle('is-out-of-stock', stock === 0);
-            document.getElementById('soldOutLabel').style.display = stock === 0 ? 'block' : 'none';
-        }, 150);
+        thumbGallery.innerHTML = "";
+
+        images.forEach((imgUrl, index) => {
+            const thumb = document.createElement('div');
+            thumb.className = `thumb ${index === 0 ? 'active' : ''}`;
+            thumb.innerHTML = `<img src="${imgUrl}" alt="view">`;
+            thumb.onclick = () => {
+                mainImg.style.opacity = '0.4';
+                setTimeout(() => {
+                    mainImg.src = imgUrl;
+                    mainImg.style.opacity = '1';
+                    document.querySelectorAll('.thumb').forEach(t => t.classList.remove('active'));
+                    thumb.classList.add('active');
+                }, 100);
+            };
+            thumbGallery.appendChild(thumb);
+        });
+
+        // تعيين الصورة الأولى كصورة أساسية فوراً
+        mainImg.src = images[0];
+        document.getElementById('imgSection').classList.toggle('is-out-of-stock', stock === 0);
+        document.getElementById('soldOutLabel').style.display = stock === 0 ? 'block' : 'none';
+
+        // 2. تحديث المقاسات
         const container = document.getElementById('sizeOptionsContainer');
         container.innerHTML = ""; selSize = "";
         document.getElementById('selected-size-name').innerText = "Choose";
-        data.forEach(s => {
+
+        sizes.forEach(s => {
             const chip = document.createElement('div');
             chip.className = `size-chip ${s.s === 0 ? 'out-of-stock' : ''}`;
             chip.innerText = s.n;
@@ -225,6 +268,7 @@
             }
             container.appendChild(chip);
         });
+
         document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
         el.classList.add('active');
         updateBtn();
@@ -236,10 +280,9 @@
         if (selColor && selSize && !isOut) {
             btn.classList.remove('btn-disabled');
             btn.innerText = "Add to Cart";
-            // نقوم بتوليد ID للحدث هنا لنرسله للسيرفر لاحقاً عند الضغط
             const currentEventId = generateEventID();
             btn.dataset.eventId = currentEventId;
-            btn.href = `/add-to-cart/{{product.id}}/?color=${encodeURIComponent(selColor)}&size=${encodeURIComponent(selSize)}&event_id=${currentEventId}`;
+            btn.href = `/add-to-cart/${productId}/?color=${encodeURIComponent(selColor)}&size=${encodeURIComponent(selSize)}&event_id=${currentEventId}`;
         } else {
             btn.classList.add('btn-disabled');
             if (isOut) btn.innerText = "Out of Stock";
@@ -248,28 +291,21 @@
         }
     }
 
-    // 2. تتبع الإضافة للسلة (AddToCart) من المتصفح
+    // تتبع AddToCart
     document.getElementById('add-to-cart-btn').addEventListener('click', function(e) {
         if (!this.classList.contains('btn-disabled')) {
-            const eventId = this.dataset.eventId; // نأخذ نفس المعرف المرسل في الرابط
             if (typeof fbq !== 'undefined') {
                 fbq('track', 'AddToCart', {
-                    content_name: productName,
-                    content_ids: [productId],
-                    content_type: 'product',
-                    value: productPrice,
-                    currency: 'EGP',
-                    content_category: '{{ product.category.name }}'
-                }, { eventID: eventId }); // إرسال نفس الـ ID لمنع التكرار
+                    content_name: productName, content_ids: [productId], content_type: 'product',
+                    value: productPrice, currency: 'EGP'
+                }, { eventID: this.dataset.eventId });
             }
         }
     });
 
     document.addEventListener('DOMContentLoaded', () => {
-        const firstAvailable = document.querySelector('.color-dot:not(.sold-out-dot)');
-        const firstAny = document.querySelector('.color-dot');
-        if (firstAvailable) firstAvailable.click();
-        else if (firstAny) firstAny.click();
+        const firstVariant = document.querySelector('.color-dot:not(.sold-out-dot)') || document.querySelector('.color-dot');
+        if (firstVariant) firstVariant.click();
     });
 </script>
 {% endblock %}
