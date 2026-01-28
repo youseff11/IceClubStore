@@ -84,14 +84,22 @@ def home(request):
 def shop_view(request, category_slug=None):
     categories = Category.objects.all()
     
-    # قمت بتغيير الاسم هنا إلى sort_out_of_stock لتجنب التضارب
+    # الترتيب حسب 3 مستويات من الأولوية:
+    # 1. التوفر: المتوفر (0) يسبق المنتهي (1)
+    # 2. التمييز اليدوي: الـ New Arrival المانيوال (1) يسبق العادي (0)
+    # 3. التاريخ: الأحدث يسبق الأقدم
     products = Product.objects.annotate(
-        sort_out_of_stock=Case(
-            When(stock=0, then=Value(1)),
+        is_available_group=Case(
+            When(stock__gt=0, then=Value(0)),
+            default=Value(1),
+            output_field=IntegerField(),
+        ),
+        manual_new_priority=Case(
+            When(is_new_arrival=True, then=Value(1)),
             default=Value(0),
             output_field=IntegerField(),
         )
-    ).order_by('sort_out_of_stock', '-created_at')
+    ).order_by('is_available_group', '-manual_new_priority', '-created_at')
 
     selected_category = None
     if category_slug:
@@ -587,16 +595,24 @@ def about_view(request):
     return render(request, 'about.html')
 
 def offers_view(request):
-    # نفس التغيير لضمان التوافق
+    # 1. الفلترة: نجلب فقط المنتجات التي سعرها بعد الخصم أقل من سعرها الأصلي
+    # أو التي حقل discount_price فيها أكبر من 0
     products = Product.objects.filter(
         discount_price__gt=0
     ).annotate(
-        sort_out_of_stock=Case(
-            When(stock=0, then=Value(1)),
+        # 2. ترتيب التوفر: المتوفر (0) يسبق المنتهي (1)
+        is_available_group=Case(
+            When(stock__gt=0, then=Value(0)),
+            default=Value(1),
+            output_field=IntegerField(),
+        ),
+        # 3. ترتيب مانيوال: الـ New Arrival المختار يدوياً (1) يسبق العادي (0)
+        manual_new_priority=Case(
+            When(is_new_arrival=True, then=Value(1)),
             default=Value(0),
             output_field=IntegerField(),
         )
-    ).order_by('sort_out_of_stock', '-created_at')
+    ).order_by('is_available_group', '-manual_new_priority', '-created_at')
 
     context = {
         'products': products,
