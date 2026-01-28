@@ -82,14 +82,12 @@ def home(request):
 
 def shop_view(request, category_slug=None):
     categories = Category.objects.all()
-    products_queryset = Product.objects.all().order_by('-created_at')
+    products = Product.objects.all().order_by('-is_available', '-created_at', '-id')
     selected_category = None
 
     if category_slug:
         selected_category = get_object_or_404(Category, slug=category_slug)
-        products_queryset = products_queryset.filter(category=selected_category)
-
-    products = sorted(products_queryset, key=lambda p: p.is_new, reverse=True)
+        products = products.filter(category=selected_category)
 
     context = {
         'products': products,
@@ -580,20 +578,14 @@ def about_view(request):
     return render(request, 'about.html')
 
 def offers_view(request):
-    offered_products_queryset = Product.objects.filter(
+    products = Product.objects.filter(
         discount_price__gt=0
-    ).order_by('-created_at')
-    offered_products = sorted(
-        offered_products_queryset, 
-        key=lambda p: p.is_new, 
-        reverse=True
-    )
+    ).order_by('-is_available', '-created_at')
 
     context = {
-        'products': offered_products,
+        'products': products,
         'title': 'Exclusive Offers'
     }
-    
     return render(request, 'offers.html', context)
 
 def policies(request):

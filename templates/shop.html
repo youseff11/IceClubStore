@@ -152,7 +152,7 @@
             ملاحظة: تأكد أن موديل Product يحتوي على property أو field باسم total_stock 
             أو استبدلها بـ 'is_available' إذا كان لديك حقل Boolean.
         {% endcomment %}
-        {% for product in products|dictsortreversed:"is_available" %}
+       {% for product in products %}
         <article class="product-card" id="prod-{{ product.id }}">
             <div class="sold-out-overlay" id="ovl-{{ product.id }}">SOLD OUT</div>
             
