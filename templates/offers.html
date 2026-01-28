@@ -66,7 +66,10 @@
     </div>
 
     <div class="product-grid">
-        {% for product in products %}
+        {% comment %} 
+            تم ترتيب المنتجات بناءً على التوفر (is_available) لضمان نزول الـ Sold Out للأسفل
+        {% endcomment %}
+        {% for product in products|dictsortreversed:"is_available" %}
         <div class="offer-card" id="card-{{ product.id }}">
             <div class="sold-out-badge" id="badge-{{ product.id }}">SOLD OUT</div>
             {% if product.discount_percentage > 0 %}<div class="badge-common sale-badge">-{{ product.discount_percentage }}%</div>{% endif %}
