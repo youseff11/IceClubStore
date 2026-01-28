@@ -16,6 +16,7 @@ from django import forms
 from django.utils.html import strip_tags
 from django.template.loader import render_to_string
 from django.db import connection
+from django.db.models import Case, When, Value, IntegerField
 
 FB_PIXEL_ID = '792214427202379'  
 FB_ACCESS_TOKEN = 'EAAXY0i6ZArdwBQUwZAq4Mx7ArysubuZAELX8l1XnZBVA1gqWwklibClR6Hrw5Ves0DhZCK5SjjtrqwZAfWeX6yZBCmzsqNlUlW4cwTk4NQFHcCqT2rKPxfPLKMbr6DxvK4Gg0XlNqJGhBVTWqvgQR92MvT9CamOHpNDiUQ2X7bDc7s3LxXQZB6I9vSKs9R8u0ZCWv8gZDZD'  # ضع هنا التوكن الخاص بك
@@ -82,8 +83,15 @@ def home(request):
 
 def shop_view(request, category_slug=None):
     categories = Category.objects.all()
-    products = Product.objects.all().order_by('-stock', '-created_at', '-id')
     
+    products = Product.objects.annotate(
+        is_out_of_stock=Case(
+            When(stock=0, then=Value(1)),
+            default=Value(0),
+            output_field=IntegerField(),
+        )
+    ).order_by('is_out_of_stock', '-created_at') 
+
     selected_category = None
     if category_slug:
         selected_category = get_object_or_404(Category, slug=category_slug)
@@ -578,9 +586,18 @@ def about_view(request):
     return render(request, 'about.html')
 
 def offers_view(request):
+    # 1. جلب المنتجات التي عليها خصم فقط
+    # 2. إنشاء حقل وهمي 'is_out_of_stock' (0 للمتوفر، 1 للخالص)
+    # 3. الترتيب: المتوفر أولاً، ثم الأحدث (New Arrival)
     products = Product.objects.filter(
         discount_price__gt=0
-    ).order_by('-stock', '-created_at')
+    ).annotate(
+        is_out_of_stock=Case(
+            When(stock=0, then=Value(1)),
+            default=Value(0),
+            output_field=IntegerField(),
+        )
+    ).order_by('is_out_of_stock', '-created_at')
 
     context = {
         'products': products,
