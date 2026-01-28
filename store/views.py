@@ -84,13 +84,14 @@ def home(request):
 def shop_view(request, category_slug=None):
     categories = Category.objects.all()
     
+    # قمت بتغيير الاسم هنا إلى sort_out_of_stock لتجنب التضارب
     products = Product.objects.annotate(
-        is_out_of_stock=Case(
+        sort_out_of_stock=Case(
             When(stock=0, then=Value(1)),
             default=Value(0),
             output_field=IntegerField(),
         )
-    ).order_by('is_out_of_stock', '-created_at') 
+    ).order_by('sort_out_of_stock', '-created_at')
 
     selected_category = None
     if category_slug:
@@ -586,18 +587,16 @@ def about_view(request):
     return render(request, 'about.html')
 
 def offers_view(request):
-    # 1. جلب المنتجات التي عليها خصم فقط
-    # 2. إنشاء حقل وهمي 'is_out_of_stock' (0 للمتوفر، 1 للخالص)
-    # 3. الترتيب: المتوفر أولاً، ثم الأحدث (New Arrival)
+    # نفس التغيير لضمان التوافق
     products = Product.objects.filter(
         discount_price__gt=0
     ).annotate(
-        is_out_of_stock=Case(
+        sort_out_of_stock=Case(
             When(stock=0, then=Value(1)),
             default=Value(0),
             output_field=IntegerField(),
         )
-    ).order_by('is_out_of_stock', '-created_at')
+    ).order_by('sort_out_of_stock', '-created_at')
 
     context = {
         'products': products,
