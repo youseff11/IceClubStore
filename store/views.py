@@ -82,9 +82,9 @@ def home(request):
 
 def shop_view(request, category_slug=None):
     categories = Category.objects.all()
-    products = Product.objects.all().order_by('-is_available', '-created_at', '-id')
+    products = Product.objects.all().order_by('-stock', '-created_at', '-id')
+    
     selected_category = None
-
     if category_slug:
         selected_category = get_object_or_404(Category, slug=category_slug)
         products = products.filter(category=selected_category)
@@ -580,7 +580,7 @@ def about_view(request):
 def offers_view(request):
     products = Product.objects.filter(
         discount_price__gt=0
-    ).order_by('-is_available', '-created_at')
+    ).order_by('-stock', '-created_at')
 
     context = {
         'products': products,
