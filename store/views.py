@@ -10,7 +10,7 @@ from django.contrib import messages
 from django.core.mail import send_mail
 from django.conf import settings
 from django.forms import inlineformset_factory
-from .models import Product, Category, ContactMessage, ProductVariant, Order, OrderItem, ProductSize
+from .models import Product, Category, ContactMessage, ProductVariant, Order, OrderItem, ProductSize, ProductImage
 from .forms import ProductForm
 from django import forms
 from django.utils.html import strip_tags
@@ -19,7 +19,7 @@ from django.db import connection
 from django.db.models import Case, When, Value, IntegerField
 
 FB_PIXEL_ID = '792214427202379'  
-FB_ACCESS_TOKEN = 'EAAXY0i6ZArdwBQUwZAq4Mx7ArysubuZAELX8l1XnZBVA1gqWwklibClR6Hrw5Ves0DhZCK5SjjtrqwZAfWeX6yZBCmzsqNlUlW4cwTk4NQFHcCqT2rKPxfPLKMbr6DxvK4Gg0XlNqJGhBVTWqvgQR92MvT9CamOHpNDiUQ2X7bDc7s3LxXQZB6I9vSKs9R8u0ZCWv8gZDZD'  # ضع هنا التوكن الخاص بك
+FB_ACCESS_TOKEN = 'EAAXY0i6ZArdwBQUwZAq4Mx7ArysubuZAELX8l1XnZBVA1gqWwklibClR6Hrw5Ves0DhZCK5SjjtrqwZAfWeX6yZBCmzsqNlUlW4cwTk4NQFHcCqT2rKPxfPLKMbr6DxvK4Gg0XlNqJGhBVTWqvgQR92MvT9CamOHpNDiUQ2X7bDc7s3LxXQZB6I9vSKs9R8u0ZCWv8gZDZD'
 FB_API_VERSION = 'v18.0'
 
 def send_fb_capi_event(request, event_name, event_id=None, user_data=None, custom_data=None):
@@ -58,8 +58,6 @@ def send_fb_capi_event(request, event_name, event_id=None, user_data=None, custo
     except Exception as e:
         print(f"Facebook CAPI Error: {e}")
 
-# --- كودك الأصلي مع الإضافات ---
-
 VariantFormSet = inlineformset_factory(
     Product, 
     ProductVariant, 
@@ -83,11 +81,6 @@ def home(request):
 
 def shop_view(request, category_slug=None):
     categories = Category.objects.all()
-    
-    # الترتيب حسب 3 مستويات من الأولوية:
-    # 1. التوفر: المتوفر (0) يسبق المنتهي (1)
-    # 2. التمييز اليدوي: الـ New Arrival المانيوال (1) يسبق العادي (0)
-    # 3. التاريخ: الأحدث يسبق الأقدم
     products = Product.objects.annotate(
         is_available_group=Case(
             When(stock__gt=0, then=Value(0)),
@@ -232,7 +225,7 @@ def cart_view(request):
             total_price += subtotal
             
             variant = ProductVariant.objects.filter(product=product, color_name=item_data.get('color')).first()
-            display_image = variant.variant_image.url if variant else product.main_image
+            display_image = variant.variant_image.url if variant else product.main_image.url
             
             cart_items.append({
                 'item_key': item_key,
@@ -265,7 +258,6 @@ def update_cart(request, item_key, action):
         request.session.modified = True
     return redirect('cart_view')
     
-
 def remove_from_cart(request, item_key):
     if request.user.is_authenticated:
         user_cart_key = f"cart_{request.user.id}"
@@ -471,7 +463,7 @@ def checkout(request):
     return render(request, 'checkout.html', {'total_price': total_price})
 
 def is_admin(user):
-    return user.is_superuser
+    return user.is_authenticated and user.is_staff
 
 @user_passes_test(is_admin, login_url='login')
 def dashboard_view(request):
@@ -499,24 +491,43 @@ def add_product(request):
     if request.method == 'POST':
         form = ProductForm(request.POST, request.FILES)
         formset = VariantFormSet(request.POST, request.FILES)
+        
         if form.is_valid() and formset.is_valid():
             product = form.save()
             
-            instances = formset.save(commit=False)
-            for instance in instances:
-                instance.product = product
-                instance.save()
-            formset.save_m2m() 
-            
-            messages.success(request, 'Product and colors added! Go to Admin to add sizes. ✅')
+            for i, v_form in enumerate(formset.forms):
+                if v_form.cleaned_data and not v_form.cleaned_data.get('DELETE', False):
+                    variant = v_form.save(commit=False)
+                    variant.product = product
+                    variant.save()
+                    v_form.save_m2m()
+                    
+                    size_names = request.POST.getlist(f'size_name_{i}[]')
+                    size_quantities = request.POST.getlist(f'size_qty_{i}[]')
+                    
+                    for name, qty in zip(size_names, size_quantities):
+                        if name.strip():
+                            ProductSize.objects.create(
+                                variant=variant,
+                                size_name=name.strip(),
+                                stock=int(qty) if qty else 0
+                            )
+
+                    extra_images = request.FILES.getlist(f'images_custom_{i}')
+                    for img in extra_images:
+                        ProductImage.objects.create(variant=variant, image=img)
+
+            messages.success(request, 'Product, Variants, Sizes, and Gallery added successfully! ✅')
             return redirect('dashboard')
+        else:
+            messages.error(request, 'Please correct the errors below.')
     else:
         form = ProductForm()
         formset = VariantFormSet()
     
     return render(request, 'manage_product.html', {
-        'form': form,
-        'formset': formset,
+        'form': form, 
+        'formset': formset, 
         'title': 'Add New Product'
     })
 
@@ -526,10 +537,37 @@ def edit_product(request, pk):
     if request.method == 'POST':
         form = ProductForm(request.POST, request.FILES, instance=product)
         formset = VariantFormSet(request.POST, request.FILES, instance=product)
+        
         if form.is_valid() and formset.is_valid():
             form.save()
-            formset.save()
             
+            for i, v_form in enumerate(formset.forms):
+                if v_form.cleaned_data and not v_form.cleaned_data.get('DELETE', False):
+                    variant = v_form.save(commit=False)
+                    variant.product = product
+                    variant.save()
+                    v_form.save_m2m()
+                    
+                    size_names = request.POST.getlist(f'size_name_{i}[]')
+                    size_quantities = request.POST.getlist(f'size_qty_{i}[]')
+                    
+                    if size_names:
+                        variant.product_sizes.all().delete()
+                        for name, qty in zip(size_names, size_quantities):
+                            if name.strip():
+                                ProductSize.objects.create(
+                                    variant=variant, 
+                                    size_name=name.strip(),
+                                    stock=int(qty) if qty else 0
+                                )
+
+                    extra_images = request.FILES.getlist(f'images_custom_{i}')
+                    for img in extra_images:
+                        ProductImage.objects.create(variant=variant, image=img)
+                
+                elif v_form.cleaned_data.get('DELETE', False) and v_form.instance.pk:
+                    v_form.instance.delete()
+
             messages.success(request, 'Product updated successfully! ✨')
             return redirect('dashboard')
     else:
@@ -537,10 +575,11 @@ def edit_product(request, pk):
         formset = VariantFormSet(instance=product)
     
     return render(request, 'manage_product.html', {
-        'form': form,
-        'formset': formset,
+        'form': form, 
+        'formset': formset, 
         'title': f'Edit: {product.name}'
     })
+
 @user_passes_test(is_admin, login_url='login')
 def delete_product(request, pk):
     product = get_object_or_404(Product, pk=pk)
@@ -553,7 +592,6 @@ def update_order_status(request, order_id):
     if request.method == 'POST':
         order = get_object_or_404(Order, id=order_id)
         new_status = request.POST.get('status')        
-        print(f"Trying to update Order {order_id} to: {new_status}")
         valid_choices = [choice[0] for choice in Order.STATUS_CHOICES]
         if new_status in valid_choices:
             order.status = new_status
@@ -595,18 +633,14 @@ def about_view(request):
     return render(request, 'about.html')
 
 def offers_view(request):
-    # 1. الفلترة: نجلب فقط المنتجات التي سعرها بعد الخصم أقل من سعرها الأصلي
-    # أو التي حقل discount_price فيها أكبر من 0
     products = Product.objects.filter(
         discount_price__gt=0
     ).annotate(
-        # 2. ترتيب التوفر: المتوفر (0) يسبق المنتهي (1)
         is_available_group=Case(
             When(stock__gt=0, then=Value(0)),
             default=Value(1),
             output_field=IntegerField(),
         ),
-        # 3. ترتيب مانيوال: الـ New Arrival المختار يدوياً (1) يسبق العادي (0)
         manual_new_priority=Case(
             When(is_new_arrival=True, then=Value(1)),
             default=Value(0),
@@ -632,6 +666,6 @@ def reset_orders(request):
             
             messages.success(request, "All Orders Are Deleted")
         except Exception as e:
-            messages.error(request, f"حدث خطأ أثناء محاولة التصفير: {e}")
+            messages.error(request, f"Error resetting orders: {e}")
             
     return redirect('dashboard')
