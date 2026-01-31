@@ -14,7 +14,7 @@
     body { margin: 0; background: #0f2027; color: #fff; font-family: 'Segoe UI', sans-serif; overflow-x: hidden; }
 
     .detail-wrapper { 
-        padding: 100px 10px 50px; /* زيادة الـ padding العلوي ليتناسب مع الـ Navbar */
+        padding: 100px 10px 50px; 
         background: var(--accent-gradient); 
         min-height: 100vh; 
         display: flex; 
@@ -56,7 +56,6 @@
         .info-section { padding: 25px 15px !important; }
     }
 
-    /* --- تنسيق معرض الصور الجديد --- */
     .image-section {
         position: relative; background: #15262d; display: flex; flex-direction: column; 
         align-items: center; justify-content: center; padding: 20px; border-right: 1px solid var(--glass-border);
@@ -74,7 +73,7 @@
 
     .thumbnail-gallery {
         display: flex; gap: 10px; margin-top: 15px; justify-content: center; flex-wrap: wrap;
-        z-index: 10;
+        z-index: 10; min-height: 60px; /* لضمان وجود مساحة للمصغرات */
     }
 
     .thumb {
@@ -85,7 +84,6 @@
     .thumb img { width: 100%; height: 100%; object-fit: cover; }
     .thumb.active { border-color: var(--primary-color); opacity: 1; transform: scale(1.1); }
 
-    /* --- باقي التنسيقات --- */
     .detail-sold-out-badge {
         position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-10deg);
         background: rgba(0,0,0,0.9); color: #ff5252; padding: 10px 20px;
@@ -133,7 +131,11 @@
                 {% endif %}
                 
                 <div class="main-display">
-                    <img src="{{ product.main_image.url }}" alt="{{ product.name }}" id="mainDetailImg" class="product-main-img">
+                    {% if product.variants.first %}
+                        <img src="{{ product.variants.first.variant_image.url }}" alt="{{ product.name }}" id="mainDetailImg" class="product-main-img">
+                    {% else %}
+                        <img src="" alt="No Image Available" id="mainDetailImg" class="product-main-img">
+                    {% endif %}
                 </div>
 
                 <div class="thumbnail-gallery" id="thumbGallery">
@@ -162,17 +164,15 @@
                              data-stock="{{ variant.total_variant_stock }}" 
                              onclick="selectVariant(this)">
                              
-                             {# تخزين الصور الإضافية للـ Variant في JSON #}
                              <script type="application/json" class="v-images">
                                 [
-                                    "{{ variant.variant_image.url }}",
+                                    "{{ variant.variant_image.url }}"
                                     {% for extra in variant.additional_images.all %}
-                                        "{{ extra.image.url }}"{% if not forloop.last %},{% endif %}
+                                        , "{{ extra.image.url }}"
                                     {% endfor %}
                                 ]
                              </script>
 
-                             {# تخزين بيانات المقاسات #}
                              <script type="application/json" class="v-data">
                                 [{% for s in variant.sizes.all %}{"n":"{{s.size_name}}","s":{{s.stock}}}{% if not forloop.last %},{% endif %}{% endfor %}]
                              </script>
@@ -195,8 +195,6 @@
     </div>
 </div>
 
-
-
 <script>
     let selColor = "", selSize = "";
     const productPrice = {{ product.discount_price|default:product.price|floatformat:0 }};
@@ -205,7 +203,6 @@
 
     function generateEventID() { return "evt_" + Date.now() + "_" + Math.floor(Math.random() * 1000); }
 
-    // تتبع الفيسبوك
     if (typeof fbq !== 'undefined') {
         fbq('track', 'ViewContent', {
             content_name: productName, content_ids: [productId], content_type: 'product',
@@ -222,33 +219,34 @@
         selColor = cName;
         document.getElementById('selected-color-name').innerText = cName;
 
-        // 1. تحديث معرض الصور
         const thumbGallery = document.getElementById('thumbGallery');
         const mainImg = document.getElementById('mainDetailImg');
         thumbGallery.innerHTML = "";
 
-        images.forEach((imgUrl, index) => {
-            const thumb = document.createElement('div');
-            thumb.className = `thumb ${index === 0 ? 'active' : ''}`;
-            thumb.innerHTML = `<img src="${imgUrl}" alt="view">`;
-            thumb.onclick = () => {
-                mainImg.style.opacity = '0.4';
-                setTimeout(() => {
-                    mainImg.src = imgUrl;
-                    mainImg.style.opacity = '1';
-                    document.querySelectorAll('.thumb').forEach(t => t.classList.remove('active'));
-                    thumb.classList.add('active');
-                }, 100);
-            };
-            thumbGallery.appendChild(thumb);
-        });
+        // التأكد من أن المصفوفة تحتوي على صور (حتى لو واحدة) وعرضها في المعرض
+        if (images && images.length > 0) {
+            images.forEach((imgUrl, index) => {
+                const thumb = document.createElement('div');
+                thumb.className = `thumb ${index === 0 ? 'active' : ''}`;
+                thumb.innerHTML = `<img src="${imgUrl}" alt="Product view ${index + 1}">`;
+                thumb.onclick = () => {
+                    mainImg.style.opacity = '0.4';
+                    setTimeout(() => {
+                        mainImg.src = imgUrl;
+                        mainImg.style.opacity = '1';
+                        document.querySelectorAll('.thumb').forEach(t => t.classList.remove('active'));
+                        thumb.classList.add('active');
+                    }, 100);
+                };
+                thumbGallery.appendChild(thumb);
+            });
+            // تعيين الصورة الأولى كصورة أساسية فوراً
+            mainImg.src = images[0];
+        }
 
-        // تعيين الصورة الأولى كصورة أساسية فوراً
-        mainImg.src = images[0];
         document.getElementById('imgSection').classList.toggle('is-out-of-stock', stock === 0);
         document.getElementById('soldOutLabel').style.display = stock === 0 ? 'block' : 'none';
 
-        // 2. تحديث المقاسات
         const container = document.getElementById('sizeOptionsContainer');
         container.innerHTML = ""; selSize = "";
         document.getElementById('selected-size-name').innerText = "Choose";
@@ -291,7 +289,6 @@
         }
     }
 
-    // تتبع AddToCart
     document.getElementById('add-to-cart-btn').addEventListener('click', function(e) {
         if (!this.classList.contains('btn-disabled')) {
             if (typeof fbq !== 'undefined') {
