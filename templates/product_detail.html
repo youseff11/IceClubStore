@@ -73,7 +73,7 @@
 
     .thumbnail-gallery {
         display: flex; gap: 10px; margin-top: 15px; justify-content: center; flex-wrap: wrap;
-        z-index: 10; min-height: 60px; /* لضمان وجود مساحة للمصغرات */
+        z-index: 10; min-height: 60px;
     }
 
     .thumb {
@@ -138,8 +138,7 @@
                     {% endif %}
                 </div>
 
-                <div class="thumbnail-gallery" id="thumbGallery">
-                    </div>
+                <div class="thumbnail-gallery" id="thumbGallery"></div>
             </div>
 
             <div class="info-section">
@@ -164,18 +163,9 @@
                              data-stock="{{ variant.total_variant_stock }}" 
                              onclick="selectVariant(this)">
                              
-                             <script type="application/json" class="v-images">
-                                [
-                                    "{{ variant.variant_image.url }}"
-                                    {% for extra in variant.additional_images.all %}
-                                        , "{{ extra.image.url }}"
-                                    {% endfor %}
-                                ]
-                             </script>
+                             <script type="application/json" class="v-images">["{{ variant.variant_image.url }}"{% for extra in variant.additional_images.all %},"{{ extra.image.url }}"{% endfor %}]</script>
 
-                             <script type="application/json" class="v-data">
-                                [{% for s in variant.sizes.all %}{"n":"{{s.size_name}}","s":{{s.stock}}}{% if not forloop.last %},{% endif %}{% endfor %}]
-                             </script>
+                             <script type="application/json" class="v-data">[{% for s in variant.sizes.all %}{"n":"{{s.size_name}}","s":{{s.stock}}}{% if not forloop.last %},{% endif %}{% endfor %}]</script>
                         </div>
                         {% endfor %}
                     </div>
@@ -205,7 +195,6 @@
         return "evt_" + Date.now() + "_" + Math.floor(Math.random() * 1000); 
     }
 
-    // Tracking ViewContent
     if (typeof fbq !== 'undefined') {
         fbq('track', 'ViewContent', {
             content_name: productName, 
@@ -223,17 +212,19 @@
         let images = [];
         let sizes = [];
         
-        // الجزء المحدث: حماية وتحليل البيانات لضمان عدم توقف الكود
         try {
-            const imgRaw = el.querySelector('.v-images').textContent.trim();
-            const dataRaw = el.querySelector('.v-data').textContent.trim();
+            // سحب البيانات وتنظيفها من المسافات أو الفواصل الزائدة التي قد تظهر على السيرفر
+            let imgRaw = el.querySelector('.v-images').textContent.replace(/\s+/g, " ").trim();
+            let dataRaw = el.querySelector('.v-data').textContent.replace(/\s+/g, " ").trim();
             
-            // تنظيف النص قبل التحليل لتجنب مشاكل المسافات أو الفواصل
+            // تصحيح أي فاصلة زائدة في نهاية المصفوفات قبل التحليل
+            imgRaw = imgRaw.replace(/,\s*\]$/, "]");
+            dataRaw = dataRaw.replace(/,\s*\]$/, "]");
+
             images = JSON.parse(imgRaw);
             sizes = JSON.parse(dataRaw);
         } catch (e) {
             console.error("JSON Parsing Error:", e);
-            // Fallback: استخدام الصورة الأساسية لو فشل الـ JSON
             images = [el.dataset.mainImg];
             sizes = [];
         }
@@ -244,7 +235,6 @@
         const thumbGallery = document.getElementById('thumbGallery');
         const mainImg = document.getElementById('mainDetailImg');
         
-        // تفريغ المعرض وتحديث الصور
         thumbGallery.innerHTML = "";
 
         if (images && images.length > 0) {
@@ -263,16 +253,13 @@
                 };
                 thumbGallery.appendChild(thumb);
             });
-            // تعيين الصورة الأولى كصورة أساسية
             mainImg.src = images[0];
         }
 
-        // تحديث حالة نفاذ الكمية
         document.getElementById('imgSection').classList.toggle('is-out-of-stock', stock === 0);
         const soldOutLabel = document.getElementById('soldOutLabel');
         if (soldOutLabel) soldOutLabel.style.display = stock === 0 ? 'block' : 'none';
 
-        // تحديث خيارات المقاسات
         const container = document.getElementById('sizeOptionsContainer');
         if (container) {
             container.innerHTML = ""; 
@@ -296,7 +283,6 @@
             });
         }
 
-        // تحديث شكل النقاط (Colors)
         document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
         el.classList.add('active');
         updateBtn();
@@ -322,7 +308,6 @@
         }
     }
 
-    // Add to Cart Event Tracking
     document.getElementById('add-to-cart-btn').addEventListener('click', function(e) {
         if (!this.classList.contains('btn-disabled')) {
             if (typeof fbq !== 'undefined') {
@@ -339,7 +324,6 @@
         }
     });
 
-    // تحميل أول لون متاح عند فتح الصفحة
     document.addEventListener('DOMContentLoaded', () => {
         const firstVariant = document.querySelector('.color-dot:not(.sold-out-dot)') || document.querySelector('.color-dot');
         if (firstVariant) firstVariant.click();
