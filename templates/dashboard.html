@@ -93,7 +93,7 @@
                         <td>{{ product.price|floatformat:0 }} LE</td>
                         <td><span style="opacity: 0.7;">{{ product.category.name }}</span></td>
                         <td>
-                            <a href="{% url 'edit_product' product.id %}" class="action-link edit-link" style="color: var(--primary-color); text-decoration: none; font-weight: 700; margin-right: 15px;">Edit</a>
+                            <a href="/admin/store/product/" class="action-link edit-link" style="color: var(--primary-color); text-decoration: none; font-weight: 700; margin-right: 15px;">Edit</a>
                             <a href="{% url 'delete_product' product.id %}" class="action-link delete-link" style="color: #ff4d4d; text-decoration: none; font-weight: 700;" onclick="return confirm('Delete?')">Delete</a>
                         </td>
                     </tr>
