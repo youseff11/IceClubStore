@@ -21,11 +21,47 @@
         margin: 0;
     }
 
+    /* زر الترجمة العائم */
+    .lang-switch {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        z-index: 1000;
+        background: var(--primary-color);
+        color: #0f2027;
+        border: none;
+        padding: 12px 20px;
+        border-radius: 50px;
+        font-weight: bold;
+        cursor: pointer;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        transition: var(--transition);
+    }
+
+    .lang-switch:hover { transform: scale(1.1); background: #fff; }
+
     .about-container {
         max-width: 1200px;
         margin: 0 auto;
         padding: clamp(20px, 5vw, 60px) 20px;
+        transition: all 0.3s ease;
     }
+
+    /* --- تعديل: حصر تأثير اللغة العربية على حاوية المحتوى فقط --- */
+    .about-container.rtl { 
+        direction: rtl; 
+        text-align: right; 
+    }
+    
+    .about-container.rtl .guarantee-list li { padding: 10px 35px 10px 0; }
+    .about-container.rtl .guarantee-list li i { left: auto; right: 0; }
+    .about-container.rtl .guarantee-box { border-left: none; border-right: 5px solid var(--primary-color); }
+    
+    /* تغيير مكان الزر عند قلب اللغة دون التأثير على الناف بار */
+    .lang-switch.btn-rtl { right: auto; left: 30px; }
 
     .about-header {
         text-align: center;
@@ -48,7 +84,7 @@
         font-size: 0.9rem;
     }
 
-    /* Identity Section - تأثير الضوء المحسن */
+    /* Identity Section */
     .story-section {
         position: relative;
         border-radius: 30px;
@@ -118,6 +154,7 @@
         border-radius: 30px;
         border-left: 5px solid var(--primary-color);
         margin-bottom: 60px;
+        transition: border 0.3s ease;
     }
 
     .guarantee-list {
@@ -148,7 +185,6 @@
         opacity: 0.9;
     }
 
-    /* تحسينات الشاشات الصغيرة جداً */
     @media (max-width: 480px) {
         .info-grid, .values-grid { grid-template-columns: 1fr; }
         .about-header h1 { font-size: 2rem; }
@@ -156,76 +192,124 @@
     }
 </style>
 
-<div class="about-container">
+<button class="lang-switch" id="lang-btn" onclick="toggleLanguage()">
+    <i class="fa-solid fa-language"></i>
+    <span id="btn-text">العربية</span>
+</button>
+
+<div class="about-container" id="content-area">
     <header class="about-header">
-        <p class="subtitle">Our Journey & Philosophy</p>
-        <h1>About <span>Ice Club Store</span></h1>
+        <p class="subtitle" data-en="Our Journey & Philosophy" data-ar="رحلتنا وفلسفتنا">Our Journey & Philosophy</p>
+        <h1 data-en="About <span>Ice Club Store</span>" data-ar="عن <span>آيس كلوب ستور</span>">About <span>Ice Club Store</span></h1>
     </header>
 
     <section class="story-section">
         <div class="story-inner">
-            <h2>Our Identity</h2>
-            <p><strong>Ice Club Store</strong> is your destination for modern style and reliable quality. We offer carefully selected pieces with trendy designs and comfortable fabrics, made to fit your everyday lifestyle.</p>
-            <p>We believe fashion is more than just looks — <strong>it’s an experience.</strong></p>
+            <h2 data-en="Who We Are ?" data-ar="من نحن؟">Who We Are ?</h2>
+            <p data-en="Ice Club Store is your destination for modern style and reliable quality. We offer carefully selected pieces with trendy designs and comfortable fabrics, made to fit your everyday lifestyle." 
+               data-ar="آيس كلوب ستور هو وجهتك للأناقة العصرية والجودة الموثوقة. نحن نقدم قطعاً مختارة بعناية بتصاميم مواكبة للموضة وأقمشة مريحة، صُممت لتناسب أسلوب حياتك اليومي.">
+                Ice Club Store is your destination for modern style and reliable quality. We offer carefully selected pieces with trendy designs and comfortable fabrics, made to fit your everyday lifestyle.
+            </p>
+            <p data-en="We believe fashion is more than just looks — <strong>it’s an experience.</strong>" 
+               data-ar="نحن نؤمن بأن الموضة أكثر من مجرد مظهر — <strong>إنها تجربة.</strong>">
+                We believe fashion is more than just looks — <strong>it’s an experience.</strong>
+            </p>
         </div>
     </section>
 
     <div class="info-grid">
         <div class="info-card">
             <i class="fa-regular fa-clock"></i>
-            <h3>Working Hours</h3>
-            <p>Daily <strong>4:00 PM to 11:00 PM</strong><br>Ready to prepare your orders.</p>
+            <h3 data-en="Working Hours" data-ar="ساعات العمل">Working Hours</h3>
+            <p data-en="Daily <strong>4:00 PM to 11:00 PM</strong><br>Ready to prepare your orders." 
+               data-ar="يومياً <strong>من 4:00 عصراً حتى 11:00 مساءً</strong><br>جاهزون لتجهيز طلباتكم.">
+                Daily <strong>4:00 PM to 11:00 PM</strong><br>Ready to prepare your orders.
+            </p>
         </div>
         <div class="info-card">
             <i class="fa-solid fa-truck-fast"></i>
-            <h3>Shipping</h3>
-            <p>Fast & secure delivery to all governorates across <strong>Egypt</strong>.</p>
+            <h3 data-en="Shipping" data-ar="الشحن">Shipping</h3>
+            <p data-en="Fast & secure delivery to all governorates across <strong>Egypt</strong>." 
+               data-ar="توصيل سريع وآمن لجميع المحافظات في أنحاء <strong>مصر</strong>.">
+                Fast & secure delivery to all governorates across <strong>Egypt</strong>.
+            </p>
         </div>
         <div class="info-card">
             <i class="fa-solid fa-headset"></i>
-            <h3>Support</h3>
-            <p>Real human support. We build long-term trust with our customers.</p>
+            <h3 data-en="Support" data-ar="الدعم الفني">Support</h3>
+            <p data-en="Real human support. We build long-term trust with our customers." 
+               data-ar="دعم فني بشري حقيقي. نحن نبني ثقة طويلة الأمد مع عملائنا.">
+                Real human support. We build long-term trust with our customers.
+            </p>
         </div>
     </div>
 
     <section class="guarantee-box">
-        <h2><i class="fa-solid fa-shield-halved"></i> Quality Guarantee</h2>
-        <p>At Ice Club Store, quality comes first. We offer a <strong>post-use guarantee</strong> on:</p>
+        <h2 data-en="Quality Guarantee" data-ar="ضمان الجودة"><i class="fa-solid fa-shield-halved"></i> Quality Guarantee</h2>
+        <p data-en="At Ice Club Store, quality comes first. We offer a <strong>post-use guarantee</strong> on:" 
+           data-ar="في آيس كلوب ستور، الجودة تأتي أولاً. نحن نقدم <strong>ضمان ما بعد الاستخدام</strong> على:">
+            At Ice Club Store, quality comes first. We offer a <strong>post-use guarantee</strong> on:
+        </p>
         <ul class="guarantee-list">
-            <li><i class="fa-solid fa-check-circle"></i> Fabric issues (wear or damage)</li>
-            <li><i class="fa-solid fa-check-circle"></i> Print fading or peeling</li>
+            <li data-en="Fabric issues (wear or damage)" data-ar="مشاكل القماش (التلف أو العيوب)"><i class="fa-solid fa-check-circle"></i> Fabric issues (wear or damage)</li>
+            <li data-en="Print fading or peeling" data-ar="بهتان الطباعة أو تقشرها"><i class="fa-solid fa-check-circle"></i> Print fading or peeling</li>
         </ul>
-        <p style="color: var(--primary-color); font-weight: 600;">
+        <p style="color: var(--primary-color); font-weight: 600;" data-en="14-day return policy from delivery date." data-ar="سياسة استرجاع خلال 14 يوماً من تاريخ الاستلام.">
             <i class="fa-solid fa-calendar-days"></i> 14-day return policy from delivery date.
         </p>
     </section>
 
     <section class="values-section">
         <div class="about-header">
-            <h2 style="font-size: 2rem;">Why Choose <span>Ice Club Store?</span></h2>
+            <h2 style="font-size: 2rem;" data-en="Why Choose <span>Ice Club Store?</span>" data-ar="لماذا تختار <span>آيس كلوب ستور؟</span>">Why Choose <span>Ice Club Store?</span></h2>
         </div>
         <div class="values-grid">
             <div class="value-item">
                 <i class="fa-solid fa-gem"></i>
-                <h4>Premium Materials</h4>
-                <p>Carefully selected fabrics ensuring maximum comfort and durability.</p>
+                <h4 data-en="Premium Materials" data-ar="خامات ممتازة">Premium Materials</h4>
+                <p data-en="Carefully selected fabrics ensuring maximum comfort and durability." data-ar="أقمشة مختارة بعناية لضمان أقصى درجات الراحة والمتانة.">Carefully selected fabrics ensuring maximum comfort and durability.</p>
             </div>
             <div class="value-item">
                 <i class="fa-solid fa-wand-magic-sparkles"></i>
-                <h4>Trend-Driven</h4>
-                <p>Global trends met with local uniqueness in every design.</p>
+                <h4 data-en="Trend-Driven" data-ar="مواكبة للموضة">Trend-Driven</h4>
+                <p data-en="Global trends met with local uniqueness in every design." data-ar="تصاميم تجمع بين الموضة العالمية واللمسة المحلية الفريدة.">Global trends met with local uniqueness in every design.</p>
             </div>
             <div class="value-item">
                 <i class="fa-solid fa-handshake-angle"></i>
-                <h4>Transparent Service</h4>
-                <p>Honesty and transparency in every transaction we make.</p>
+                <h4 data-en="Transparent Service" data-ar="خدمة شفافة">Transparent Service</h4>
+                <p data-en="Honesty and transparency in every transaction we make." data-ar="الصدق والشفافية في كل معاملة نقوم بها.">Honesty and transparency in every transaction we make.</p>
             </div>
         </div>
     </section>
 
-    <div class="closing-statement">
+    <div class="closing-statement" data-en='"We don’t just sell products — we build long-term trust with our customers."' data-ar='"نحن لا نبيع المنتجات فحسب - بل نبني ثقة طويلة الأمد مع عملائنا"'>
         "We don’t just sell products — we build long-term trust with our customers." 
         <i class="fa-solid fa-heart" style="color: var(--primary-color);"></i>
     </div>
 </div>
+
+<script>
+    function toggleLanguage() {
+        const container = document.getElementById('content-area');
+        const langBtn = document.getElementById('lang-btn');
+        const btnText = document.getElementById('btn-text');
+        const elements = document.querySelectorAll('[data-en]');
+        
+        // تبديل الكلاس الخاص بالحاوية فقط وليس الـ body
+        container.classList.toggle('rtl');
+        langBtn.classList.toggle('btn-rtl');
+        
+        if (container.classList.contains('rtl')) {
+            elements.forEach(el => {
+                el.innerHTML = el.getAttribute('data-ar');
+            });
+            btnText.innerText = 'English';
+        } else {
+            elements.forEach(el => {
+                el.innerHTML = el.getAttribute('data-en');
+            });
+            btnText.innerText = 'العربية';
+        }
+    }
+</script>
 {% endblock %}
