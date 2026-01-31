@@ -252,15 +252,16 @@
         <a href="{% url 'home' %}">Home</a>
         <a href="{% url 'shop' %}">Shop</a>
 
+        {# سيظهر هذا الرابط فقط لك بعد أن تسجل دخولك يدوياً عبر الرابط السري #}
         {% if user.is_authenticated and user.is_superuser %}
             <a href="{% url 'dashboard' %}" class="admin-link">Dashboard</a>
+            <a href="{% url 'logout' %}" style="color: #ff5252;">Logout</a>
         {% endif %}
 
         <a href="{% url 'offers' %}">Offers</a>
         <a href="{% url 'about' %}">About</a>
         <a href="{% url 'policies' %}">Policies</a>
         <a href="{% url 'contact' %}">Contact</a>
-
     </div>
 
     <div class="nav-actions">
@@ -273,14 +274,11 @@
             {% endif %}
         </a>
 
-        {% if user.is_authenticated %}
-            <span>Hi, <strong>{{ user.username }}</strong></span>
-            <a href="{% url 'logout' %}" class="nav-btn outline">Logout</a>
-        {% else %}
-            <a href="{% url 'login' %}" class="nav-btn outline">Login</a>
+        {# تم حذف أزرار الـ Login والـ Username من هنا ليبقى المكان سرياً #}
+        {% if user.is_authenticated and user.is_superuser %}
+             <span style="font-size: 13px; opacity: 0.8;">Admin Mode</span>
         {% endif %}
     </div>
-
 </nav>
 
 <script>
