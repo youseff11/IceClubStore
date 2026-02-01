@@ -255,7 +255,7 @@
         {# سيظهر هذا الرابط فقط لك بعد أن تسجل دخولك يدوياً عبر الرابط السري #}
         {% if user.is_authenticated and user.is_superuser %}
             <a href="{% url 'dashboard' %}" class="admin-link">Dashboard</a>
-            <a href="{% url 'logout' %}" style="color: #ff5252;">Logout</a>
+            <!-- <a href="{% url 'logout' %}" style="color: #ff5252;">Logout</a> -->
         {% endif %}
 
         <a href="{% url 'offers' %}">Offers</a>
