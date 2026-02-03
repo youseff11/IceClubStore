@@ -4,7 +4,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-1gd^kfuz6#!+!-wo8k-o$ew)#6k8t!tw6kb@2jboowno(r=)2x'
 DEBUG = True
 
-ALLOWED_HOSTS = ['www.iceclubstore.com', 'iceclubstore.com', 'IceClub.pythonanywhere.com']
+ALLOWED_HOSTS = ['www.iceclubstore.com', 'iceclubstore.com', 'IceClub.pythonanywhere.com','127.0.0.1']
 
 # Application definition
 

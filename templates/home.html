@@ -2,7 +2,6 @@
 
 {% block content %}
 <style>
-    /* الإعدادات العامة للصفحة لمنع مشاكل التمرير */
     :root {
         --primary-blue: #4fc3f7;
         --dark-bg: #0f2027;
@@ -12,9 +11,9 @@
         background: var(--dark-bg);
         background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
         color: #ffffff;
+        margin: 0;
     }
 
-    /* --- Hero Section المطور --- */
     .hero-section {
         height: 90vh;
         display: flex;
@@ -26,11 +25,22 @@
         overflow: hidden;
     }
 
+    #snow-canvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 1;
+        pointer-events: none;
+    }
+
     .hero-overlay {
         position: absolute;
         top: 0; left: 0; width: 100%; height: 100%;
         background: rgba(15, 32, 39, 0.65);
         backdrop-filter: blur(2px);
+        z-index: 1;
     }
 
     .hero-content {
@@ -63,7 +73,6 @@
         animation: fadeInUp 1s ease;
     }
 
-    /* --- Features Bar (شريط الثقة) --- */
     .features-bar {
         background: rgba(255, 255, 255, 0.03);
         backdrop-filter: blur(15px);
@@ -87,15 +96,17 @@
         font-size: 32px; 
         color: var(--primary-blue); 
         margin-bottom: 10px;
-        width: 45px; /* حجم مناسب للأيقونة */
+        width: 45px; 
         height: auto;
     }
 
     .feature-item h4 { margin: 0; font-size: 18px; font-weight: 600; }
     .feature-item p { margin: 0; font-size: 14px; color: #b0c4de; }
 
-    /* --- قسم التصنيفات (Grid) --- */
-    .section-padding { padding: 100px 8%; }
+    .section-padding { 
+        padding: 100px 8%; 
+        position: relative; 
+    }
 
     .section-title {
         text-align: center;
@@ -116,7 +127,6 @@
         gap: 40px;
     }
 
-    /* تأثير الكارت المضيء المطور */
     .category-card {
         height: 500px;
         border-radius: 25px;
@@ -144,7 +154,7 @@
 
     .card-inner {
         position: absolute;
-        inset: 4px; /* الإطار المضيء */
+        inset: 4px; 
         background: #0f2027;
         border-radius: 22px;
         z-index: 1;
@@ -174,7 +184,6 @@
 
     .category-info h3 { font-size: 28px; margin-bottom: 12px; }
 
-    /* --- الأزرار --- */
     .btn-main {
         padding: 16px 40px;
         border-radius: 50px;
@@ -202,50 +211,30 @@
     }
     .btn-ghost:hover { background: var(--primary-blue); color: #0f2027; }
 
-    /* --- Animations --- */
     @keyframes fadeInUp {
         from { opacity: 0; transform: translateY(30px); }
         to { opacity: 1; transform: translateY(0); }
     }
 
-    /* التجاوب مع الجوال */
     @media (max-width: 768px) {
         .btn-ghost { margin-left: 0; margin-top: 15px; width: 100%; }
         .btn-filled { width: 100%; }
-        .features-bar { grid-template-columns: repeat(2, 1fr); } /* عرض المميزات بجانب بعضها */
+        .features-bar { grid-template-columns: repeat(2, 1fr); } 
     }
 </style>
 
 <section class="hero-section">
+    <canvas id="snow-canvas"></canvas>
     <div class="hero-overlay"></div>
     <div class="hero-content">
         <h1>Cool Style for <br><span>Cold Souls</span></h1>
-        <p>Enjoy Our World Of Shiny Clothes 🧊 
+        <p>Enjoy Our World Of Shiny Clothes 🧊 </p>
         <div class="hero-btns">
             <a href="{% url 'shop' %}" class="btn-main btn-filled">Explore Shop</a>
             <a href="{% url 'shop' %}" class="btn-main btn-ghost">New Arrivals</a>
         </div>
     </div>
 </section>
-
-<!-- <div class="features-bar">
-    <div class="feature-item">
-        <i class="fas fa-truck-fast"></i>
-        <div><h4>Avilable Shipping</h4><p>On orders over $100</p></div>
-    </div>
-    <div class="feature-item">
-        <i class="fas fa-certificate"></i>
-        <div><h4>Premium Quality</h4><p>Certified Fabrics</p></div>
-    </div>
-    <div class="feature-item">
-        <img src="https://img.icons8.com/ios-filled/100/4fc3f7/lock.png" alt="Secure Payment Lock Icon">
-        <div><h4>Secure Payment</h4><p>100% Safe Checkout</p></div>
-    </div>
-    <div class="feature-item">
-        <i class="fas fa-bolt"></i>
-        <div><h4>Fast Delivery</h4><p>Worldwide Shipping</p></div>
-    </div>
-</div> -->
 
 <section class="section-padding">
     <div class="section-title">
@@ -283,5 +272,72 @@
         </div>
     </div>
 </section>
+
+<script>
+    const canvas = document.getElementById('snow-canvas');
+    const ctx = canvas.getContext('2d');
+    const heroSection = document.querySelector('.hero-section');
+
+    let width, height, snowflakes;
+
+    function initSnow() {
+        width = heroSection.offsetWidth;
+        height = heroSection.offsetHeight;
+        canvas.width = width;
+        canvas.height = height;
+
+        snowflakes = [];
+        for (let i = 0; i < 120; i++) { 
+            snowflakes.push({
+                x: Math.random() * width,
+                y: Math.random() * height,
+                r: Math.random() * 4 + 1,
+                speed: Math.random() * 0.8 + 0.4,
+                opacity: Math.random() * 0.5 + 0.3
+            });
+        }
+    }
+
+    function drawSnow() {
+        ctx.clearRect(0, 0, width, height);
+        
+        for (let i = 0; i < snowflakes.length; i++) {
+            let f = snowflakes[i];
+            
+            let gradient = ctx.createRadialGradient(f.x, f.y, 0, f.x, f.y, f.r);
+            gradient.addColorStop(0, `rgba(255, 255, 255, ${f.opacity + 0.3})`);
+            gradient.addColorStop(0.8, `rgba(255, 255, 255, ${f.opacity})`);
+            gradient.addColorStop(1, `rgba(255, 255, 255, 0)`);
+
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        moveSnow();
+    }
+
+    function moveSnow() {
+        for (let i = 0; i < snowflakes.length; i++) {
+            let f = snowflakes[i];
+            f.y += f.speed;
+            f.x += Math.sin(f.y / 40) * 0.4;
+
+            if (f.y > height) {
+                snowflakes[i].y = -10;
+                snowflakes[i].x = Math.random() * width;
+            }
+        }
+    }
+
+    function update() {
+        drawSnow();
+        requestAnimationFrame(update);
+    }
+
+    window.addEventListener('resize', initSnow);
+    initSnow();
+    update();
+</script>
 
 {% endblock %}
