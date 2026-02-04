@@ -6,8 +6,6 @@ from django.db.models import Sum
 from django.utils import timezone
 import uuid
 from datetime import timedelta
-# استيراد الحقل المعالج للصور لضمان السرعة
-from django_resized import ResizedImageField 
 
 class Category(models.Model):
     name = models.CharField(max_length=100, unique=True)
@@ -29,6 +27,7 @@ class Product(models.Model):
     stock = models.PositiveIntegerField(default=0, verbose_name="Total Stock Quantity", editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
     
+    # الحقول الجديدة للتحكم في حالة "وصل حديثاً"
     is_new_arrival = models.BooleanField(default=False, verbose_name="New Arrival?")
     new_arrival_updated_at = models.DateTimeField(null=True, blank=True, editable=False)
 
@@ -36,6 +35,7 @@ class Product(models.Model):
         return f"{self.name} ({self.sku if self.sku else 'No SKU'})"
 
     def save(self, *args, **kwargs):
+        # منطق تحديث تاريخ التفعيل لـ New Arrival
         if self.pk:
             old_instance = Product.objects.filter(pk=self.pk).first()
             if old_instance and self.is_new_arrival and not old_instance.is_new_arrival:
@@ -46,6 +46,7 @@ class Product(models.Model):
             if self.is_new_arrival:
                 self.new_arrival_updated_at = timezone.now()
 
+        # منطق الـ SKU الأصلي الخاص بك
         if not self.sku:
             prefix = self.name[:3].upper() if self.name else "PRD"
             unique_id = str(uuid.uuid4().hex[:6].upper())
@@ -59,6 +60,7 @@ class Product(models.Model):
 
     @property
     def is_new(self):
+        # إذا لم يتم تفعيل الخيار أو مر عليه أكثر من 7 أيام يختفي
         if self.is_new_arrival and self.new_arrival_updated_at:
             expiry_date = self.new_arrival_updated_at + timedelta(days=7)
             return timezone.now() < expiry_date
@@ -81,20 +83,11 @@ class Product(models.Model):
             discount = ((self.price - self.discount_price) / self.price) * 100
             return int(discount)
         return 0
-
 class ProductVariant(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='variants')
     color_name = models.CharField(max_length=50)
     color_code = ColorField(default='#FF0000') 
-    
-    # تعديل: استخدام ResizedImageField لضغط الصور تلقائياً وتحويلها لـ WebP لسرعة التحميل
-    variant_image = ResizedImageField(
-        size=[800, 1000], 
-        quality=75, 
-        upload_to='variants/', 
-        force_format='WEBP', 
-        verbose_name="Main Image for this Color"
-    )
+    variant_image = models.ImageField(upload_to='variants/', verbose_name="Main Image for this Color")
 
     @property
     def total_stock(self):
@@ -109,14 +102,7 @@ class ProductVariant(models.Model):
 
 class ProductImage(models.Model):
     variant = models.ForeignKey(ProductVariant, on_delete=models.CASCADE, related_name='additional_images')
-    
-    # تعديل: ضغط الصور الإضافية وتحويلها لـ WebP أيضاً
-    image = ResizedImageField(
-        size=[800, 1000], 
-        quality=75, 
-        upload_to='variants/extra/', 
-        force_format='WEBP'
-    )
+    image = models.ImageField(upload_to='variants/extra/')
     alt_text = models.CharField(max_length=200, blank=True, null=True, help_text="description")
 
     def __str__(self):
