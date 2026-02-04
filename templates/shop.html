@@ -13,10 +13,19 @@
     body { margin: 0; background: #0f2027; color: #fff; overflow-x: hidden; }
     .shop-wrapper { padding: 120px 40px 100px; background: var(--accent-grad); min-height: 100vh; box-sizing: border-box; }
     
-    .shop-header { text-align: center; margin-bottom: 40px; animation: fadeIn 0.8s; }
+    /* إلغاء الأنميشن من الهيدر ليكون ثابتاً */
+    .shop-header { text-align: center; margin-bottom: 40px; } 
     .shop-header h1 { font-size: clamp(2.5rem, 6vw, 4rem); font-weight: 900; background: linear-gradient(#fff 40%, var(--primary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin:0; }
 
-    .category-filter { display: flex; justify-content: center; gap: 12px; margin-bottom: 50px; flex-wrap: wrap; align-items: center; }
+    .category-filter { 
+        display: flex; 
+        justify-content: center; 
+        gap: 12px; 
+        margin-bottom: 50px; 
+        flex-wrap: wrap; 
+        align-items: center; 
+        position: relative; 
+    }
     
     .cat-link, .drop-btn { 
         padding: 10px 25px; border: 1px solid var(--border); border-radius: 30px; 
@@ -30,18 +39,32 @@
     }
 
     .dropdown { position: relative; display: inline-block; }
+    
     .dropdown-content {
         display: none; 
-        position: absolute; top: 110%; left: 50%; transform: translateX(-50%);
-        background: #162d35; min-width: 200px; border-radius: 15px; overflow: hidden;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 100; border: 1px solid var(--border);
+        position: absolute; 
+        top: 100%; 
+        left: 50%; 
+        transform: translateX(-50%); 
+        background: #162d35; 
+        min-width: 220px; 
+        border-radius: 15px; 
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5); 
+        z-index: 100; 
+        border: 1px solid var(--border);
+        margin-top: 10px; 
     }
     
-    .dropdown-content.show { display: block; animation: fadeIn 0.3s; }
+    /* الأنميشن فقط لظهور القائمة المنسدلة */
+    .dropdown-content.show { display: block; animation: dropFade 0.3s; }
+    
     .dropdown-content a {
         color: white; padding: 12px 20px; text-decoration: none; display: block;
         transition: background 0.2s; border-bottom: 1px solid var(--border);
+        text-align: center;
     }
+    .dropdown-content a:last-child { border-bottom: none; }
     .dropdown-content a:hover { background: var(--primary); color: var(--secondary); }
 
     .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 40px; max-width: 1400px; margin: 0 auto; }
@@ -62,10 +85,7 @@
     .product-card__image-wrap { width: 100%; aspect-ratio: 4/5; border-radius: 18px; overflow: hidden; margin-bottom: 20px; background: #1a1a1a; position: relative; }
     .main-product-img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.6s, opacity 0.3s, filter 0.5s; }
 
-    .is-sold-out img { 
-        filter: none;
-        opacity: 0.8; 
-    }
+    .is-sold-out img { opacity: 0.8; }
 
     .image-nav-arrows {
         position: absolute; top: 50%; width: 100%; transform: translateY(-50%);
@@ -90,39 +110,26 @@
     .product-card__btn { margin-top: auto; padding: 16px; background: var(--primary); color: var(--secondary); border-radius: 14px; text-decoration: none; font-weight: 700; text-align: center; transition: var(--smooth); text-transform: uppercase; border: none; outline: none; display: block; }
     .product-card__btn.btn-disabled { background: #222 !important; color: #555 !important; cursor: not-allowed; border: 1px solid #444; pointer-events: none; }
 
-@media (max-width: 768px) {
+    @media (max-width: 768px) {
         .shop-wrapper { padding: 100px 15px 50px; }
-        .product-grid { 
-            grid-template-columns: repeat(2, 1fr); 
-            gap: 12px; 
-        }
-        .product-card { 
-            padding: 12px; 
-            border-radius: 16px; 
-        }
+        .product-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+        .product-card { padding: 12px; border-radius: 16px; }
         .product-card__image-wrap { margin-bottom: 12px; }
-        .product-card__name { 
-            font-size: 0.95rem; 
-            margin-bottom: 5px !important;
-        }
+        .product-card__name { font-size: 0.95rem; margin-bottom: 5px !important; }
         .current-price { font-size: 1.1rem; }
         .old-price { font-size: 0.8rem; margin-left: 5px; }
         .color-dot { width: 18px; height: 18px; }
-
-        .product-card__btn { 
-            padding: 12px 8px; 
-            font-size: 0.8rem; 
-            border-radius: 10px; 
-        }
-
+        .product-card__btn { padding: 12px 8px; font-size: 0.8rem; border-radius: 10px; }
         .nav-arrow { width: 24px; height: 24px; font-size: 0.7rem; }        
         .badge { font-size: 0.65rem; padding: 3px 8px; top: 10px; }
-        .discount-badge { right: 10px; }
-        .new-badge { left: 10px; }        
-        .sold-out-overlay { font-size: 0.7rem; padding: 5px 10px; }
+        .dropdown-content { width: 180px; left: 50%; }
     }
 
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+    /* أنميشن ظهور القائمة فقط */
+    @keyframes dropFade { 
+        from { opacity: 0; transform: translate(-50%, -10px); } 
+        to { opacity: 1; transform: translate(-50%, 0); } 
+    }
     @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
 </style>
 
@@ -147,11 +154,6 @@
     </nav>
 
     <div class="product-grid">
-        {% comment %} 
-            تم ترتيب المنتجات هنا: المنتجات التي لديها مخزن (total_stock) تظهر أولاً.
-            ملاحظة: تأكد أن موديل Product يحتوي على property أو field باسم total_stock 
-            أو استبدلها بـ 'is_available' إذا كان لديك حقل Boolean.
-        {% endcomment %}
        {% for product in products %}
         <article class="product-card" id="prod-{{ product.id }}">
             <div class="sold-out-overlay" id="ovl-{{ product.id }}">SOLD OUT</div>
