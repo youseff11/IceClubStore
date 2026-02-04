@@ -13,6 +13,7 @@
     body { margin: 0; background: #0f2027; color: #fff; overflow-x: hidden; }
     .shop-wrapper { padding: 120px 40px 100px; background: var(--accent-grad); min-height: 100vh; box-sizing: border-box; }
     
+    /* إلغاء الأنميشن من الهيدر ليكون ثابتاً */
     .shop-header { text-align: center; margin-bottom: 40px; } 
     .shop-header h1 { font-size: clamp(2.5rem, 6vw, 4rem); font-weight: 900; background: linear-gradient(#fff 40%, var(--primary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin:0; }
 
@@ -55,6 +56,7 @@
         margin-top: 10px; 
     }
     
+    /* الأنميشن فقط لظهور القائمة المنسدلة */
     .dropdown-content.show { display: block; animation: dropFade 0.3s; }
     
     .dropdown-content a {
@@ -123,6 +125,7 @@
         .dropdown-content { width: 180px; left: 50%; }
     }
 
+    /* أنميشن ظهور القائمة فقط */
     @keyframes dropFade { 
         from { opacity: 0; transform: translate(-50%, -10px); } 
         to { opacity: 1; transform: translate(-50%, 0); } 
@@ -164,15 +167,7 @@
             {% endif %}
 
             <div class="product-card__image-wrap" id="img-wrap-{{ product.id }}">
-                {# تم إضافة decoding="async" و fetchpriority للأداء العالي #}
-                <img src="{{ product.main_image.url }}" 
-                     class="main-product-img" 
-                     id="img-{{ product.id }}" 
-                     loading="lazy" 
-                     decoding="async"
-                     {% if forloop.first %}fetchpriority="high"{% endif %}
-                     alt="{{ product.name }}"
-                     width="400" height="500">
+                <img src="{{ product.main_image.url }}" class="main-product-img" id="img-{{ product.id }}" loading="lazy">
                 
                 <div class="image-nav-arrows" id="arrows-{{ product.id }}">
                     <button class="nav-arrow prev" onclick="changeExtraImage('{{ product.id }}', -1, event)">❮</button>
@@ -211,13 +206,6 @@
 
 <script>
     let productImagesMap = {};
-
-    // تحسين: التحميل المسبق للصور (Preloading) عند تمرير الماوس على نقاط الألوان
-    function preloadImage(url) {
-        if (!url) return;
-        const img = new Image();
-        img.src = url;
-    }
 
     function updateVariant(el, productId) {
         const card = document.getElementById('prod-' + productId),
@@ -304,13 +292,6 @@
             if (targetColor) {
                 updateVariant(targetColor, productId);
             }
-
-            // إضافة Preload للصور عند الـ Hover لزيادة السرعة المدركة
-            c.querySelectorAll('.color-dot').forEach(dot => {
-                dot.addEventListener('mouseenter', () => {
-                    preloadImage(dot.dataset.image);
-                });
-            });
         });
 
         document.querySelectorAll('.product-card__btn').forEach(button => {
