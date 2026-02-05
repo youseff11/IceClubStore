@@ -10,50 +10,65 @@
     .offers-header { text-align: center; margin-bottom: 60px; }
     .offers-header h1 { font-size: clamp(40px, 8vw, 70px); font-weight: 900; background: linear-gradient(to right, #fff, var(--primary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 0; }
     
-    .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 35px; max-width: 1200px; margin: 0 auto; }
-    .offer-card { background: var(--glass); backdrop-filter: blur(15px); border: 1px solid var(--border); border-radius: 25px; padding: 20px; position: relative; transition: var(--smooth); display: flex; flex-direction: column; }
+    .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 40px; max-width: 1400px; margin: 0 auto; }
+    
+    .offer-card { background: var(--glass); backdrop-filter: blur(15px); border: 1px solid var(--border); border-radius: 25px; padding: 25px; position: relative; transition: var(--smooth); display: flex; flex-direction: column; }
     .offer-card:hover { transform: translateY(-10px); border-color: var(--primary); box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
 
     .badge-common { position: absolute; padding: 8px 18px; border-radius: 12px; font-weight: 900; font-size: 0.9rem; z-index: 5; text-transform: uppercase; }
-    .sale-badge { top: -10px; left: -10px; background: var(--red); transform: rotate(-10deg); animation: pulse 2s infinite; }
-    .new-arrival-badge { top: -10px; right: -10px; background: var(--primary); color: #0f2027; transform: rotate(10deg); }
-    .sold-out-badge { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-15deg); background: rgba(220, 20, 20, 0.9); padding: 10px 25px; border: 2px solid #fff; border-radius: 10px; font-size: 1.4rem; font-weight: 900; display: none; z-index: 10; pointer-events: none; }
+    
+    .sale-badge { top: -10px; right: -10px; background: var(--red); transform: rotate(10deg); animation: pulse 2s infinite; }
+    .new-arrival-badge { top: -10px; left: -10px; background: var(--primary); color: #0f2027; transform: rotate(-10deg); }
+    
+    .sold-out-badge { 
+        position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-15deg); 
+        background: rgba(220, 20, 20, 0.9); color: #fff; padding: 10px 20px; border: 2px solid #fff; 
+        font-weight: 900; z-index: 15; display: none; pointer-events: none; white-space: nowrap; border-radius: 8px;
+        box-shadow: 0 0 20px rgba(255, 82, 82, 0.4);
+    }
 
-    @keyframes pulse { 0%, 100% { transform: rotate(-10deg) scale(1); } 50% { transform: rotate(-10deg) scale(1.05); } }
+    @keyframes pulse { 0%, 100% { transform: rotate(10deg) scale(1); } 50% { transform: rotate(10deg) scale(1.05); } }
 
-    .img-container { width: 100%; aspect-ratio: 1/1; border-radius: 20px; overflow: hidden; margin-bottom: 15px; background: #1a1a1a; position: relative; }
+    .img-container { 
+        width: 100%; 
+        aspect-ratio: 4/5; 
+        border-radius: 18px; 
+        overflow: hidden; 
+        margin-bottom: 20px; 
+        background: #1a1a1a; 
+        position: relative; 
+    }
     .img-container img { width: 100%; height: 100%; object-fit: cover; transition: opacity 0.3s; }
     
-    /* --- التعديل هنا لضمان وضوح الألوان --- */
-    .img-container.is-sold-out img { opacity: 0.7; filter: none; }
+    .img-container.is-sold-out img { opacity: 0.8; }
 
     .image-nav-arrows { position: absolute; top: 50%; width: 100%; transform: translateY(-50%); display: none; justify-content: space-between; padding: 0 10px; pointer-events: none; z-index: 6; }
     .nav-arrow { background: rgba(0,0,0,0.6); color: #fff; border: none; border-radius: 50%; width: 32px; height: 32px; cursor: pointer; pointer-events: auto; display: flex; align-items: center; justify-content: center; transition: 0.3s; }
     .nav-arrow:hover { background: var(--primary); color: #000; }
 
-    .color-swatches { display: flex; gap: 8px; margin: 15px 0; justify-content: center; flex-wrap: wrap; }
-    .swatch { width: 26px; height: 26px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.3); cursor: pointer; transition: var(--smooth); }
+    .color-swatches { display: flex; gap: 8px; margin-bottom: 15px; justify-content: center; flex-wrap: wrap; }
+    .swatch { width: 22px; height: 22px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.3); cursor: pointer; transition: var(--smooth); }
     .swatch.active { transform: scale(1.2); border-color: var(--primary); box-shadow: 0 0 10px var(--primary); }
     .swatch.is-sold-out-swatch { opacity: 0.3; }
 
-    .price-box { display: flex; align-items: center; justify-content: center; gap: 12px; margin: 15px 0; }
-    .new-price { font-size: 1.5rem; font-weight: 800; color: var(--primary); }
+    .price-box { display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 20px; }
+    .new-price { font-size: 1.4rem; font-weight: 800; color: var(--primary); }
     .old-price { text-decoration: line-through; color: rgba(255,255,255,0.4); font-size: 1rem; }
 
-    .buy-btn { margin-top: auto; display: block; padding: 14px; background: #fff; color: #0f2027; text-align: center; text-decoration: none; border-radius: 15px; font-weight: 800; text-transform: uppercase; transition: 0.3s; }
+    .buy-btn { margin-top: auto; display: block; padding: 16px; background: #fff; color: #0f2027; text-align: center; text-decoration: none; border-radius: 14px; font-weight: 800; text-transform: uppercase; transition: 0.3s; }
     .buy-btn:hover { background: var(--primary); color: #fff; transform: scale(1.02); }
     .buy-btn.disabled { background: #222 !important; color: #555 !important; pointer-events: none; border: 1px solid #444; }
 
     @media (max-width: 768px) {
-        .offers-wrapper { padding: 100px 10px 50px; }
-        .product-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
-        .offer-card { padding: 10px; border-radius: 15px; }
+        .offers-wrapper { padding: 100px 15px 50px; }
+        .product-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+        .offer-card { padding: 12px; border-radius: 16px; }
         .offers-header h1 { font-size: 2.5rem; }
         .new-price { font-size: 1.1rem; }
         .swatch { width: 18px; height: 18px; }
         .badge-common { font-size: 0.6rem; padding: 4px 8px; }
-        .buy-btn { padding: 10px 5px; font-size: 0.75rem; }
-        .sold-out-badge { font-size: 0.8rem; width: 80%; }
+        .buy-btn { padding: 12px 8px; font-size: 0.8rem; border-radius: 10px; }
+        .sold-out-badge { font-size: 0.8rem; padding: 8px 15px; }
     }
 </style>
 
@@ -66,14 +81,17 @@
     </div>
 
     <div class="product-grid">
-        {% comment %} 
-            تم ترتيب المنتجات بناءً على التوفر (is_available) لضمان نزول الـ Sold Out للأسفل
-        {% endcomment %}
       {% for product in products %}
         <div class="offer-card" id="card-{{ product.id }}">
             <div class="sold-out-badge" id="badge-{{ product.id }}">SOLD OUT</div>
-            {% if product.discount_percentage > 0 %}<div class="badge-common sale-badge">-{{ product.discount_percentage }}%</div>{% endif %}
-            {% if product.is_new %}<div class="badge-common new-arrival-badge">New Arrival</div>{% endif %}
+            
+            {% if product.discount_percentage > 0 %}
+                <div class="badge-common sale-badge">-{{ product.discount_percentage }}%</div>
+            {% endif %}
+
+            {% if product.is_new %}
+                <div class="badge-common new-arrival-badge">New Arrival</div>
+            {% endif %}
 
             <div class="img-container" id="cont-{{ product.id }}">
                 <img src="{{ product.main_image.url }}" alt="{{ product.name }}" id="img-{{ product.id }}">
@@ -83,7 +101,7 @@
                 </div>
             </div>
 
-            <h3 style="font-size: 1.1rem; margin: 0; text-align: center;">{{ product.name }}</h3>
+            <h3 style="font-size: 1.1rem; margin: 0 0 10px; text-align: center;">{{ product.name }}</h3>
 
             <div class="color-swatches">
                 {% for v in product.variants.all|dictsortreversed:"total_variant_stock" %}
@@ -102,9 +120,9 @@
             </div>
             <a href="{% url 'product_detail' product.id %}" class="buy-btn" id="btn-{{ product.id }}">Grab it Now</a>
         </div>
-        {% empty %}
+      {% empty %}
         <div style="text-align:center; grid-column:1/-1; padding:100px; opacity:0.5;"><h2>No active offers right now</h2></div>
-        {% endfor %}
+      {% endfor %}
     </div>
 </div>
 
