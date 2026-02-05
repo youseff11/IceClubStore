@@ -91,10 +91,10 @@ class ProductVariant(models.Model):
     color_name = models.CharField(max_length=50)
     color_code = ColorField(default='#FF0000') 
     
-    # تم تعديل هذا الحقل للضغط والتحويل لـ WebP
+    # التعديل: إجبار الفورمات لـ WEBP وتقليل الجودة لـ 70 لضغط احترافي
     variant_image = ResizedImageField(
         size=[800, 1000], 
-        quality=75, 
+        quality=70, 
         upload_to='variants/', 
         force_format='WEBP',
         crop=['middle', 'center'],
@@ -115,10 +115,10 @@ class ProductVariant(models.Model):
 class ProductImage(models.Model):
     variant = models.ForeignKey(ProductVariant, on_delete=models.CASCADE, related_name='additional_images')
     
-    # تم تعديل الصور الإضافية أيضاً لضمان سرعة تبديل الصور في الكتالوج
+    # التعديل: تطبيق نفس ضغط الـ WEBP على الصور الإضافية
     image = ResizedImageField(
         size=[800, 1000], 
-        quality=75, 
+        quality=70, 
         upload_to='variants/extra/', 
         force_format='WEBP',
         crop=['middle', 'center']
