@@ -6,6 +6,8 @@ from django.db.models import Sum
 from django.utils import timezone
 import uuid
 from datetime import timedelta
+# استيراد الحقل الجديد للمعالجة
+from django_resized import ResizedImageField
 
 class Category(models.Model):
     name = models.CharField(max_length=100, unique=True)
@@ -83,11 +85,21 @@ class Product(models.Model):
             discount = ((self.price - self.discount_price) / self.price) * 100
             return int(discount)
         return 0
+
 class ProductVariant(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='variants')
     color_name = models.CharField(max_length=50)
     color_code = ColorField(default='#FF0000') 
-    variant_image = models.ImageField(upload_to='variants/', verbose_name="Main Image for this Color")
+    
+    # تم تعديل هذا الحقل للضغط والتحويل لـ WebP
+    variant_image = ResizedImageField(
+        size=[800, 1000], 
+        quality=75, 
+        upload_to='variants/', 
+        force_format='WEBP',
+        crop=['middle', 'center'],
+        verbose_name="Main Image for this Color"
+    )
 
     @property
     def total_stock(self):
@@ -102,7 +114,15 @@ class ProductVariant(models.Model):
 
 class ProductImage(models.Model):
     variant = models.ForeignKey(ProductVariant, on_delete=models.CASCADE, related_name='additional_images')
-    image = models.ImageField(upload_to='variants/extra/')
+    
+    # تم تعديل الصور الإضافية أيضاً لضمان سرعة تبديل الصور في الكتالوج
+    image = ResizedImageField(
+        size=[800, 1000], 
+        quality=75, 
+        upload_to='variants/extra/', 
+        force_format='WEBP',
+        crop=['middle', 'center']
+    )
     alt_text = models.CharField(max_length=200, blank=True, null=True, help_text="description")
 
     def __str__(self):
