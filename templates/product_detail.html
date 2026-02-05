@@ -18,9 +18,26 @@
         background: var(--accent-gradient); 
         min-height: 100vh; 
         display: flex; 
+        flex-direction: column;
         justify-content: center; 
         align-items: center; 
     }
+
+    .alert {
+        padding: 15px 20px;
+        border-radius: 12px;
+        margin-bottom: 10px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        backdrop-filter: blur(10px);
+        animation: fadeInUp 0.5s ease;
+        border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .alert-success { background: rgba(46, 204, 113, 0.2); color: #2ecc71; border-color: rgba(46, 204, 113, 0.3); }
+    .alert-warning { background: rgba(241, 196, 15, 0.2); color: #f1c40f; border-color: rgba(241, 196, 15, 0.3); }
+    .alert-error { background: rgba(231, 76, 60, 0.2); color: #e74c3c; border-color: rgba(231, 76, 60, 0.3); }
 
     .detail-container-outer {
         position: relative; 
@@ -119,6 +136,8 @@
     .btn-primary { flex: 2; background: var(--primary-color); color: var(--secondary-color); }
     .btn-back { border: 1px solid var(--glass-border); color: #fff; background: rgba(255,255,255,0.05); }
     .btn-disabled { background: #222 !important; color: #555 !important; cursor: not-allowed; pointer-events: none; opacity: 0.6; }
+
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 </style>
 
 <div class="detail-wrapper">
@@ -213,18 +232,15 @@
         let sizes = [];
         
         try {
-            // سحب البيانات وتنظيفها من المسافات أو الفواصل الزائدة التي قد تظهر على السيرفر
             let imgRaw = el.querySelector('.v-images').textContent.replace(/\s+/g, " ").trim();
             let dataRaw = el.querySelector('.v-data').textContent.replace(/\s+/g, " ").trim();
             
-            // تصحيح أي فاصلة زائدة في نهاية المصفوفات قبل التحليل
             imgRaw = imgRaw.replace(/,\s*\]$/, "]");
             dataRaw = dataRaw.replace(/,\s*\]$/, "]");
 
             images = JSON.parse(imgRaw);
             sizes = JSON.parse(dataRaw);
         } catch (e) {
-            console.error("JSON Parsing Error:", e);
             images = [el.dataset.mainImg];
             sizes = [];
         }
@@ -298,7 +314,7 @@
             btn.innerText = "Add to Cart";
             const currentEventId = generateEventID();
             btn.dataset.eventId = currentEventId;
-            btn.href = `/add-to-cart/${productId}/?color=${encodeURIComponent(selColor)}&size=${encodeURIComponent(selSize)}&event_id=${currentEventId}`;
+            btn.href = `/add-to-cart/${productId}/?color=${encodeURIComponent(selColor)}&size=${encodeURIComponent(selSize)}&eid=${currentEventId}`;
         } else {
             btn.classList.add('btn-disabled');
             btn.href = "javascript:void(0)";

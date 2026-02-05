@@ -17,6 +17,7 @@ from django.utils.html import strip_tags
 from django.template.loader import render_to_string
 from django.db import connection
 from django.db.models import Case, When, Value, IntegerField
+from django.contrib import messages
 
 FB_PIXEL_ID = '792214427202379'  
 FB_ACCESS_TOKEN = 'EAAXY0i6ZArdwBQUwZAq4Mx7ArysubuZAELX8l1XnZBVA1gqWwklibClR6Hrw5Ves0DhZCK5SjjtrqwZAfWeX6yZBCmzsqNlUlW4cwTk4NQFHcCqT2rKPxfPLKMbr6DxvK4Gg0XlNqJGhBVTWqvgQR92MvT9CamOHpNDiUQ2X7bDc7s3LxXQZB6I9vSKs9R8u0ZCWv8gZDZD'
@@ -162,41 +163,60 @@ def add_to_cart(request, product_id):
         user_cart_key = f"cart_{request.user.id}"
     else:
         user_cart_key = "cart_guest"
+        
     cart = request.session.get(user_cart_key, {})
     selected_color = request.GET.get('color', 'Default') 
     selected_size = request.GET.get('size', 'N/A')    
     e_id = request.GET.get('eid')    
     item_key = f"{product_id}_{selected_color}_{selected_size}"
     
-    if item_key in cart:
-        cart[item_key]['quantity'] += 1
-    else:
-        cart[item_key] = {
-            'product_id': product_id,
-            'quantity': 1,
-            'color': selected_color,
-            'size': selected_size
-        }
-    
-    product = get_object_or_404(Product, id=product_id)
-    price = float(product.discount_price if product.discount_price else product.price)    
-    send_fb_capi_event(
-        request, 
-        "AddToCart", 
-        event_id=e_id,
-        custom_data={
-            "content_ids": [str(product_id)],
-            "content_name": product.name,
-            "content_type": "product",
-            "value": price,
-            "currency": "EGP"
-        }
-    )
+    try:
+        # تعديل هنا: استخدام size_name بدلاً من size
+        stock_item = ProductSize.objects.get(
+            variant__product_id=product_id,
+            variant__color_name=selected_color,
+            size_name=selected_size
+        )
         
-    request.session[user_cart_key] = cart
-    request.session.modified = True
-    
-    messages.success(request, f'Added to cart ({selected_color} - {selected_size})!')    
+        current_qty = cart.get(item_key, {}).get('quantity', 0)
+        
+        if current_qty < stock_item.stock:
+            if item_key in cart:
+                cart[item_key]['quantity'] += 1
+            else:
+                cart[item_key] = {
+                    'product_id': product_id,
+                    'quantity': 1,
+                    'color': selected_color,
+                    'size': selected_size
+                }
+            
+            product = get_object_or_404(Product, id=product_id)
+            price = float(product.discount_price if product.discount_price else product.price)    
+            
+            send_fb_capi_event(
+                request, 
+                "AddToCart", 
+                event_id=e_id,
+                custom_data={
+                    "content_ids": [str(product_id)],
+                    "content_name": product.name,
+                    "content_type": "product",
+                    "value": price,
+                    "currency": "EGP"
+                }
+            )
+            
+            request.session[user_cart_key] = cart
+            request.session.modified = True
+            messages.success(request, f'Added to cart ({selected_color} - {selected_size})!')
+            
+        else:
+            messages.warning(request, f"Sorry, only {stock_item.stock} units available.")
+            
+    except ProductSize.DoesNotExist:
+        messages.error(request, "This combination is not available.")
+
     return redirect(request.META.get('HTTP_REFERER', 'shop'))
 
 def cart_view(request):
@@ -249,13 +269,37 @@ def update_cart(request, item_key, action):
         user_cart_key = "cart_guest"
         
     cart = request.session.get(user_cart_key, {})
+    
     if item_key in cart:
-        if action == 'increase': cart[item_key]['quantity'] += 1
+        if action == 'increase':
+            item_data = cart[item_key]
+            product_id = item_data['product_id']
+            color = item_data['color']
+            size_val = item_data['size'] # القيمة المخزنة في السيشن
+            
+            try:
+                # تعديل هنا: استخدام size_name بدلاً من size
+                stock_item = ProductSize.objects.get(
+                    variant__product_id=product_id,
+                    variant__color_name=color,
+                    size_name=size_val
+                )
+                
+                if cart[item_key]['quantity'] < stock_item.stock:
+                    cart[item_key]['quantity'] += 1
+                else:
+                    messages.warning(request, f"Only {stock_item.stock} units left.")
+            except ProductSize.DoesNotExist:
+                messages.error(request, "Stock error occurred.")
+                
         elif action == 'decrease':
             cart[item_key]['quantity'] -= 1
-            if cart[item_key]['quantity'] <= 0: del cart[item_key]
+            if cart[item_key]['quantity'] <= 0: 
+                del cart[item_key]
+                
         request.session[user_cart_key] = cart
         request.session.modified = True
+        
     return redirect('cart_view')
     
 def remove_from_cart(request, item_key):
