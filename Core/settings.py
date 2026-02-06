@@ -9,7 +9,6 @@ ALLOWED_HOSTS = ['www.iceclubstore.com', 'iceclubstore.com', 'IceClub.pythonanyw
 # Application definition
 
 INSTALLED_APPS = [
-    'jazzmin',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
