@@ -1,3 +1,12 @@
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-ZH9JG248D6"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-ZH9JG248D6');
+</script>
+
 {% extends 'base.html' %} 
 {% block content %}
 <style>
@@ -10,7 +19,7 @@
     }
 
     .checkout-wrapper {
-        padding: 80px 20px 40px; /* تقليل البادينج العلوي للموبايل */
+        padding: 80px 20px 40px;
         background: var(--accent-gradient);
         min-height: 100vh;
         display: flex;
@@ -19,14 +28,13 @@
         color: #fff;
     }
 
-    /* الحاوية الخارجية مع الأنيميشن المتحرك */
     .checkout-container-outer {
         position: relative;
         max-width: 900px;
         width: 100%;
         border-radius: 30px;
         overflow: hidden;
-        padding: 2px; /* تقليل السمك قليلاً */
+        padding: 2px;
         box-shadow: 0 40px 80px rgba(0,0,0,0.6);
     }
 
@@ -63,7 +71,7 @@
     }
 
     .checkout-header h2 {
-        font-size: clamp(1.8rem, 5vw, 2.5rem); /* حجم خط مرن */
+        font-size: clamp(1.8rem, 5vw, 2.5rem);
         margin-bottom: 10px;
         font-weight: 800;
     }
@@ -73,7 +81,6 @@
         font-size: 0.95rem;
     }
 
-    /* تنسيق الفورم - Grid متجاوب */
     .checkout-form {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
@@ -86,7 +93,6 @@
         gap: 8px;
     }
 
-    /* جعل الحقول تأخذ العرض الكامل في الشاشات الكبيرة عند الحاجة */
     .form-group.full-width {
         grid-column: span 2;
     }
@@ -126,7 +132,6 @@
         box-shadow: 0 0 15px rgba(79, 195, 247, 0.2);
     }
 
-    /* ملخص الطلب */
     .order-summary-box {
         background: rgba(79, 195, 247, 0.07);
         padding: 20px;
@@ -200,35 +205,10 @@
         color: var(--primary-color);
     }
 
-    /* التجاوب مع الشاشات (Responsive) */
-    
-    /* للتابلت */
-    @media (max-width: 992px) {
-        .checkout-wrapper { padding: 100px 30px 50px; }
-    }
-
-    /* للموبايل */
     @media (max-width: 768px) {
-        .checkout-form {
-            grid-template-columns: 1fr; /* جعل الحقول عمود واحد */
-        }
-        .form-group.full-width, .submit-area {
-            grid-column: span 1;
-        }
-        .checkout-container {
-            padding: 30px 20px;
-        }
-        .checkout-header h2 {
-            font-size: 1.8rem;
-        }
-    }
-
-    /* للموبايل الصغير جداً */
-    @media (max-width: 480px) {
-        .checkout-wrapper { padding: 80px 15px 30px; }
-        .checkout-container { padding: 25px 15px; }
-        .summary-value { font-size: 1.2rem; }
-        .btn-confirm { font-size: 1rem; }
+        .checkout-form { grid-template-columns: 1fr; }
+        .form-group.full-width, .submit-area { grid-column: span 1; }
+        .checkout-container { padding: 30px 20px; }
     }
 </style>
 
@@ -307,9 +287,6 @@
                         <p style="font-size: 0.8rem; margin-top: 15px; opacity: 0.8; text-align: center; color: var(--primary-color);">
                             <i class="fas fa-envelope-open-text"></i> You will receive an email with order details.
                         </p>
-                        <p style="font-size: 0.75rem; margin-top: 5px; opacity: 0.6; text-align: center;">
-                            <i class="fas fa-info-circle"></i> Shipping fees confirmed via phone call.
-                        </p>
                     </div>
                 </div>
 
@@ -321,12 +298,12 @@
                 </div>
 
             </form>
-
         </div>
     </div>
 </div>
+
 <script>
-  // 1. حدث بدء الدفع: يرسل فور تحميل الصفحة
+  // 1. حدث بدء الدفع في فيسبوك
   if (typeof fbq !== 'undefined') {
     fbq('track', 'InitiateCheckout', {
       value: {{ total_price }},
@@ -335,7 +312,7 @@
     });
   }
 
-  // 2. تتبع إضافة المعلومات (يتنفذ مرة واحدة عند أول كتابة في الفورم)
+  // 2. تتبع إضافة المعلومات
   const checkoutForm = document.querySelector('.checkout-form');
   const formInputs = checkoutForm.querySelectorAll('input, select');
   
@@ -348,12 +325,12 @@
           value: {{ total_price }},
           currency: 'EGP'
         });
-        infoTracked = true; // لضمان عدم تكرار الحدث مع كل حرف يكتبه العميل
+        infoTracked = true;
       }
     });
   });
 
-  // 3. تتبع محاولة الإرسال (اختياري - لمراقبة نية الشراء القوية)
+  // 3. تتبع محاولة الإرسال
   checkoutForm.addEventListener('submit', function() {
     if (typeof fbq !== 'undefined') {
         fbq('trackCustom', 'AttemptedOrderConfirmation', {

@@ -1,3 +1,12 @@
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-ZH9JG248D6"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-ZH9JG248D6');
+</script>
+
 {% extends 'base.html' %}
 {% block content %}
 
@@ -253,9 +262,6 @@
                                     
                                     <div class="mobile-only" style="display: none; margin-top: 5px;">
                                         <span style="color: var(--primary-color); font-weight: bold;">{{ item.actual_price|floatformat:0 }} LE</span>
-                                        {% if item.product.discount_price %}
-                                            <span style="text-decoration: line-through; opacity: 0.4; font-size: 0.75rem; margin-left: 5px;">{{ item.product.price|floatformat:0 }} LE</span>
-                                        {% endif %}
                                     </div>
                                 </div>
                             </div>
@@ -323,22 +329,66 @@
         .mobile-only, .mobile-label, .mobile-subtotal { display: block !important; }
     }
 </style>
-<script>
-  // 1. حدث عرض سلة المشتريات
-  fbq('track', 'AddToCart', {
-    content_ids: [{% for item in cart_items %}'{{ item.product.id }}'{% if not forloop.last %}, {% endif %}{% endfor %}],
-    content_type: 'product',
-    value: {{ total_price }},
-    currency: 'EGP'
-  });
 
-  // 2. ربط زر "Proceed to Checkout" بحدث بدء الدفع
-  document.querySelector('.checkout-btn').addEventListener('click', function() {
-    fbq('track', 'InitiateCheckout', {
-      num_items: {{ cart_items|length }},
+<script>
+  // تتبع فيسبوك: عرض السلة
+  if (typeof fbq !== 'undefined') {
+    fbq('track', 'ViewContent', {
+      content_ids: [{% for item in cart_items %}'{{ item.product.id }}'{% if not forloop.last %}, {% endif %}{% endfor %}],
+      content_type: 'product',
       value: {{ total_price }},
       currency: 'EGP'
     });
-  });
+  }
+
+  // تتبع جوجل: عرض السلة (view_cart)
+  if (typeof gtag !== 'undefined') {
+    gtag('event', 'view_cart', {
+      currency: 'EGP',
+      value: {{ total_price }},
+      items: [
+        {% for item in cart_items %}
+        {
+          item_id: '{{ item.product.id }}',
+          item_name: '{{ item.product.name }}',
+          price: {{ item.actual_price }},
+          quantity: {{ item.quantity }}
+        }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+      ]
+    });
+  }
+
+  // ربط زر "Proceed to Checkout" بأحداث بدء الدفع
+  const checkoutBtn = document.querySelector('.checkout-btn');
+  if (checkoutBtn) {
+    checkoutBtn.addEventListener('click', function() {
+      // فيسبوك
+      if (typeof fbq !== 'undefined') {
+        fbq('track', 'InitiateCheckout', {
+          num_items: {{ cart_items|length }},
+          value: {{ total_price }},
+          currency: 'EGP'
+        });
+      }
+      // جوجل
+      if (typeof gtag !== 'undefined') {
+        gtag('event', 'begin_checkout', {
+          currency: 'EGP',
+          value: {{ total_price }},
+          items: [
+            {% for item in cart_items %}
+            {
+              item_id: '{{ item.product.id }}',
+              item_name: '{{ item.product.name }}',
+              price: {{ item.actual_price }},
+              quantity: {{ item.quantity }}
+            }{% if not forloop.last %},{% endif %}
+            {% endfor %}
+          ]
+        });
+      }
+    });
+  }
 </script>
 {% endblock %}

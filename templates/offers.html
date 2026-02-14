@@ -1,3 +1,12 @@
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-ZH9JG248D6"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-ZH9JG248D6');
+</script>
+
 {% extends 'base.html' %}
 {% block content %}
 <style>
@@ -12,7 +21,7 @@
     
     .product-grid { 
         display: grid; 
-        grid-template-columns: repeat(4, 1fr); /* تم التعديل لعرض 4 كاردات */
+        grid-template-columns: repeat(4, 1fr); 
         gap: 25px; 
         max-width: 1500px; 
         margin: 0 auto; 
@@ -65,7 +74,6 @@
     .buy-btn:hover { background: var(--primary); color: #fff; transform: scale(1.02); }
     .buy-btn.disabled { background: #222 !important; color: #555 !important; pointer-events: none; border: 1px solid #444; }
 
-    /* تحسين العرض للشاشات المتوسطة (Tablets) */
     @media (max-width: 1100px) {
         .product-grid { grid-template-columns: repeat(3, 1fr); }
     }
@@ -140,6 +148,27 @@
 <script>
     let offerData = {};
 
+    // تتبع جوجل: عرض قائمة المنتجات (view_item_list)
+    if (typeof gtag !== 'undefined') {
+        gtag('event', 'view_item_list', {
+          item_list_id: "offers_page",
+          item_list_name: "Hot Offers",
+          items: [
+            {% for product in products %}
+            {
+              item_id: "{{ product.id }}",
+              item_name: "{{ product.name }}",
+              discount: {{ product.discount_percentage|default:0 }},
+              price: {{ product.discount_price|default:product.price|floatformat:2 }},
+              item_list_id: "offers_page",
+              item_list_name: "Hot Offers",
+              index: {{ forloop.counter }}
+            }{% if not forloop.last %},{% endif %}
+            {% endfor %}
+          ]
+        });
+    }
+
     function updateOffer(pId, el) {
         const img = document.getElementById('img-'+pId), badge = document.getElementById('badge-'+pId),
               btn = document.getElementById('btn-'+pId), cont = document.getElementById('cont-'+pId),
@@ -161,7 +190,17 @@
         btn.classList.toggle('disabled', isOut);
         btn.innerText = isOut ? 'Sold Out' : 'Grab it Now';
 
+        // تتبع فيسبوك عند تغيير اللون (تخصيص)
         if (typeof fbq !== 'undefined') fbq('track', 'CustomizeProduct', { content_ids: [pId] });
+        
+        // تتبع جوجل: اختيار منتج من القائمة (select_item)
+        if (typeof gtag !== 'undefined') {
+            gtag('event', 'select_item', {
+                item_list_id: "offers_page",
+                item_list_name: "Hot Offers",
+                items: [{ item_id: pId }]
+            });
+        }
     }
 
     function changeImg(pId, dir, e) {

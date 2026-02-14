@@ -1,3 +1,11 @@
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-ZH9JG248D6"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-ZH9JG248D6');
+</script>
+
 {% extends 'base.html' %}
 {% block content %}
 
@@ -80,7 +88,6 @@
         box-shadow: 0 0 20px rgba(255, 82, 82, 0.4);
     }
 
-    /* التعديل الجوهري للصور بدلاً من المكتبة */
     .product-card__image-wrap { 
         width: 100%; 
         aspect-ratio: 4/5; 
@@ -93,7 +100,7 @@
     .main-product-img { 
         width: 100%; 
         height: 100%; 
-        object-fit: cover; /* هذا يحقق الـ Crop الذكي لملء المساحة */
+        object-fit: cover; 
         transition: transform 0.6s, opacity 0.3s, filter 0.5s; 
     }
 
