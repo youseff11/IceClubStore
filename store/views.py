@@ -18,7 +18,7 @@ from django.template.loader import render_to_string
 from django.db import connection
 from django.db.models import Case, When, Value, IntegerField
 from django.contrib import messages
-
+from decimal import Decimal
 FB_PIXEL_ID = '792214427202379'  
 FB_ACCESS_TOKEN = 'EAAXY0i6ZArdwBQUwZAq4Mx7ArysubuZAELX8l1XnZBVA1gqWwklibClR6Hrw5Ves0DhZCK5SjjtrqwZAfWeX6yZBCmzsqNlUlW4cwTk4NQFHcCqT2rKPxfPLKMbr6DxvK4Gg0XlNqJGhBVTWqvgQR92MvT9CamOHpNDiUQ2X7bDc7s3LxXQZB6I9vSKs9R8u0ZCWv8gZDZD'
 FB_API_VERSION = 'v18.0'
@@ -515,6 +515,7 @@ def dashboard_view(request):
     products = Product.objects.all().order_by('-created_at')
     messages_list = ContactMessage.objects.all().order_by('-created_at')
     
+    # حساب الإجمالي فقط للطلبات المكتملة
     total_revenue = sum(order.total_price for order in orders if order.status == 'Delivered')
     
     context = {
@@ -529,7 +530,6 @@ def dashboard_view(request):
         'total_revenue': total_revenue,
     }
     return render(request, 'dashboard.html', context)
-
 @user_passes_test(is_admin, login_url='login')
 def add_product(request):
     if request.method == 'POST':
@@ -645,7 +645,105 @@ def update_order_status(request, order_id):
             messages.error(request, f'Error: {new_status} is not a valid status.')
             
     return redirect('dashboard')
+@user_passes_test(is_admin, login_url='login')
+def update_item_quantity(request, item_id):
+    if request.method == 'POST':
+        item = get_object_or_404(OrderItem, id=item_id)
+        old_qty = item.quantity
+        new_qty = int(request.POST.get('quantity', 1))
+        
+        if new_qty > 0:
+            item.quantity = new_qty
+            item.save()
+            
+            # Recalculate Order Total
+            order = item.order
+            new_total = sum(Decimal(str(i.quantity * i.price_at_purchase)) for i in order.items.all())
+            order.total_price = new_total
+            order.save()
+            
+            # Send Email Notification
+            subject = f"Order Update: Item Quantity Changed for #{order.id}"
+            message = f"""
+            Hello {order.name},
+            
+            We are writing to inform you that the quantity of ({item.product.name}) in your order has been updated.
+            
+            Previous Quantity: {old_qty}
+            New Quantity: {new_qty}
+            
+            Updated Order Total: {order.total_price} EGP
+            
+            Thank you for shopping with Ice Club.
+            """
+            try:
+                send_mail(subject, message, settings.EMAIL_HOST_USER, [order.email], fail_silently=True)
+            except Exception as e:
+                print(f"Email failed: {e}")
 
+            messages.success(request, f'Quantity updated and client notified via email.')
+        else:
+            messages.error(request, 'Quantity must be at least 1.')
+            
+    return redirect('dashboard')
+@user_passes_test(is_admin, login_url='login')
+def apply_order_discount(request, order_id):
+    if request.method == 'POST':
+        order = get_object_or_404(Order, id=order_id)
+        discount_input = request.POST.get('discount_amount', '0')
+        
+        try:
+            # Convert to Decimal to match total_price type
+            discount_amount = Decimal(discount_input)
+        except (ValueError, TypeError):
+            discount_amount = Decimal('0')
+
+        if discount_amount >= 0:
+            # Recalculate original total before applying the discount
+            original_total = sum(Decimal(str(i.quantity * i.price_at_purchase)) for i in order.items.all())
+            
+            if discount_amount <= original_total:
+                # Update the total price in the database
+                order.total_price = original_total - discount_amount
+                order.save()
+                
+                # Prepare the email content with "Before" and "After" pricing
+                subject = f"Update on your Order #{order.id} - Ice Club Store"
+                
+                message = f"""
+                Hello {order.name},
+                
+                We have great news! A special discount has been applied to your order.
+                
+                Price Breakdown:
+                ---------------------------
+                Subtotal: {original_total} EGP
+                Discount Applied: - {discount_amount} EGP
+                ---------------------------
+                New Grand Total: {order.total_price} EGP
+                
+                We hope you enjoy your purchase!
+                Thank you for shopping with Ice Club Store.
+                """
+                
+                try:
+                    send_mail(
+                        subject, 
+                        message, 
+                        settings.EMAIL_HOST_USER, 
+                        [order.email], 
+                        fail_silently=True
+                    )
+                except Exception as e:
+                    print(f"Email failed: {e}")
+
+                messages.success(request, f'Discount of {discount_amount} EGP applied. Client notified via email.')
+            else:
+                messages.error(request, 'Discount cannot exceed the order total.')
+        else:
+            messages.error(request, 'Invalid discount amount.')
+            
+    return redirect('dashboard')
 def login_view(request):
     if request.method == 'POST':
         username = request.POST.get('username')
