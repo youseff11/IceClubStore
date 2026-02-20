@@ -649,43 +649,59 @@ def update_order_status(request, order_id):
 def update_item_quantity(request, item_id):
     if request.method == 'POST':
         item = get_object_or_404(OrderItem, id=item_id)
-        old_qty = item.quantity
-        new_qty = int(request.POST.get('quantity', 1))
-        
-        if new_qty > 0:
-            item.quantity = new_qty
-            item.save()
-            
-            # Recalculate Order Total
-            order = item.order
-            new_total = sum(Decimal(str(i.quantity * i.price_at_purchase)) for i in order.items.all())
-            order.total_price = new_total
-            order.save()
-            
-            # Send Email Notification
-            subject = f"Order Update: Item Quantity Changed for #{order.id}"
-            message = f"""
-            Hello {order.name},
-            
-            We are writing to inform you that the quantity of ({item.product.name}) in your order has been updated.
-            
-            Previous Quantity: {old_qty}
-            New Quantity: {new_qty}
-            
-            Updated Order Total: {order.total_price} EGP
-            
-            Thank you for shopping with Ice Club.
-            """
-            try:
-                send_mail(subject, message, settings.EMAIL_HOST_USER, [order.email], fail_silently=True)
-            except Exception as e:
-                print(f"Email failed: {e}")
+        order = item.order
+        # استقبال الأكشن من الفورم (سواء كان تحديث أو حذف)
+        action = request.POST.get('action', 'update') 
+        product_name = item.product.name if item.product else "منتج غير مسمى"
 
-            messages.success(request, f'Quantity updated and client notified via email.')
-        else:
-            messages.error(request, 'Quantity must be at least 1.')
+        if action == 'delete':
+            # 1. منطق الحذف
+            item.delete()
             
+            # التحقق: إذا كان هذا آخر منتج في الطلب، نقوم بإلغاء الطلب أو حذفه
+            if not order.items.exists():
+                order.status = 'Canceled' # أو order.delete() حسب رغبتك
+                order.total_price = 0
+                order.save()
+                messages.warning(request, f'تم حذف المنتج الأخير، لذا تم تحويل حالة الطلب #{order.id} إلى "ملغي".')
+                subject = f"Order #{order.id} Canceled - Ice Club"
+                email_content = f"Hi {order.name},\n\nYour order has been canceled because all items were removed."
+            else:
+                # تحديث إجمالي السعر بعد حذف عنصر واحد وبقاء آخرين
+                new_total = sum(i.quantity * i.price_at_purchase for i in order.items.all())
+                order.total_price = new_total
+                order.save()
+                messages.success(request, f'تم إزالة {product_name} من الطلب بنجاح.')
+                subject = f"Order Update: Item Removed from Order #{order.id}"
+                email_content = f"Hi {order.name},\n\nThe item ({product_name}) has been removed from your order as requested.\nNew Total: {order.total_price} EGP"
+        
+        else:
+            # 2. منطق التحديث (Update)
+            new_qty = int(request.POST.get('quantity', 1))
+            if new_qty > 0:
+                old_qty = item.quantity
+                item.quantity = new_qty
+                item.save()
+                
+                # تحديث السعر الإجمالي للطلب
+                new_total = sum(Decimal(str(i.quantity * i.price_at_purchase)) for i in order.items.all())
+                order.total_price = new_total
+                order.save()
+                
+                messages.success(request, f'تم تحديث كمية {product_name} بنجاح.')
+                subject = f"Order Update: Quantity Changed for #{order.id}"
+                email_content = f"Hi {order.name},\n\nThe quantity of ({product_name}) was updated from {old_qty} to {new_qty}.\nNew Total: {order.total_price} EGP"
+            else:
+                messages.error(request, 'الكمية يجب أن تكون 1 على الأقل. يمكنك حذف المنتج بدلاً من ذلك.')
+                return redirect('dashboard')
+
+        # 3. إرسال الإيميل (مشترك للحالتين)
+        try:
+            send_mail(subject, email_content, settings.EMAIL_HOST_USER, [order.email], fail_silently=True)
+        except Exception as e:
+            print(f"Email failed: {e}")
     return redirect('dashboard')
+    
 @user_passes_test(is_admin, login_url='login')
 def apply_order_discount(request, order_id):
     if request.method == 'POST':

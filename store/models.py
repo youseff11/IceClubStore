@@ -171,6 +171,17 @@ class Order(models.Model):
     def __str__(self):
         return f"Order #{self.id} - {self.name}"
 
+    # --- وظائف حسابية جديدة للعرض في لوحة التحكم ---
+    def get_items_total(self):
+        """يحسب مجموع المنتجات قبل أي خصم إضافي"""
+        return sum(item.subtotal for item in self.items.all())
+
+    def get_discount_amount(self):
+        """يحسب الفرق بين مجموع المنتجات والسعر النهائي (قيمة الخصم)"""
+        total_before = self.get_items_total()
+        discount = total_before - self.total_price
+        return discount if discount > 0 else 0
+
     def save(self, *args, **kwargs):
         if self.pk and self.status != self.__original_status:
             self.send_status_notification()
@@ -180,6 +191,7 @@ class Order(models.Model):
         self.__original_status = self.status
 
     def send_status_notification(self):
+        # ... (نفس كود الإرسال الخاص بك دون تغيير)
         subject = f"Ice Club Store - Order #{self.id} Update"
         messages_map = {
             'Shipped': "Great news! Your order is now on its way to you. 🚚",

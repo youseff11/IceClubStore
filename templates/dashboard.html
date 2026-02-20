@@ -28,24 +28,64 @@
         padding: 20px; border: 1px solid rgba(255, 255, 255, 0.1); margin-bottom: 30px; box-shadow: var(--card-shadow);
     }
 
+    .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+
+    .scrollable-table { 
+        max-height: 500px; 
+        overflow-y: auto; 
+        scrollbar-width: thin; 
+        scrollbar-color: var(--primary-color) transparent;
+    }
+
+    .scrollable-table::-webkit-scrollbar { width: 6px; }
+    .scrollable-table::-webkit-scrollbar-track { background: transparent; }
+    .scrollable-table::-webkit-scrollbar-thumb { background-color: var(--primary-color); border-radius: 10px; }
+
     .table-responsive { width: 100%; overflow-x: auto; }
-    table { width: 100%; border-collapse: collapse; min-width: 700px; }
-    th { text-align: left; padding: 15px; color: var(--primary-color); font-size: 0.8rem; text-transform: uppercase; border-bottom: 2px solid rgba(79, 195, 247, 0.2); }
+    
+    table { width: 100%; border-collapse: collapse; table-layout: fixed; } 
+    
+    thead th { 
+        position: sticky; top: 0; background: #1a333d; z-index: 10;
+        text-align: left; padding: 15px; color: var(--primary-color); 
+        font-size: 0.8rem; text-transform: uppercase; border-bottom: 2px solid rgba(79, 195, 247, 0.2); 
+    }
     
     .main-row { cursor: pointer; transition: background 0.3s; }
     .main-row:hover { background: rgba(255, 255, 255, 0.03); }
-    .main-row td { padding: 15px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
+    .main-row td, table tr td { 
+        padding: 15px; 
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05); 
+        vertical-align: middle;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .col-id { width: 10%; }
+    .col-customer { width: 30%; }
+    .col-total { width: 20%; }
+    .col-status { width: 20%; }
+    .col-date { width: 15%; }
+    .col-icon { width: 5%; }
+
+    .product-img { width: 60px; height: 60px; object-fit: cover; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); }
+    .img-stack { position: relative; width: 60px; height: 60px; }
+    .color-preview-small { 
+        position: absolute; bottom: -5px; right: -5px; width: 18px; height: 18px; 
+        border-radius: 50%; border: 2px solid #1a333d; box-shadow: 0 2px 5px rgba(0,0,0,0.5); 
+    }
 
     .detail-row { display: none; background: rgba(0, 0, 0, 0.2); }
-    .detail-row td { padding: 0; }
+    .detail-row td { padding: 0; white-space: normal; } 
     .detail-content { padding: 20px; border-left: 4px solid var(--primary-color); animation: fadeInDown 0.4s; }
 
-    .badge { padding: 4px 10px; border-radius: 8px; font-size: 0.7rem; font-weight: 600; }
+    .badge { padding: 4px 10px; border-radius: 8px; font-size: 0.7rem; font-weight: 600; display: inline-block; }
     .status-pending { background: #ffd74022; color: #ffd740; border: 1px solid #ffd740; }
     .status-shipped { background: #4fc3f722; color: #4fc3f7; border: 1px solid #4fc3f7; }
     .status-delivered { background: #66bb6a22; color: #66bb6a; border: 1px solid #66bb6a; }
 
-    .btn-main { background: var(--primary-color); color: #0f2027; padding: 8px 16px; border-radius: 10px; font-weight: 700; text-decoration: none; border: none; cursor: pointer; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 5px; }
+    .btn-main, .btn-add { background: var(--primary-color); color: #0f2027; padding: 8px 16px; border-radius: 10px; font-weight: 700; text-decoration: none; border: none; cursor: pointer; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 5px; }
     
     .order-item-mini { 
         display: flex; justify-content: space-between; align-items: center; 
@@ -54,19 +94,17 @@
     .item-img { width: 50px; height: 50px; border-radius: 8px; object-fit: cover; border: 1px solid rgba(255,255,255,0.1); }
     .qty-input { width: 50px; background: #1c3a4d; border: 1px solid #4fc3f7; color: white; border-radius: 5px; text-align: center; padding: 3px; }
     
-    /* ستايل الخصم المحدث */
-    .discount-container {
-        background: rgba(255, 255, 255, 0.03); padding: 15px; border-radius: 15px; margin-top: 15px;
-    }
-    .price-summary {
-        display: flex; flex-direction: column; gap: 5px; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.1);
-    }
+    .discount-container { background: rgba(255, 255, 255, 0.03); padding: 15px; border-radius: 15px; margin-top: 15px; }
+    .price-summary { display: flex; flex-direction: column; gap: 5px; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); }
     .price-line { display: flex; justify-content: space-between; font-size: 0.9rem; }
-    .old-price { text-decoration: line-through; opacity: 0.6; }
     .discount-val { color: var(--danger); font-weight: bold; }
     .final-price { font-size: 1.2rem; color: var(--primary-color); font-weight: 800; }
 
-    @media (max-width: 768px) { .stats-grid { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 768px) { 
+        .stats-grid { grid-template-columns: 1fr 1fr; }
+        .col-date, .col-id { display: none; } 
+        .col-customer { width: 50%; }
+    }
 </style>
 
 <div class="dashboard-container">
@@ -86,49 +124,95 @@
     </div>
 
     <div class="management-section">
+        <div class="section-header">
+            <h3><i class="fas fa-box-open" style="color: var(--primary-color);"></i> Inventory Management</h3>
+            <a href="/admin/store/product/add/" class="btn-add">+ New Product</a>
+        </div>
+        <div class="table-responsive scrollable-table">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 15%;">Preview</th>
+                        <th style="width: 40%;">Name</th>
+                        <th style="width: 15%;">Price</th>
+                        <th style="width: 15%;">Category</th>
+                        <th style="width: 15%;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for product in products %}
+                    <tr>
+                        <td>
+                            <div class="img-stack">
+                                {% with first_variant=product.variants.first %}
+                                    <img src="{% if first_variant and first_variant.variant_image %}{{ first_variant.variant_image.url }}{% else %}{{ product.main_image|default:'https://via.placeholder.com/100' }}{% endif %}" class="product-img">
+                                    {% if first_variant %}<div class="color-preview-small" style="background: {{ first_variant.color_code }};"></div>{% endif %}
+                                {% endwith %}
+                            </div>
+                        </td>
+                        <td><strong title="{{ product.name }}">{{ product.name }}</strong></td>
+                        <td>{{ product.price|floatformat:0 }} LE</td>
+                        <td><span style="opacity: 0.7;">{{ product.category.name }}</span></td>
+                        <td>
+                            <a href="/admin/store/product/{{ product.id }}/change/" style="color: var(--primary-color); text-decoration: none; font-weight: 700; margin-right: 15px;">Edit</a>
+                            <a href="{% url 'delete_product' product.id %}" style="color: #ff4d4d; text-decoration: none; font-weight: 700;" onclick="return confirm('Delete?')">Delete</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="management-section">
         <h3 style="margin-bottom: 20px;"><i class="fas fa-shopping-cart" style="color: var(--primary-color);"></i> Recent Orders</h3>
         <div class="table-responsive">
             <table>
                 <thead>
                     <tr>
-                        <th>ID</th>
-                        <th>Customer</th>
-                        <th>Total</th>
-                        <th>Status</th>
-                        <th>Date</th>
-                        <th></th>
+                        <th class="col-id">ID</th>
+                        <th class="col-customer">Customer</th>
+                        <th class="col-total">Total</th>
+                        <th class="col-status">Status</th>
+                        <th class="col-date">Date</th>
+                        <th class="col-icon"></th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for order in orders %}
                     <tr class="main-row" onclick="toggleRow('order-{{ order.id }}')">
-                        <td>#{{ order.id }}</td>
-                        <td><strong>{{ order.name }}</strong></td>
-                        <td style="color: var(--primary-color); font-weight: 700;">{{ order.total_price|floatformat:0 }} LE</td>
-                        <td><span class="badge status-{{ order.status|lower }}">{{ order.get_status_display }}</span></td>
-                        <td>{{ order.created_at|date:"d M" }}</td>
-                        <td><i class="fas fa-chevron-down" style="opacity: 0.5;"></i></td>
+                        <td class="col-id">#{{ order.id }}</td>
+                        <td class="col-customer"><strong title="{{ order.name }}">{{ order.name }}</strong></td>
+                        <td class="col-total" style="color: var(--primary-color); font-weight: 700;">{{ order.total_price|floatformat:0 }} LE</td>
+                        <td class="col-status"><span class="badge status-{{ order.status|lower }}">{{ order.get_status_display }}</span></td>
+                        <td class="col-date">{{ order.created_at|date:"d M" }}</td>
+                        <td class="col-icon"><i class="fas fa-chevron-down" style="opacity: 0.5;"></i></td>
                     </tr>
                     <tr id="order-{{ order.id }}" class="detail-row">
                         <td colspan="6">
                             <div class="detail-content">
-                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 25px;">
-                                    
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px;">
                                     <div>
                                         <h4 style="margin-top:0; font-size: 0.9rem; color: var(--primary-color);">Items List</h4>
                                         {% for item in order.items.all %}
                                         <form method="POST" action="{% url 'update_item_quantity' item.id %}" class="order-item-mini">
                                             {% csrf_token %}
+                                            <input type="hidden" name="action" id="action-{{ item.id }}" value="update">
                                             <div style="display: flex; align-items: center; gap: 10px;">
                                                <img src="{{ item.product.main_image }}" class="item-img" alt="product">
-                                                <div>
+                                               <div>
                                                     <div style="font-size: 0.85rem;">{{ item.product.name }}</div>
                                                     <small style="opacity:0.6">{{ item.color }} / {{ item.size }}</small>
-                                                </div>
+                                               </div>
                                             </div>
                                             <div style="display: flex; align-items: center; gap: 8px;">
                                                 <input type="number" name="quantity" value="{{ item.quantity }}" class="qty-input" min="1">
-                                                <button type="submit" style="background:none; border:none; color: var(--primary-color); cursor:pointer;"><i class="fas fa-sync-alt"></i></button>
+                                                <button type="submit" onclick="document.getElementById('action-{{ item.id }}').value='update'" style="background:none; border:none; color: var(--primary-color); cursor:pointer;">
+                                                    <i class="fas fa-sync-alt"></i>
+                                                </button>
+                                                <button type="submit" onclick="document.getElementById('action-{{ item.id }}').value='delete'; return confirm('حذف هذا المنتج؟')" style="background:none; border:none; color: var(--danger); cursor:pointer;">
+                                                    <i class="fas fa-trash-alt"></i>
+                                                </button>
                                                 <span style="font-weight: bold; min-width: 65px; text-align: right;">{{ item.subtotal|floatformat:0 }} LE</span>
                                             </div>
                                         </form>
@@ -136,30 +220,30 @@
 
                                         <div class="discount-container">
                                             <div class="price-summary">
-                                                {% with subtotal_sum=order.get_items_total %}
                                                 <div class="price-line">
                                                     <span>Subtotal:</span>
-                                                    <span>{{ subtotal_sum|floatformat:0 }} LE</span>
+                                                    <span>{{ order.get_items_total|floatformat:0 }} LE</span>
                                                 </div>
                                                 
-                                                {% if order.total_price < subtotal_sum %}
-                                                <div class="price-line">
-                                                    <span>Discount:</span>
-                                                    <span class="discount-val">- {{ subtotal_sum|add:"-order.total_price"|floatformat:0 }} LE</span>
-                                                </div>
-                                                {% endif %}
-                                                
-                                                <div class="price-line" style="margin-top:5px;">
+                                                {% with discount=order.get_discount_amount %}
+                                                    {% if discount > 0 %}
+                                                    <div class="price-line">
+                                                        <span>Discount Applied:</span>
+                                                        <span class="discount-val">- {{ discount|floatformat:0 }} LE</span>
+                                                    </div>
+                                                    {% endif %}
+                                                {% endwith %}
+
+                                                <div class="price-line" style="margin-top:5px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 5px;">
                                                     <span style="font-weight: bold;">Grand Total:</span>
                                                     <span class="final-price">{{ order.total_price|floatformat:0 }} LE</span>
                                                 </div>
-                                                {% endwith %}
                                             </div>
-
-                                            <form method="POST" action="{% url 'apply_order_discount' order.id %}" style="display: flex; align-items: center; gap: 10px;">
+                                            
+                                            <form method="POST" action="{% url 'apply_order_discount' order.id %}" style="display: flex; gap: 10px;">
                                                 {% csrf_token %}
-                                                <input type="number" name="discount_amount" placeholder="Discount LE" class="qty-input" style="width: 100px; height: 35px;">
-                                                <button type="submit" class="btn-main" style="flex:1; justify-content: center;">Apply Discount</button>
+                                                <input type="number" name="discount_amount" placeholder="Discount LE" class="qty-input" style="width: 100px; height: 35px;" step="1" required>
+                                                <button type="submit" class="btn-main" style="flex:1; justify-content: center;">Apply</button>
                                             </form>
                                         </div>
                                     </div>
@@ -167,14 +251,13 @@
                                     <div>
                                         <h4 style="margin-top:0; font-size: 0.9rem; color: var(--primary-color);">Shipping Details</h4>
                                         <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 12px; margin-bottom: 20px;">
-                                            <p style="margin: 0 0 10px; font-size: 0.9rem;">
+                                            <p style="margin: 0; font-size: 0.9rem; line-height: 1.8;">
                                                 <i class="fas fa-user" style="width: 20px;"></i> {{ order.name }}<br>
-                                                <i class="fas fa-phone" style="width: 20px; margin-top: 8px;"></i> {{ order.phone }}<br>
-                                                <i class="fas fa-envelope" style="width: 20px; margin-top: 8px;"></i> {{ order.email }}<br>
-                                                <i class="fas fa-map-marker-alt" style="width: 20px; margin-top: 8px;"></i> {{ order.address }}, {{ order.governorate }}
+                                                <i class="fas fa-phone" style="width: 20px;"></i> {{ order.phone }}<br>
+                                                <i class="fas fa-envelope" style="width: 20px;"></i> {{ order.email }}<br>
+                                                <i class="fas fa-map-marker-alt" style="width: 20px;"></i> {{ order.address }}, {{ order.governorate }}
                                             </p>
                                         </div>
-                                        
                                         <h4 style="font-size: 0.9rem; color: var(--primary-color);">Order Action</h4>
                                         <form method="POST" action="{% url 'update_order_status' order.id %}">
                                             {% csrf_token %}
@@ -199,15 +282,15 @@
     </div>
 
     <div class="management-section" id="messages-section">
-        <h3 style="margin-bottom: 20px;"><i class="fas fa-envelope" style="color: var(--primary-color);"></i> Customer Inquiries</h3>
+        <h3 style="margin-bottom: 20px;"><i class="fas fa-envelope" style="color: var(--primary-color);"></i> Inquiries</h3>
         <div class="table-responsive">
             <table>
                 <thead>
                     <tr>
-                        <th>Sender</th>
-                        <th>Subject</th>
-                        <th>Date</th>
-                        <th></th>
+                        <th style="width: 25%;">Sender</th>
+                        <th style="width: 50%;">Subject</th>
+                        <th style="width: 20%;">Date</th>
+                        <th style="width: 5%;"></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -245,7 +328,6 @@
         const row = document.getElementById(rowId);
         const isVisible = row.style.display === 'table-row';
         
-        // إغلاق كل الصفوف الأخرى لتجنب الفوضى
         if (rowId.startsWith('order-')) {
             document.querySelectorAll("[id^='order-']").forEach(r => { if(r.id !== rowId) r.style.display = 'none'; });
         } else {
