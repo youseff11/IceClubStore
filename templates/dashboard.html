@@ -62,15 +62,16 @@
         white-space: nowrap;
     }
 
-    .col-id { width: 10%; }
-    .col-customer { width: 30%; }
-    .col-total { width: 20%; }
+    /* تعديل العرض لضمان ظهور السعر والصورة بالكامل */
+    .col-id { width: 8%; }
+    .col-customer { width: 27%; }
+    .col-total { width: 25%; } /* مساحة كافية للسعر */
     .col-status { width: 20%; }
     .col-date { width: 15%; }
     .col-icon { width: 5%; }
 
-    .product-img { width: 60px; height: 60px; object-fit: cover; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); }
-    .img-stack { position: relative; width: 60px; height: 60px; }
+    .product-img { width: 70px; height: 70px; object-fit: cover; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); }
+    .img-stack { position: relative; width: 70px; height: 70px; }
     .color-preview-small { 
         position: absolute; bottom: -5px; right: -5px; width: 18px; height: 18px; 
         border-radius: 50%; border: 2px solid #1a333d; box-shadow: 0 2px 5px rgba(0,0,0,0.5); 
@@ -91,7 +92,7 @@
         display: flex; justify-content: space-between; align-items: center; 
         background: rgba(255,255,255,0.03); padding: 10px 15px; border-radius: 12px; margin-bottom: 8px; gap: 15px;
     }
-    .item-img { width: 50px; height: 50px; border-radius: 8px; object-fit: cover; border: 1px solid rgba(255,255,255,0.1); }
+    .item-img { width: 60px; height: 60px; border-radius: 8px; object-fit: cover; border: 1px solid rgba(255,255,255,0.1); }
     .qty-input { width: 50px; background: #1c3a4d; border: 1px solid #4fc3f7; color: white; border-radius: 5px; text-align: center; padding: 3px; }
     
     .discount-container { background: rgba(255, 255, 255, 0.03); padding: 15px; border-radius: 15px; margin-top: 15px; }
@@ -103,7 +104,8 @@
     @media (max-width: 768px) { 
         .stats-grid { grid-template-columns: 1fr 1fr; }
         .col-date, .col-id { display: none; } 
-        .col-customer { width: 50%; }
+        .col-customer { width: 40%; }
+        .col-total { width: 40%; }
     }
 </style>
 
@@ -132,10 +134,8 @@
             <table>
                 <thead>
                     <tr>
-                        <th style="width: 15%;">Preview</th>
-                        <th style="width: 40%;">Name</th>
-                        <th style="width: 15%;">Price</th>
-                        <th style="width: 15%;">Category</th>
+                        <th style="width: 85px;">Preview</th> <th style="width: 35%;">Name</th>
+                        <th style="width: 25%;">Price</th> <th style="width: 15%;">Category</th>
                         <th style="width: 15%;">Actions</th>
                     </tr>
                 </thead>
@@ -150,8 +150,8 @@
                                 {% endwith %}
                             </div>
                         </td>
-                        <td><strong title="{{ product.name }}">{{ product.name }}</strong></td>
-                        <td>{{ product.price|floatformat:0 }} LE</td>
+                        <td><strong title="{{ product.name }}" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block;">{{ product.name }}</strong></td>
+                        <td style="color: var(--primary-color); font-weight: bold; white-space: nowrap;">{{ product.price|floatformat:0 }} LE</td>
                         <td><span style="opacity: 0.7;">{{ product.category.name }}</span></td>
                         <td>
                             <a href="/admin/store/product/{{ product.id }}/change/" style="color: var(--primary-color); text-decoration: none; font-weight: 700; margin-right: 15px;">Edit</a>
@@ -172,7 +172,7 @@
                     <tr>
                         <th class="col-id">ID</th>
                         <th class="col-customer">Customer</th>
-                        <th class="col-total">Total</th>
+                        <th class="col-total">Total Price</th>
                         <th class="col-status">Status</th>
                         <th class="col-date">Date</th>
                         <th class="col-icon"></th>
@@ -182,8 +182,8 @@
                     {% for order in orders %}
                     <tr class="main-row" onclick="toggleRow('order-{{ order.id }}')">
                         <td class="col-id">#{{ order.id }}</td>
-                        <td class="col-customer"><strong title="{{ order.name }}">{{ order.name }}</strong></td>
-                        <td class="col-total" style="color: var(--primary-color); font-weight: 700;">{{ order.total_price|floatformat:0 }} LE</td>
+                        <td class="col-customer"><strong title="{{ order.name }}" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block;">{{ order.name }}</strong></td>
+                        <td class="col-total" style="color: var(--primary-color); font-weight: 800; white-space: nowrap;">{{ order.total_price|floatformat:0 }} LE</td>
                         <td class="col-status"><span class="badge status-{{ order.status|lower }}">{{ order.get_status_display }}</span></td>
                         <td class="col-date">{{ order.created_at|date:"d M" }}</td>
                         <td class="col-icon"><i class="fas fa-chevron-down" style="opacity: 0.5;"></i></td>
@@ -198,10 +198,10 @@
                                         <form method="POST" action="{% url 'update_item_quantity' item.id %}" class="order-item-mini">
                                             {% csrf_token %}
                                             <input type="hidden" name="action" id="action-{{ item.id }}" value="update">
-                                            <div style="display: flex; align-items: center; gap: 10px;">
+                                            <div style="display: flex; align-items: center; gap: 10px; flex: 1; overflow: hidden;">
                                                <img src="{{ item.product.main_image }}" class="item-img" alt="product">
-                                               <div>
-                                                    <div style="font-size: 0.85rem;">{{ item.product.name }}</div>
+                                               <div style="overflow: hidden;">
+                                                    <div style="font-size: 0.85rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="{{ item.product.name }}">{{ item.product.name }}</div>
                                                     <small style="opacity:0.6">{{ item.color }} / {{ item.size }}</small>
                                                </div>
                                             </div>
@@ -213,7 +213,7 @@
                                                 <button type="submit" onclick="document.getElementById('action-{{ item.id }}').value='delete'; return confirm('حذف هذا المنتج؟')" style="background:none; border:none; color: var(--danger); cursor:pointer;">
                                                     <i class="fas fa-trash-alt"></i>
                                                 </button>
-                                                <span style="font-weight: bold; min-width: 65px; text-align: right;">{{ item.subtotal|floatformat:0 }} LE</span>
+                                                <span style="font-weight: bold; min-width: 80px; text-align: right; white-space: nowrap;">{{ item.subtotal|floatformat:0 }} LE</span>
                                             </div>
                                         </form>
                                         {% endfor %}
@@ -222,21 +222,21 @@
                                             <div class="price-summary">
                                                 <div class="price-line">
                                                     <span>Subtotal:</span>
-                                                    <span>{{ order.get_items_total|floatformat:0 }} LE</span>
+                                                    <span style="white-space: nowrap;">{{ order.get_items_total|floatformat:0 }} LE</span>
                                                 </div>
                                                 
                                                 {% with discount=order.get_discount_amount %}
                                                     {% if discount > 0 %}
                                                     <div class="price-line">
                                                         <span>Discount Applied:</span>
-                                                        <span class="discount-val">- {{ discount|floatformat:0 }} LE</span>
+                                                        <span class="discount-val" style="white-space: nowrap;">- {{ discount|floatformat:0 }} LE</span>
                                                     </div>
                                                     {% endif %}
                                                 {% endwith %}
 
                                                 <div class="price-line" style="margin-top:5px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 5px;">
                                                     <span style="font-weight: bold;">Grand Total:</span>
-                                                    <span class="final-price">{{ order.total_price|floatformat:0 }} LE</span>
+                                                    <span class="final-price" style="white-space: nowrap;">{{ order.total_price|floatformat:0 }} LE</span>
                                                 </div>
                                             </div>
                                             
