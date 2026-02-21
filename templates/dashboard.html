@@ -15,7 +15,7 @@
 
     .dashboard-container { padding: 100px 5% 50px; min-height: 100vh; background: var(--accent-gradient); color: white; font-family: 'Segoe UI', sans-serif; }
     
-    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 40px; }
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 40px; }
     .stat-card { 
         background: var(--glass-bg); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1);
         border-radius: 20px; padding: 20px; text-align: center; transition: 0.3s;
@@ -28,8 +28,9 @@
         padding: 20px; border: 1px solid rgba(255, 255, 255, 0.1); margin-bottom: 30px; box-shadow: var(--card-shadow);
     }
 
-    .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; gap: 10px; }
 
+    /* تحسين السكرول بار الموحد لجميع الأقسام */
     .scrollable-table { 
         max-height: 500px; 
         overflow-y: auto; 
@@ -41,7 +42,7 @@
     .scrollable-table::-webkit-scrollbar-track { background: transparent; }
     .scrollable-table::-webkit-scrollbar-thumb { background-color: var(--primary-color); border-radius: 10px; }
 
-    .table-responsive { width: 100%; overflow-x: auto; }
+    .table-responsive { width: 100%; }
     
     table { width: 100%; border-collapse: collapse; table-layout: fixed; } 
     
@@ -62,16 +63,8 @@
         white-space: nowrap;
     }
 
-    /* تعديل العرض لضمان ظهور السعر والصورة بالكامل */
-    .col-id { width: 8%; }
-    .col-customer { width: 27%; }
-    .col-total { width: 25%; } /* مساحة كافية للسعر */
-    .col-status { width: 20%; }
-    .col-date { width: 15%; }
-    .col-icon { width: 5%; }
-
-    .product-img { width: 70px; height: 70px; object-fit: cover; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); }
-    .img-stack { position: relative; width: 70px; height: 70px; }
+    .product-img { width: 60px; height: 60px; object-fit: cover; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); }
+    .img-stack { position: relative; width: 60px; height: 60px; }
     .color-preview-small { 
         position: absolute; bottom: -5px; right: -5px; width: 18px; height: 18px; 
         border-radius: 50%; border: 2px solid #1a333d; box-shadow: 0 2px 5px rgba(0,0,0,0.5); 
@@ -86,14 +79,14 @@
     .status-shipped { background: #4fc3f722; color: #4fc3f7; border: 1px solid #4fc3f7; }
     .status-delivered { background: #66bb6a22; color: #66bb6a; border: 1px solid #66bb6a; }
 
-    .btn-main, .btn-add { background: var(--primary-color); color: #0f2027; padding: 8px 16px; border-radius: 10px; font-weight: 700; text-decoration: none; border: none; cursor: pointer; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 5px; }
+    .btn-main, .btn-add { background: var(--primary-color); color: #0f2027 !important; padding: 8px 16px; border-radius: 10px; font-weight: 700; text-decoration: none; border: none; cursor: pointer; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 5px; }
     
     .order-item-mini { 
         display: flex; justify-content: space-between; align-items: center; 
-        background: rgba(255,255,255,0.03); padding: 10px 15px; border-radius: 12px; margin-bottom: 8px; gap: 15px;
+        background: rgba(255,255,255,0.03); padding: 10px; border-radius: 12px; margin-bottom: 8px; gap: 10px;
     }
-    .item-img { width: 60px; height: 60px; border-radius: 8px; object-fit: cover; border: 1px solid rgba(255,255,255,0.1); }
-    .qty-input { width: 50px; background: #1c3a4d; border: 1px solid #4fc3f7; color: white; border-radius: 5px; text-align: center; padding: 3px; }
+    .item-img { width: 50px; height: 50px; border-radius: 8px; object-fit: cover; }
+    .qty-input { width: 45px; background: #1c3a4d; border: 1px solid #4fc3f7; color: white; border-radius: 5px; text-align: center; padding: 5px; }
     
     .discount-container { background: rgba(255, 255, 255, 0.03); padding: 15px; border-radius: 15px; margin-top: 15px; }
     .price-summary { display: flex; flex-direction: column; gap: 5px; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); }
@@ -101,19 +94,53 @@
     .discount-val { color: var(--danger); font-weight: bold; }
     .final-price { font-size: 1.2rem; color: var(--primary-color); font-weight: 800; }
 
-    @media (max-width: 768px) { 
-        .stats-grid { grid-template-columns: 1fr 1fr; }
-        .col-date, .col-id { display: none; } 
-        .col-customer { width: 40%; }
-        .col-total { width: 40%; }
+    /* Mobile Optimization */
+    @media (max-width: 768px) {
+        .dashboard-container { padding: 80px 3% 30px; }
+        .stats-grid { grid-template-columns: repeat(2, 1fr); }
+        
+        table, thead, tbody, th, td, tr { display: block; }
+        thead { display: none; } 
+        
+        .management-section { padding: 15px; border-radius: 15px; }
+        
+        tr.main-row { 
+            margin-bottom: 15px; 
+            background: rgba(255,255,255,0.04); 
+            border-radius: 15px; 
+            padding: 10px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        td { 
+            border: none !important; 
+            padding: 8px 5px !important; 
+            width: 100% !important; 
+            white-space: normal !important; 
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .col-customer::before { content: "Customer: "; opacity: 0.6; font-size: 0.7rem; }
+        .col-total::before { content: "Total: "; opacity: 0.6; font-size: 0.7rem; }
+        .col-status::before { content: "Status: "; opacity: 0.6; font-size: 0.7rem; }
+        
+        .img-stack { margin: 0 auto 10px; width: 80px; height: 80px; }
+        .product-img { width: 80px; height: 80px; }
+
+        .order-item-mini { flex-direction: column; align-items: flex-start; }
+        .order-item-mini > div { width: 100%; justify-content: space-between; }
+        
+        .detail-content { padding: 15px 10px; }
     }
 </style>
 
 <div class="dashboard-container">
     <div style="margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
         <div>
-            <h2 style="font-weight: 900; font-size: 2rem; margin: 0;">Admin <span style="color: var(--primary-color);">Dashboard</span></h2>
-            <p style="color: #b0c4de; font-size: 0.9rem;">Manage orders, stock, and customer feedback</p>
+            <h2 style="font-weight: 900; font-size: clamp(1.5rem, 5vw, 2rem); margin: 0;">Admin <span style="color: var(--primary-color);">Dashboard</span></h2>
+            <p style="color: #b0c4de; font-size: 0.8rem;">Manage orders, stock, and inquiries</p>
         </div>
         <a href="{% url 'add_product' %}" class="btn-main"><i class="fas fa-plus"></i> New Product</a>
     </div>
@@ -127,22 +154,24 @@
 
     <div class="management-section">
         <div class="section-header">
-            <h3><i class="fas fa-box-open" style="color: var(--primary-color);"></i> Inventory Management</h3>
-            <a href="/admin/store/product/add/" class="btn-add">+ New Product</a>
+            <h3><i class="fas fa-box-open" style="color: var(--primary-color);"></i> Inventory</h3>
+            <a href="/admin/store/product/add/" class="btn-add">+ Add</a>
         </div>
         <div class="table-responsive scrollable-table">
             <table>
                 <thead>
                     <tr>
-                        <th style="width: 85px;">Preview</th> <th style="width: 35%;">Name</th>
-                        <th style="width: 25%;">Price</th> <th style="width: 15%;">Category</th>
+                        <th style="width: 85px;">Preview</th> 
+                        <th style="width: 35%;">Name</th>
+                        <th style="width: 25%;">Price</th> 
+                        <th style="width: 15%;">Category</th>
                         <th style="width: 15%;">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for product in products %}
-                    <tr>
-                        <td>
+                    <tr class="main-row">
+                        <td class="col-preview">
                             <div class="img-stack">
                                 {% with first_variant=product.variants.first %}
                                     <img src="{% if first_variant and first_variant.variant_image %}{{ first_variant.variant_image.url }}{% else %}{{ product.main_image|default:'https://via.placeholder.com/100' }}{% endif %}" class="product-img">
@@ -150,12 +179,14 @@
                                 {% endwith %}
                             </div>
                         </td>
-                        <td><strong title="{{ product.name }}" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block;">{{ product.name }}</strong></td>
-                        <td style="color: var(--primary-color); font-weight: bold; white-space: nowrap;">{{ product.price|floatformat:0 }} LE</td>
+                        <td><strong title="{{ product.name }}">{{ product.name }}</strong></td>
+                        <td style="color: var(--primary-color); font-weight: bold;">{{ product.price|floatformat:0 }} LE</td>
                         <td><span style="opacity: 0.7;">{{ product.category.name }}</span></td>
                         <td>
-                            <a href="/admin/store/product/{{ product.id }}/change/" style="color: var(--primary-color); text-decoration: none; font-weight: 700; margin-right: 15px;">Edit</a>
-                            <a href="{% url 'delete_product' product.id %}" style="color: #ff4d4d; text-decoration: none; font-weight: 700;" onclick="return confirm('Delete?')">Delete</a>
+                            <div style="display: flex; gap: 15px;">
+                                <a href="/admin/store/product/{{ product.id }}/change/" style="color: var(--primary-color); text-decoration: none; font-weight: 700;">Edit</a>
+                                <a href="{% url 'delete_product' product.id %}" style="color: var(--danger); text-decoration: none; font-weight: 700;" onclick="return confirm('Delete?')">Delete</a>
+                            </div>
                         </td>
                     </tr>
                     {% endfor %}
@@ -166,109 +197,88 @@
 
     <div class="management-section">
         <h3 style="margin-bottom: 20px;"><i class="fas fa-shopping-cart" style="color: var(--primary-color);"></i> Recent Orders</h3>
-        <div class="table-responsive">
+        <div class="table-responsive scrollable-table">
             <table>
                 <thead>
                     <tr>
-                        <th class="col-id">ID</th>
-                        <th class="col-customer">Customer</th>
-                        <th class="col-total">Total Price</th>
-                        <th class="col-status">Status</th>
-                        <th class="col-date">Date</th>
-                        <th class="col-icon"></th>
+                        <th style="width: 8%;">ID</th>
+                        <th style="width: 27%;">Customer</th>
+                        <th style="width: 25%;">Total</th>
+                        <th style="width: 20%;">Status</th>
+                        <th style="width: 15%;">Date</th>
+                        <th style="width: 5%;"></th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for order in orders %}
                     <tr class="main-row" onclick="toggleRow('order-{{ order.id }}')">
                         <td class="col-id">#{{ order.id }}</td>
-                        <td class="col-customer"><strong title="{{ order.name }}" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block;">{{ order.name }}</strong></td>
-                        <td class="col-total" style="color: var(--primary-color); font-weight: 800; white-space: nowrap;">{{ order.total_price|floatformat:0 }} LE</td>
+                        <td class="col-customer"><strong>{{ order.name }}</strong></td>
+                        <td class="col-total" style="color: var(--primary-color); font-weight: 800;">{{ order.total_price|floatformat:0 }} LE</td>
                         <td class="col-status"><span class="badge status-{{ order.status|lower }}">{{ order.get_status_display }}</span></td>
                         <td class="col-date">{{ order.created_at|date:"d M" }}</td>
-                        <td class="col-icon"><i class="fas fa-chevron-down" style="opacity: 0.5;"></i></td>
+                        <td class="col-icon"><i class="fas fa-chevron-down"></i></td>
                     </tr>
                     <tr id="order-{{ order.id }}" class="detail-row">
                         <td colspan="6">
                             <div class="detail-content">
-                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px;">
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
                                     <div>
-                                        <h4 style="margin-top:0; font-size: 0.9rem; color: var(--primary-color);">Items List</h4>
+                                        <h4 style="color: var(--primary-color); font-size: 0.9rem;">Order Items</h4>
                                         {% for item in order.items.all %}
                                         <form method="POST" action="{% url 'update_item_quantity' item.id %}" class="order-item-mini">
                                             {% csrf_token %}
                                             <input type="hidden" name="action" id="action-{{ item.id }}" value="update">
-                                            <div style="display: flex; align-items: center; gap: 10px; flex: 1; overflow: hidden;">
-                                               <img src="{{ item.product.main_image }}" class="item-img" alt="product">
-                                               <div style="overflow: hidden;">
-                                                    <div style="font-size: 0.85rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="{{ item.product.name }}">{{ item.product.name }}</div>
+                                            <div style="display: flex; align-items: center; gap: 10px;">
+                                                <img src="{{ item.product.main_image }}" class="item-img">
+                                                <div style="line-height: 1.2;">
+                                                    <div style="font-size: 0.8rem;">{{ item.product.name }}</div>
                                                     <small style="opacity:0.6">{{ item.color }} / {{ item.size }}</small>
-                                               </div>
+                                                </div>
                                             </div>
                                             <div style="display: flex; align-items: center; gap: 8px;">
                                                 <input type="number" name="quantity" value="{{ item.quantity }}" class="qty-input" min="1">
-                                                <button type="submit" onclick="document.getElementById('action-{{ item.id }}').value='update'" style="background:none; border:none; color: var(--primary-color); cursor:pointer;">
-                                                    <i class="fas fa-sync-alt"></i>
-                                                </button>
-                                                <button type="submit" onclick="document.getElementById('action-{{ item.id }}').value='delete'; return confirm('حذف هذا المنتج؟')" style="background:none; border:none; color: var(--danger); cursor:pointer;">
-                                                    <i class="fas fa-trash-alt"></i>
-                                                </button>
-                                                <span style="font-weight: bold; min-width: 80px; text-align: right; white-space: nowrap;">{{ item.subtotal|floatformat:0 }} LE</span>
+                                                <button type="submit" onclick="document.getElementById('action-{{ item.id }}').value='update'" style="background:none; border:none; color: var(--primary-color);"><i class="fas fa-sync-alt"></i></button>
+                                                <button type="submit" onclick="document.getElementById('action-{{ item.id }}').value='delete'; return confirm('Delete?')" style="background:none; border:none; color: var(--danger);"><i class="fas fa-trash-alt"></i></button>
+                                                <span style="font-weight: bold; font-size: 0.85rem;">{{ item.subtotal|floatformat:0 }} LE</span>
                                             </div>
                                         </form>
                                         {% endfor %}
-
+                                        
                                         <div class="discount-container">
                                             <div class="price-summary">
-                                                <div class="price-line">
-                                                    <span>Subtotal:</span>
-                                                    <span style="white-space: nowrap;">{{ order.get_items_total|floatformat:0 }} LE</span>
-                                                </div>
-                                                
+                                                <div class="price-line"><span>Subtotal:</span><span>{{ order.get_items_total|floatformat:0 }} LE</span></div>
                                                 {% with discount=order.get_discount_amount %}
-                                                    {% if discount > 0 %}
-                                                    <div class="price-line">
-                                                        <span>Discount Applied:</span>
-                                                        <span class="discount-val" style="white-space: nowrap;">- {{ discount|floatformat:0 }} LE</span>
-                                                    </div>
-                                                    {% endif %}
+                                                    {% if discount > 0 %}<div class="price-line"><span>Discount:</span><span class="discount-val">- {{ discount|floatformat:0 }} LE</span></div>{% endif %}
                                                 {% endwith %}
-
-                                                <div class="price-line" style="margin-top:5px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 5px;">
-                                                    <span style="font-weight: bold;">Grand Total:</span>
-                                                    <span class="final-price" style="white-space: nowrap;">{{ order.total_price|floatformat:0 }} LE</span>
+                                                <div class="price-line" style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 5px;">
+                                                    <strong style="color: var(--primary-color);">Total:</strong><strong class="final-price">{{ order.total_price|floatformat:0 }} LE</strong>
                                                 </div>
                                             </div>
-                                            
-                                            <form method="POST" action="{% url 'apply_order_discount' order.id %}" style="display: flex; gap: 10px;">
+                                            <form method="POST" action="{% url 'apply_order_discount' order.id %}" style="display: flex; gap: 5px;">
                                                 {% csrf_token %}
-                                                <input type="number" name="discount_amount" placeholder="Discount LE" class="qty-input" style="width: 100px; height: 35px;" step="1" required>
-                                                <button type="submit" class="btn-main" style="flex:1; justify-content: center;">Apply</button>
+                                                <input type="number" name="discount_amount" placeholder="Discount LE" class="qty-input" style="flex:1;" required>
+                                                <button type="submit" class="btn-main">Apply</button>
                                             </form>
                                         </div>
                                     </div>
 
                                     <div>
-                                        <h4 style="margin-top:0; font-size: 0.9rem; color: var(--primary-color);">Shipping Details</h4>
-                                        <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 12px; margin-bottom: 20px;">
-                                            <p style="margin: 0; font-size: 0.9rem; line-height: 1.8;">
-                                                <i class="fas fa-user" style="width: 20px;"></i> {{ order.name }}<br>
-                                                <i class="fas fa-phone" style="width: 20px;"></i> {{ order.phone }}<br>
-                                                <i class="fas fa-envelope" style="width: 20px;"></i> {{ order.email }}<br>
-                                                <i class="fas fa-map-marker-alt" style="width: 20px;"></i> {{ order.address }}, {{ order.governorate }}
-                                            </p>
+                                        <h4 style="color: var(--primary-color); font-size: 0.9rem;">Shipping info</h4>
+                                        <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 12px; margin-bottom: 15px; font-size: 0.85rem; line-height: 1.6;">
+                                            <i class="fas fa-user"></i> {{ order.name }}<br>
+                                            <i class="fas fa-phone"></i> {{ order.phone }}<br>
+                                            <i class="fas fa-map-marker-alt"></i> {{ order.address }}, {{ order.governorate }}
                                         </div>
-                                        <h4 style="font-size: 0.9rem; color: var(--primary-color);">Order Action</h4>
-                                        <form method="POST" action="{% url 'update_order_status' order.id %}">
+                                        <h4 style="color: var(--primary-color); font-size: 0.9rem;">Status Action</h4>
+                                        <form method="POST" action="{% url 'update_order_status' order.id %}" style="display: flex; gap: 5px;">
                                             {% csrf_token %}
-                                            <div style="display: flex; gap: 10px;">
-                                                <select name="status" style="flex:1; background: #1c3a4d; color: white; border: 1px solid #4fc3f7; border-radius: 8px; padding: 10px;">
-                                                    {% for code, label in order.STATUS_CHOICES %}
-                                                    <option value="{{ code }}" {% if order.status == code %}selected{% endif %}>{{ label }}</option>
-                                                    {% endfor %}
-                                                </select>
-                                                <button type="submit" class="btn-main">Save</button>
-                                            </div>
+                                            <select name="status" style="flex:1; background: #1c3a4d; color: white; border: 1px solid #4fc3f7; border-radius: 8px; padding: 8px;">
+                                                {% for code, label in order.STATUS_CHOICES %}
+                                                <option value="{{ code }}" {% if order.status == code %}selected{% endif %}>{{ label }}</option>
+                                                {% endfor %}
+                                            </select>
+                                            <button type="submit" class="btn-main">Save</button>
                                         </form>
                                     </div>
                                 </div>
@@ -283,31 +293,23 @@
 
     <div class="management-section" id="messages-section">
         <h3 style="margin-bottom: 20px;"><i class="fas fa-envelope" style="color: var(--primary-color);"></i> Inquiries</h3>
-        <div class="table-responsive">
+        <div class="table-responsive scrollable-table">
             <table>
-                <thead>
-                    <tr>
-                        <th style="width: 25%;">Sender</th>
-                        <th style="width: 50%;">Subject</th>
-                        <th style="width: 20%;">Date</th>
-                        <th style="width: 5%;"></th>
-                    </tr>
-                </thead>
                 <tbody>
                     {% for msg in messages %}
                     <tr class="main-row" onclick="toggleRow('msg-{{ msg.id }}')">
                         <td><strong>{{ msg.name }}</strong></td>
                         <td style="color: var(--primary-color);">{{ msg.subject }}</td>
                         <td>{{ msg.created_at|date:"d M" }}</td>
-                        <td><i class="fas fa-chevron-down" style="opacity: 0.5;"></i></td>
+                        <td><i class="fas fa-chevron-down"></i></td>
                     </tr>
                     <tr id="msg-{{ msg.id }}" class="detail-row">
                         <td colspan="4">
                             <div class="detail-content">
                                 <div style="background: rgba(0,0,0,0.3); padding: 20px; border-radius: 15px;">
-                                    <p style="line-height: 1.6;">{{ msg.message|linebreaks }}</p>
-                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px;">
-                                        <small>{{ msg.email }} | {{ msg.phone }}</small>
+                                    <p style="line-height: 1.6; font-size: 0.9rem;">{{ msg.message|linebreaks }}</p>
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px; flex-wrap: wrap; gap: 10px;">
+                                        <small style="opacity: 0.6;">{{ msg.email }} | {{ msg.phone }}</small>
                                         <a href="mailto:{{ msg.email }}" class="btn-main">Reply <i class="fas fa-paper-plane"></i></a>
                                     </div>
                                 </div>
@@ -315,7 +317,7 @@
                         </td>
                     </tr>
                     {% empty %}
-                    <tr><td colspan="4" style="text-align: center; padding: 20px; opacity: 0.5;">No messages yet.</td></tr>
+                    <tr><td colspan="4" style="text-align: center; padding: 40px; opacity: 0.5;">No messages found.</td></tr>
                     {% endfor %}
                 </tbody>
             </table>
@@ -326,15 +328,18 @@
 <script>
     function toggleRow(rowId) {
         const row = document.getElementById(rowId);
-        const isVisible = row.style.display === 'table-row';
+        const isVisible = row.style.display === 'table-row' || row.style.display === 'block';
         
-        if (rowId.startsWith('order-')) {
-            document.querySelectorAll("[id^='order-']").forEach(r => { if(r.id !== rowId) r.style.display = 'none'; });
-        } else {
-            document.querySelectorAll("[id^='msg-']").forEach(r => { if(r.id !== rowId) r.style.display = 'none'; });
+        // إغلاق الصفوف المفتوحة الأخرى في نفس القسم فقط
+        const prefix = rowId.split('-')[0];
+        document.querySelectorAll(`[id^='${prefix}-']`).forEach(r => { 
+            r.style.display = 'none'; 
+        });
+        
+        // فتح الصف المطلوب
+        if (!isVisible) {
+            row.style.display = window.innerWidth <= 768 ? 'block' : 'table-row';
         }
-        
-        row.style.display = isVisible ? 'none' : 'table-row';
     }
 </script>
 {% endblock %}
