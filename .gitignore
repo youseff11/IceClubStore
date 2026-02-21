@@ -2,4 +2,8 @@
 db.sqlite3
 /venv/
 __pycache__/
-media/
+# تجاهل كل محتويات مجلد ميديا
+media/*
+
+# استثناء مجلد الصور لكي يتم رفعه
+!media/images/
