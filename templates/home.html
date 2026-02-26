@@ -5,8 +5,53 @@
     :root {
         --primary-blue: #4fc3f7;
         --dark-bg: #0f2027;
+        --sale-red: #ff3838;
     }
 
+    /* شريط الـ Sale الجديد */
+    .sale-banner {
+        background: var(--sale-red);
+        color: white;
+        overflow: hidden;
+        white-space: nowrap;
+        padding: 10px 0;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        font-size: 14px;
+        position: relative;
+        z-index: 100;
+        border-bottom: 2px solid rgba(0,0,0,0.1);
+    }
+
+    .sale-content {
+        display: inline-block;
+        animation: marquee 20s linear infinite;
+    }
+
+    .sale-content span {
+        margin: 0 40px;
+        display: inline-block;
+    }
+
+    .sale-content span b {
+        color: #fff;
+        text-shadow: 0 0 10px rgba(255,255,255,0.5);
+        animation: pulse 1.5s infinite;
+    }
+
+    @keyframes marquee {
+        0% { transform: translateX(0); }
+        100% { transform: translateX(-50%); }
+    }
+
+    @keyframes pulse {
+        0% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.1); opacity: 0.8; }
+        100% { transform: scale(1); opacity: 1; }
+    }
+
+    /* كود الـ CSS الأصلي الخاص بك بدون تعديل */
     body {
         background: var(--dark-bg);
         background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
@@ -222,6 +267,17 @@
         .features-bar { grid-template-columns: repeat(2, 1fr); } 
     }
 </style>
+
+<div class="sale-banner">
+    <div class="sale-content">
+        <span>🔥 FLASH SALE: <b>UP TO 50% 🔥</b> </span>
+        <span>🔥 FLASH SALE: <b>UP TO 50% 🔥</b> </span>
+        <span>🔥 FLASH SALE: <b>UP TO 50% 🔥</b> </span>
+        <span>🔥 FLASH SALE: <b>UP TO 50% 🔥</b> </span>
+        <span>🔥 FLASH SALE: <b>UP TO 50% 🔥</b> </span>
+        <span>🔥 FLASH SALE: <b>UP TO 50% 🔥</b> </span>
+    </div>
+</div>
 
 <section class="hero-section">
     <canvas id="snow-canvas"></canvas>

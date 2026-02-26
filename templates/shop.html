@@ -16,7 +16,50 @@
         --glass: rgba(255, 255, 255, 0.05); --border: rgba(255, 255, 255, 0.1);
         --smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         --red: #ff5252; --grey: #888;
+        --sale-red: #ff3838;
     }
+        .sale-banner {
+        background: var(--sale-red);
+        color: white;
+        overflow: hidden;
+        white-space: nowrap;
+        padding: 10px 0;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        font-size: 14px;
+        position: relative;
+        z-index: 100;
+        border-bottom: 2px solid rgba(0,0,0,0.1);
+    }
+
+    .sale-content {
+        display: inline-block;
+        animation: marquee 20s linear infinite;
+    }
+
+    .sale-content span {
+        margin: 0 40px;
+        display: inline-block;
+    }
+
+    .sale-content span b {
+        color: #fff;
+        text-shadow: 0 0 10px rgba(255,255,255,0.5);
+        animation: pulse 1.5s infinite;
+    }
+
+    @keyframes marquee {
+        0% { transform: translateX(0); }
+        100% { transform: translateX(-50%); }
+    }
+
+    @keyframes pulse {
+        0% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.1); opacity: 0.8; }
+        100% { transform: scale(1); opacity: 1; }
+    }
+
 
     body { margin: 0; background: #0f2027; color: #fff; overflow-x: hidden; }
     .shop-wrapper { padding: 120px 40px 100px; background: var(--accent-grad); min-height: 100vh; box-sizing: border-box; }
@@ -150,6 +193,16 @@
     }
     @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
 </style>
+<div class="sale-banner">
+    <div class="sale-content">
+        <span>🔥 FLASH SALE: <b>UP TO 50% 🔥</b> </span>
+        <span>🔥 FLASH SALE: <b>UP TO 50% 🔥</b> </span>
+        <span>🔥 FLASH SALE: <b>UP TO 50% 🔥</b> </span>
+        <span>🔥 FLASH SALE: <b>UP TO 50% 🔥</b> </span>
+        <span>🔥 FLASH SALE: <b>UP TO 50% 🔥</b> </span>
+        <span>🔥 FLASH SALE: <b>UP TO 50% 🔥</b> </span>
+    </div>
+</div>
 
 <section class="shop-wrapper">
     <header class="shop-header">
