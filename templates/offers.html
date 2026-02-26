@@ -3,7 +3,6 @@
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
-
   gtag('config', 'G-ZH9JG248D6');
 </script>
 
@@ -16,7 +15,7 @@
         --smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         --sale-red: #ff3838;
     }
-        .sale-banner {
+    .sale-banner {
         background: var(--sale-red);
         color: white;
         overflow: hidden;
@@ -30,34 +29,28 @@
         z-index: 100;
         border-bottom: 2px solid rgba(0,0,0,0.1);
     }
-
     .sale-content {
         display: inline-block;
         animation: marquee 20s linear infinite;
     }
-
     .sale-content span {
         margin: 0 40px;
         display: inline-block;
     }
-
     .sale-content span b {
         color: #fff;
         text-shadow: 0 0 10px rgba(255,255,255,0.5);
         animation: pulse 1.5s infinite;
     }
-
     @keyframes marquee {
         0% { transform: translateX(0); }
         100% { transform: translateX(-50%); }
     }
-
     @keyframes pulse {
         0% { transform: scale(1); opacity: 1; }
         50% { transform: scale(1.1); opacity: 0.8; }
         100% { transform: scale(1); opacity: 1; }
     }
-
     .offers-wrapper { padding: 150px 5% 80px; background: var(--accent-grad); min-height: 100vh; color: #fff; }
     .offers-header { text-align: center; margin-bottom: 60px; }
     .offers-header h1 { font-size: clamp(40px, 8vw, 70px); font-weight: 900; background: linear-gradient(to right, #fff, var(--primary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 0; }
@@ -95,6 +88,7 @@
         margin-bottom: 15px; 
         background: #1a1a1a; 
         position: relative; 
+        display: block;
     }
     .img-container img { width: 100%; height: 100%; object-fit: cover; transition: opacity 0.3s; }
     
@@ -120,7 +114,6 @@
     @media (max-width: 1100px) {
         .product-grid { grid-template-columns: repeat(3, 1fr); }
     }
-
     @media (max-width: 768px) {
         .offers-wrapper { padding: 100px 15px 50px; }
         .product-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
@@ -133,6 +126,7 @@
         .sold-out-badge { font-size: 0.8rem; padding: 8px 15px; }
     }
 </style>
+
 <div class="sale-banner">
     <div class="sale-content">
         <span>🔥 FLASH SALE: <b>UP TO 50% 🔥</b> </span>
@@ -165,13 +159,13 @@
                 <div class="badge-common new-arrival-badge">New Arrival</div>
             {% endif %}
 
-            <div class="img-container" id="cont-{{ product.id }}">
+            <a href="{% url 'product_detail' product.id %}" class="img-container" id="cont-{{ product.id }}">
                 <img src="{{ product.main_image.url }}" alt="{{ product.name }}" id="img-{{ product.id }}">
                 <div class="image-nav-arrows" id="arrows-{{ product.id }}">
                     <button class="nav-arrow prev" onclick="changeImg('{{ product.id }}', -1, event)">❮</button>
                     <button class="nav-arrow next" onclick="changeImg('{{ product.id }}', 1, event)">❯</button>
                 </div>
-            </div>
+            </a>
 
             <h3 style="font-size: 1rem; margin: 0 0 10px; text-align: center; height: 2.4em; overflow: hidden;">{{ product.name }}</h3>
 
@@ -201,7 +195,6 @@
 <script>
     let offerData = {};
 
-    // تتبع جوجل: عرض قائمة المنتجات (view_item_list)
     if (typeof gtag !== 'undefined') {
         gtag('event', 'view_item_list', {
           item_list_id: "offers_page",
@@ -243,10 +236,8 @@
         btn.classList.toggle('disabled', isOut);
         btn.innerText = isOut ? 'Sold Out' : 'Grab it Now';
 
-        // تتبع فيسبوك عند تغيير اللون (تخصيص)
         if (typeof fbq !== 'undefined') fbq('track', 'CustomizeProduct', { content_ids: [pId] });
         
-        // تتبع جوجل: اختيار منتج من القائمة (select_item)
         if (typeof gtag !== 'undefined') {
             gtag('event', 'select_item', {
                 item_list_id: "offers_page",
