@@ -139,6 +139,7 @@
         margin-bottom: 20px; 
         background: #1a1a1a; 
         position: relative; 
+        display: block;
     }
     .main-product-img { 
         width: 100%; 
@@ -182,7 +183,7 @@
         .old-price { font-size: 0.8rem; margin-left: 5px; }
         .color-dot { width: 18px; height: 18px; }
         .product-card__btn { padding: 12px 8px; font-size: 0.8rem; border-radius: 10px; }
-        .nav-arrow { width: 24px; height: 24px; font-size: 0.7rem; }        
+        .nav-arrow { width: 24px; height: 24px; font-size: 0.7rem; }         
         .badge { font-size: 0.65rem; padding: 3px 8px; top: 10px; }
         .dropdown-content { width: 180px; left: 50%; }
     }
@@ -237,14 +238,14 @@
                 <div class="badge new-badge">New Arrival</div>
             {% endif %}
 
-            <div class="product-card__image-wrap" id="img-wrap-{{ product.id }}">
+            <a href="{% url 'product_detail' product.id %}" class="product-card__image-wrap" id="img-wrap-{{ product.id }}">
                 <img src="{{ product.main_image.url }}" class="main-product-img" id="img-{{ product.id }}" loading="lazy">
                 
                 <div class="image-nav-arrows" id="arrows-{{ product.id }}">
                     <button class="nav-arrow prev" onclick="changeExtraImage('{{ product.id }}', -1, event)">❮</button>
                     <button class="nav-arrow next" onclick="changeExtraImage('{{ product.id }}', 1, event)">❯</button>
                 </div>
-            </div>
+            </a>
 
             <div class="color-options">
                 {% for v in product.variants.all|dictsortreversed:"total_variant_stock" %}
