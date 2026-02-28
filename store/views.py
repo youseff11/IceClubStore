@@ -80,9 +80,12 @@ VariantFormSet = inlineformset_factory(
 def home(request):
     return render(request, 'home.html')
 
+from django.core.paginator import Paginator
 def shop_view(request, category_slug=None):
     categories = Category.objects.all()
-    products = Product.objects.annotate(
+    
+    # تحسين الاستعلام باستخدام prefetch_related لمنع البطء عند تحميل الصور والمقاسات
+    products_list = Product.objects.prefetch_related('variants__sizes', 'variants__additional_images').annotate(
         is_available_group=Case(
             When(stock__gt=0, then=Value(0)),
             default=Value(1),
@@ -98,10 +101,15 @@ def shop_view(request, category_slug=None):
     selected_category = None
     if category_slug:
         selected_category = get_object_or_404(Category, slug=category_slug)
-        products = products.filter(category=selected_category)
+        products_list = products_list.filter(category=selected_category)
+
+    # إعداد نظام التقسيم - عرض 20 منتج فقط في كل صفحة
+    paginator = Paginator(products_list, 20) 
+    page_number = request.GET.get('page')
+    products = paginator.get_page(page_number)
 
     context = {
-        'products': products,
+        'products': products, # الآن الكائن يحتوي على 20 منتجًا فقط وصفحة محددة
         'categories': categories,
         'selected_category': selected_category,
     }

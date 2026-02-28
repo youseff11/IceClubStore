@@ -1,9 +1,9 @@
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-ZH9JG248D6"></script>
 <script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-  gtag('config', 'G-ZH9JG248D6');
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-ZH9JG248D6');
 </script>
 
 {% extends 'base.html' %} 
@@ -21,6 +21,71 @@
 
     body { margin: 0; background: #0f2027; color: #fff; font-family: 'Segoe UI', sans-serif; overflow-x: hidden; }
 
+    /* نظام التنبيهات (Notifications) ليظهر فوق الكارد */
+    .toast-container {
+        position: absolute;
+        bottom: calc(100% + 15px); /* فوق الكارد بـ 15 بيكسل */
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        pointer-events: none;
+        width: 100%;
+        max-width: 400px;
+    }
+
+    .custom-toast {
+        width: 100%;
+        padding: 14px 24px;
+        border-radius: 12px;
+        background: rgba(15, 32, 39, 0.95);
+        backdrop-filter: blur(15px);
+        border: 1px solid var(--glass-border);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.4);
+        transform: translateY(20px); /* يظهر من الأسفل للأعلى بنعومة */
+        opacity: 0;
+        transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        pointer-events: auto;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .custom-toast.show { transform: translateY(0); opacity: 1; }
+
+    .custom-toast::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        height: 3px;
+        width: 100%;
+        background: var(--primary-color);
+        animation: toastProgress 4s linear forwards;
+    }
+
+    .toast-success { border-left: 4px solid #2ecc71; }
+    .toast-success::after { background: #2ecc71; }
+    .toast-warning { border-left: 4px solid #f1c40f; }
+    .toast-warning::after { background: #f1c40f; }
+    .toast-error { border-left: 4px solid #e74c3c; }
+    .toast-error::after { background: #e74c3c; }
+
+    @keyframes toastProgress {
+        from { width: 100%; }
+        to { width: 0%; }
+    }
+
+    .toast-content { display: flex; align-items: center; gap: 12px; font-weight: 500;}
+    .toast-icon { font-size: 1.2rem; }
+    .toast-close { cursor: pointer; opacity: 0.5; transition: 0.3s; font-size: 1.2rem; }
+    .toast-close:hover { opacity: 1; }
+
     .detail-wrapper { 
         padding: 100px 10px 50px; 
         background: var(--accent-gradient); 
@@ -30,22 +95,6 @@
         justify-content: center; 
         align-items: center; 
     }
-
-    .alert {
-        padding: 15px 20px;
-        border-radius: 12px;
-        margin-bottom: 10px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        backdrop-filter: blur(10px);
-        animation: fadeInUp 0.5s ease;
-        border: 1px solid rgba(255,255,255,0.1);
-    }
-
-    .alert-success { background: rgba(46, 204, 113, 0.2); color: #2ecc71; border-color: rgba(46, 204, 113, 0.3); }
-    .alert-warning { background: rgba(241, 196, 15, 0.2); color: #f1c40f; border-color: rgba(241, 196, 15, 0.3); }
-    .alert-error { background: rgba(231, 76, 60, 0.2); color: #e74c3c; border-color: rgba(231, 76, 60, 0.3); }
 
     .detail-container-outer {
         position: relative; 
@@ -79,6 +128,7 @@
         .detail-container { grid-template-columns: 1fr; }
         .image-section { border-right: none !important; border-bottom: 1px solid var(--glass-border); min-height: 450px; }
         .info-section { padding: 25px 15px !important; }
+        .toast-container { width: 90%; }
     }
 
     .image-section {
@@ -149,70 +199,112 @@
 </style>
 
 <div class="detail-wrapper">
-    <div class="detail-container-outer">
-        <div class="detail-container">
-            <div class="image-section" id="imgSection">
-                <div class="detail-sold-out-badge" id="soldOutLabel">SOLD OUT</div>
-                {% if product.discount_price %}
-                    <div class="detail-discount-badge">{{ product.discount_percentage }}% OFF</div>
-                {% endif %}
-                
-                <div class="main-display">
-                    {% if product.variants.first %}
-                        <img src="{{ product.variants.first.variant_image.url }}" alt="{{ product.name }}" id="mainDetailImg" class="product-main-img">
-                    {% else %}
-                        <img src="" alt="No Image Available" id="mainDetailImg" class="product-main-img">
-                    {% endif %}
-                </div>
+    <div style="position: relative; width: 100%; max-width: 1000px; display: flex; justify-content: center;">
+        
+        <div class="toast-container" id="toastContainer"></div>
 
-                <div class="thumbnail-gallery" id="thumbGallery"></div>
-            </div>
-
-            <div class="info-section">
-                <span class="category-label">{{ product.category.name|default:"Premium Edition" }}</span>
-                <h1 class="product-title">{{ product.name }}</h1>
-                
-                <div class="price-group">
-                    <span class="current-price">{{ product.discount_price|default:product.price|floatformat:0 }} LE</span>
+        <div class="detail-container-outer">
+            <div class="detail-container">
+                <div class="image-section" id="imgSection">
+                    <div class="detail-sold-out-badge" id="soldOutLabel">SOLD OUT</div>
                     {% if product.discount_price %}
-                        <span class="old-price">{{ product.price|floatformat:0 }} LE</span>
+                        <div class="detail-discount-badge">{{ product.discount_percentage }}% OFF</div>
                     {% endif %}
-                </div>
-
-                <div class="selection-group">
-                    <h4 style="font-size: 0.8rem; color: var(--text-muted); margin: 0 0 5px 0;">Color: <span id="selected-color-name" style="color: var(--primary-color);">Choose</span></h4>
-                    <div class="color-dots">
-                        {% for variant in product.variants.all|dictsortreversed:"total_variant_stock" %}
-                        <div class="color-dot {% if variant.total_variant_stock == 0 %}sold-out-dot{% endif %}" 
-                             style="background-color: {{ variant.color_code }};" 
-                             data-color="{{ variant.color_name }}" 
-                             data-main-img="{{ variant.variant_image.url }}"
-                             data-stock="{{ variant.total_variant_stock }}" 
-                             onclick="selectVariant(this)">
-                             
-                             <script type="application/json" class="v-images">["{{ variant.variant_image.url }}"{% for extra in variant.additional_images.all %},"{{ extra.image.url }}"{% endfor %}]</script>
-
-                             <script type="application/json" class="v-data">[{% for s in variant.sizes.all %}{"n":"{{s.size_name}}","s":{{s.stock}}}{% if not forloop.last %},{% endif %}{% endfor %}]</script>
-                        </div>
-                        {% endfor %}
+                    
+                    <div class="main-display">
+                        {% if product.variants.first %}
+                            <img src="{{ product.variants.first.variant_image.url }}" alt="{{ product.name }}" id="mainDetailImg" class="product-main-img">
+                        {% else %}
+                            <img src="" alt="No Image Available" id="mainDetailImg" class="product-main-img">
+                        {% endif %}
                     </div>
 
-                    <h4 style="font-size: 0.8rem; color: var(--text-muted); margin: 0;">Size: <span id="selected-size-name" style="color: var(--primary-color);">Choose</span></h4>
-                    <div class="size-options" id="sizeOptionsContainer"></div>
+                    <div class="thumbnail-gallery" id="thumbGallery"></div>
                 </div>
 
-                <p style="color:var(--text-muted); font-size:0.9rem; line-height: 1.6; margin: 25px 0;">{{ product.description }}</p>
+                <div class="info-section">
+                    <span class="category-label">{{ product.category.name|default:"Premium Edition" }}</span>
+                    <h1 class="product-title">{{ product.name }}</h1>
+                    
+                    <div class="price-group">
+                        <span class="current-price">{{ product.discount_price|default:product.price|floatformat:0 }} LE</span>
+                        {% if product.discount_price %}
+                            <span class="old-price">{{ product.price|floatformat:0 }} LE</span>
+                        {% endif %}
+                    </div>
 
-                <div class="action-btns">
-                    <a href="#" id="add-to-cart-btn" class="btn-primary">Add to Cart</a>
-                    <a href="{% url 'shop' %}" class="btn-back">Back to Shop</a>
+                    <div class="selection-group">
+                        <h4 style="font-size: 0.8rem; color: var(--text-muted); margin: 0 0 5px 0;">Color: <span id="selected-color-name" style="color: var(--primary-color);">Choose</span></h4>
+                        <div class="color-dots">
+                            {% for variant in product.variants.all|dictsortreversed:"total_variant_stock" %}
+                            <div class="color-dot {% if variant.total_variant_stock == 0 %}sold-out-dot{% endif %}" 
+                                 style="background-color: {{ variant.color_code }};" 
+                                 data-color="{{ variant.color_name }}" 
+                                 data-main-img="{{ variant.variant_image.url }}"
+                                 data-stock="{{ variant.total_variant_stock }}" 
+                                 onclick="selectVariant(this)">
+                                 
+                                 <script type="application/json" class="v-images">["{{ variant.variant_image.url }}"{% for extra in variant.additional_images.all %},"{{ extra.image.url }}"{% endfor %}]</script>
+                                 <script type="application/json" class="v-data">[{% for s in variant.sizes.all %}{"n":"{{s.size_name}}","s":{{s.stock}}}{% if not forloop.last %},{% endif %}{% endfor %}]</script>
+                            </div>
+                            {% endfor %}
+                        </div>
+
+                        <h4 style="font-size: 0.8rem; color: var(--text-muted); margin: 0;">Size: <span id="selected-size-name" style="color: var(--primary-color);">Choose</span></h4>
+                        <div class="size-options" id="sizeOptionsContainer"></div>
+                    </div>
+
+                    <p style="color:var(--text-muted); font-size:0.9rem; line-height: 1.6; margin: 25px 0;">{{ product.description }}</p>
+
+                    <div class="action-btns">
+                        <a href="#" id="add-to-cart-btn" class="btn-primary">Add to Cart</a>
+                        <a href="{% url 'shop' %}" class="btn-back">Back to Shop</a>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+    
+    {% if messages %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            {% for message in messages %}
+                showToast("{{ message }}", "{{ message.tags }}");
+            {% endfor %}
+        });
+    </script>
+    {% endif %}
 </div>
 
 <script>
+    function showToast(message, type = 'success') {
+        const container = document.getElementById('toastContainer');
+        const toast = document.createElement('div');
+        
+        let toastClass = 'toast-success';
+        let icon = '✓';
+        if(type.includes('error')) { toastClass = 'toast-error'; icon = '✕'; }
+        if(type.includes('warning')) { toastClass = 'toast-warning'; icon = '⚠'; }
+
+        toast.className = `custom-toast ${toastClass}`;
+        toast.innerHTML = `
+            <div class="toast-content">
+                <span class="toast-icon">${icon}</span>
+                <span>${message}</span>
+            </div>
+            <span class="toast-close" onclick="this.parentElement.remove()">✕</span>
+        `;
+
+        container.appendChild(toast);
+        
+        setTimeout(() => toast.classList.add('show'), 100);
+
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 500);
+        }, 4000);
+    }
+
     let selColor = "", selSize = "";
     const productPrice = {{ product.discount_price|default:product.price|floatformat:0 }};
     const productName = "{{ product.name }}";

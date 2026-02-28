@@ -18,7 +18,7 @@
         --red: #ff5252; --grey: #888;
         --sale-red: #ff3838;
     }
-        .sale-banner {
+    .sale-banner {
         background: var(--sale-red);
         color: white;
         overflow: hidden;
@@ -59,7 +59,6 @@
         50% { transform: scale(1.1); opacity: 0.8; }
         100% { transform: scale(1); opacity: 1; }
     }
-
 
     body { margin: 0; background: #0f2027; color: #fff; overflow-x: hidden; }
     .shop-wrapper { padding: 120px 40px 100px; background: var(--accent-grad); min-height: 100vh; box-sizing: border-box; }
@@ -152,7 +151,7 @@
 
     .image-nav-arrows {
         position: absolute; top: 50%; width: 100%; transform: translateY(-50%);
-        display: none; justify-content: space-between; padding: 0 10px; pointer-events: none; z-index: 5;
+        display: flex; justify-content: space-between; padding: 0 10px; pointer-events: none; z-index: 5;
     }
     .nav-arrow {
         background: rgba(0,0,0,0.5); color: white; border: none; border-radius: 50%;
@@ -194,6 +193,7 @@
     }
     @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
 </style>
+
 <div class="sale-banner">
     <div class="sale-content">
         <span>🔥 FLASH SALE: <b>UP TO 50% 🔥</b> </span>
@@ -238,14 +238,16 @@
                 <div class="badge new-badge">New Arrival</div>
             {% endif %}
 
-            <a href="{% url 'product_detail' product.id %}" class="product-card__image-wrap" id="img-wrap-{{ product.id }}">
-                <img src="{{ product.main_image.url }}" class="main-product-img" id="img-{{ product.id }}" loading="lazy">
+            <div class="product-card__image-wrap" id="img-wrap-{{ product.id }}">
+                <a href="{% url 'product_detail' product.id %}">
+                    <img src="{{ product.main_image.url }}" class="main-product-img" id="img-{{ product.id }}" loading="lazy">
+                </a>
                 
-                <div class="image-nav-arrows" id="arrows-{{ product.id }}">
+                <div class="image-nav-arrows" id="arrows-{{ product.id }}" style="display: none;">
                     <button class="nav-arrow prev" onclick="changeExtraImage('{{ product.id }}', -1, event)">❮</button>
                     <button class="nav-arrow next" onclick="changeExtraImage('{{ product.id }}', 1, event)">❯</button>
                 </div>
-            </a>
+            </div>
 
             <div class="color-options">
                 {% for v in product.variants.all|dictsortreversed:"total_variant_stock" %}
@@ -275,6 +277,28 @@
         {% endfor %}
     </div>
 </section>
+
+<div class="pagination-wrapper" style="text-align: center; margin-top: 50px;">
+    {% if products.has_other_pages %}
+    <nav class="category-filter">
+        {% if products.has_previous %}
+            <a href="?page={{ products.previous_page_number }}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}" class="cat-link">Previous</a>
+        {% endif %}
+
+        {% for i in products.paginator.page_range %}
+            {% if products.number == i %}
+                <span class="cat-link active">{{ i }}</span>
+            {% else %}
+                <a href="?page={{ i }}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}" class="cat-link">{{ i }}</a>
+            {% endif %}
+        {% endfor %}
+
+        {% if products.has_next %}
+            <a href="?page={{ products.next_page_number }}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}" class="cat-link">Next</a>
+        {% endif %}
+    </nav>
+    {% endif %}
+</div>
 
 <script>
     let productImagesMap = {};

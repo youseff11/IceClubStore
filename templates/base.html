@@ -28,7 +28,7 @@
 <body>
     {% include 'navbar.html' %}
 
-    {% if messages and request.resolver_match.url_name != 'dashboard' %}
+    <!-- {% if messages and request.resolver_match.url_name != 'dashboard' %}
         <script>
             document.addEventListener('DOMContentLoaded', function() {
                 {% for message in messages %}
@@ -43,7 +43,7 @@
                 {% endfor %}
             });
         </script>
-    {% endif %}
+    {% endif %} -->
 
     {% block content %}
     {% endblock %}
