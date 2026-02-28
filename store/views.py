@@ -798,9 +798,14 @@ def logout_view(request):
 def about_view(request):
     return render(request, 'about.html')
 
+# from django.core.paginator import Paginator
+
 def offers_view(request):
-    products = Product.objects.filter(
+    # إضافة prefetch_related لمنع مشكلة N+1 وتسريع الاستعلام
+    products_list = Product.objects.filter(
         discount_price__gt=0
+    ).prefetch_related(
+        'variants__sizes', 'variants__additional_images'
     ).annotate(
         is_available_group=Case(
             When(stock__gt=0, then=Value(0)),
@@ -813,6 +818,11 @@ def offers_view(request):
             output_field=IntegerField(),
         )
     ).order_by('is_available_group', '-manual_new_priority', '-created_at')
+
+    # إعداد نظام التقسيم - عرض 20 منتج فقط في كل صفحة
+    paginator = Paginator(products_list, 20) 
+    page_number = request.GET.get('page')
+    products = paginator.get_page(page_number)
 
     context = {
         'products': products,
