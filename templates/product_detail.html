@@ -277,6 +277,7 @@
 </div>
 
 <script>
+    // دالة إظهار التنبيهات (Toast)
     function showToast(message, type = 'success') {
         const container = document.getElementById('toastContainer');
         const toast = document.createElement('div');
@@ -314,6 +315,9 @@
         return "evt_" + Date.now() + "_" + Math.floor(Math.random() * 1000); 
     }
 
+    // --- حدث ViewContent (عند تحميل الصفحة) ---
+    
+    // 1. فيسبوك
     if (typeof fbq !== 'undefined') {
         fbq('track', 'ViewContent', {
             content_name: productName, 
@@ -322,6 +326,17 @@
             value: productPrice, 
             currency: 'EGP'
         }, { eventID: generateEventID() });
+    }
+
+    // 2. تيك توك
+    if (typeof ttq !== 'undefined') {
+        ttq.track('ViewContent', {
+            content_id: productId,
+            content_name: productName,
+            content_type: 'product',
+            value: productPrice,
+            currency: 'EGP'
+        });
     }
 
     function selectVariant(el) {
@@ -424,8 +439,10 @@
         }
     }
 
+    // --- حدث AddToCart (عند الضغط على الزر) ---
     document.getElementById('add-to-cart-btn').addEventListener('click', function(e) {
         if (!this.classList.contains('btn-disabled')) {
+            // 1. فيسبوك
             if (typeof fbq !== 'undefined') {
                 fbq('track', 'AddToCart', {
                     content_name: productName, 
@@ -434,6 +451,17 @@
                     value: productPrice, 
                     currency: 'EGP'
                 }, { eventID: this.dataset.eventId });
+            }
+
+            // 2. تيك توك
+            if (typeof ttq !== 'undefined') {
+                ttq.track('AddToCart', {
+                    content_id: productId,
+                    content_name: productName,
+                    content_type: 'product',
+                    value: productPrice,
+                    currency: 'EGP'
+                });
             }
         } else {
             e.preventDefault();
