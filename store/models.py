@@ -223,6 +223,30 @@ class OrderItem(models.Model):
     def subtotal(self):
         return self.quantity * self.price_at_purchase
 
+class StoreSettings(models.Model):
+    """Singleton model for global store settings like discount & announcement banner."""
+    global_discount_percentage = models.PositiveIntegerField(default=0, verbose_name="Global Discount %")
+    show_discount_banner = models.BooleanField(default=False, verbose_name="Show Discount Banner")
+    banner_text = models.CharField(max_length=300, blank=True, default="", verbose_name="Banner Text (auto-generated or custom)")
+
+    def __str__(self):
+        return "Store Settings"
+
+    def save(self, *args, **kwargs):
+        # Ensure only one instance exists (singleton)
+        self.pk = 1
+        super().save(*args, **kwargs)
+
+    @classmethod
+    def load(cls):
+        obj, _ = cls.objects.get_or_create(pk=1)
+        return obj
+
+    class Meta:
+        verbose_name = "Store Settings"
+        verbose_name_plural = "Store Settings"
+
+
 class ContactMessage(models.Model):
     name = models.CharField(max_length=100)
     email = models.EmailField()

@@ -38,6 +38,44 @@
 <body>
     {% include 'navbar.html' %}
 
+    {% if show_discount_banner and discount_banner_text %}
+    <div class="global-discount-banner">
+        <div class="global-banner-content">
+            <span>{{ discount_banner_text }}</span>
+            <span>{{ discount_banner_text }}</span>
+        </div>
+    </div>
+    <style>
+        .global-discount-banner {
+            background: linear-gradient(90deg, #ff3838, #e91e63, #ff3838);
+            color: white;
+            overflow: hidden;
+            white-space: nowrap;
+            padding: 10px 0;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-size: 14px;
+            position: relative;
+            z-index: 999;
+            border-bottom: 2px solid rgba(0,0,0,0.15);
+            font-family: 'Segoe UI', sans-serif;
+        }
+        .global-banner-content {
+            display: inline-block;
+            animation: globalMarquee 25s linear infinite;
+        }
+        .global-banner-content span {
+            margin: 0 60px;
+            display: inline-block;
+        }
+        @keyframes globalMarquee {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+    </style>
+    {% endif %}
+
     {% block content %}
     {% endblock %}
 

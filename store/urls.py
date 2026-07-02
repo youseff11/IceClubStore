@@ -21,6 +21,7 @@ urlpatterns = [
     path('reset-orders/', views.reset_orders, name='reset_orders'),
     path('admin-dashboard/update-item/<int:item_id>/', views.update_item_quantity, name='update_item_quantity'),
     path('admin-dashboard/apply-discount/<int:order_id>/', views.apply_order_discount, name='apply_order_discount'),
+    path('admin-dashboard/apply-global-discount/', views.apply_global_discount, name='apply_global_discount'),
 
     # --- المتجر والمنتجات ---
     path('shop/', views.shop_view, name='shop'),     

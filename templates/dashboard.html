@@ -152,6 +152,51 @@
         <div class="stat-card" style="border: 1px solid var(--primary-color);"><h3>{{ total_revenue|floatformat:0 }}</h3><p>Revenue (LE)</p></div>
     </div>
 
+    <!-- Global Discount Section -->
+    <div class="management-section" id="global-discount-section">
+        <div class="section-header">
+            <h3><i class="fas fa-percent" style="color: var(--primary-color);"></i> Global Discount</h3>
+            {% if global_discount > 0 %}
+                <span class="badge" style="background: #ff525222; color: #ff5252; border: 1px solid #ff5252; font-size: 0.8rem;">
+                    <i class="fas fa-fire"></i> {{ global_discount }}% Active
+                </span>
+            {% endif %}
+        </div>
+        <form method="POST" action="{% url 'apply_global_discount' %}" style="display: flex; flex-wrap: wrap; gap: 12px; align-items: center;">
+            {% csrf_token %}
+            <div style="flex: 1; min-width: 150px;">
+                <label style="font-size: 0.75rem; color: #b0c4de; display: block; margin-bottom: 5px;">Discount Percentage</label>
+                <input type="number" name="global_discount" min="0" max="99" value="{{ global_discount|default:0 }}" 
+                       placeholder="e.g. 20" 
+                       style="width: 100%; padding: 10px 14px; background: #1c3a4d; border: 1px solid #4fc3f7; color: white; border-radius: 10px; font-size: 1rem; font-weight: 700;">
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px; min-width: 200px; padding-top: 18px;">
+                <label style="position: relative; display: inline-block; width: 44px; height: 24px; cursor: pointer;">
+                    <input type="checkbox" name="show_banner" {% if show_discount_banner %}checked{% endif %}
+                           style="opacity: 0; width: 0; height: 0;" id="bannerToggle">
+                    <span style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: #1c3a4d; border: 1px solid #4fc3f7; border-radius: 24px; transition: 0.3s;" id="bannerSlider"></span>
+                    <span style="position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; background: #4fc3f7; border-radius: 50%; transition: 0.3s;" id="bannerDot"></span>
+                </label>
+                <span style="font-size: 0.8rem; color: #b0c4de;">Show scrolling banner on all pages</span>
+            </div>
+            <div style="display: flex; gap: 8px; padding-top: 18px;">
+                <button type="submit" class="btn-main" style="padding: 10px 20px;">
+                    <i class="fas fa-check"></i> Apply to All Products
+                </button>
+            </div>
+        </form>
+        {% if global_discount > 0 %}
+        <div style="margin-top: 12px; padding: 10px 15px; background: rgba(255,82,82,0.1); border: 1px solid rgba(255,82,82,0.3); border-radius: 10px; font-size: 0.8rem; color: #ff8a80;">
+            <i class="fas fa-info-circle"></i> Currently <strong>{{ global_discount }}%</strong> discount is applied to all products. Set to <strong>0</strong> and submit to remove the discount.
+        </div>
+        {% endif %}
+    </div>
+
+    <style>
+        #bannerToggle:checked + #bannerSlider { background: rgba(79, 195, 247, 0.3); }
+        #bannerToggle:checked ~ #bannerDot { transform: translateX(20px); }
+    </style>
+
     <div class="management-section">
         <div class="section-header">
             <h3><i class="fas fa-box-open" style="color: var(--primary-color);"></i> Inventory</h3>

@@ -10,7 +10,7 @@ from django.contrib import messages
 from django.core.mail import send_mail
 from django.conf import settings
 from django.forms import inlineformset_factory
-from .models import Product, Category, ContactMessage, ProductVariant, Order, OrderItem, ProductSize, ProductImage
+from .models import Product, Category, ContactMessage, ProductVariant, Order, OrderItem, ProductSize, ProductImage, StoreSettings
 from .forms import ProductForm
 from django import forms
 from django.utils.html import strip_tags
@@ -130,7 +130,19 @@ def product_detail(request, id):
         }
     )
     
-    return render(request, 'product_detail.html', {'product': product})
+    # Related products from the same category (exclude current product)
+    related_products = []
+    if product.category:
+        related_products = Product.objects.filter(
+            category=product.category
+        ).exclude(id=product.id).prefetch_related(
+            'variants__sizes'
+        ).order_by('-created_at')[:8]
+    
+    return render(request, 'product_detail.html', {
+        'product': product,
+        'related_products': related_products,
+    })
 
 def contact_view(request):
     if request.method == 'POST':
@@ -832,6 +844,53 @@ def offers_view(request):
 
 def policies(request):
     return render(request, 'policies.html')
+
+@user_passes_test(is_admin, login_url='login')
+def apply_global_discount(request):
+    if request.method == 'POST':
+        discount_percent = request.POST.get('global_discount', '0')
+        show_banner = request.POST.get('show_banner') == 'on'
+        
+        try:
+            discount_percent = int(discount_percent)
+        except (ValueError, TypeError):
+            discount_percent = 0
+        
+        if discount_percent < 0 or discount_percent > 99:
+            messages.error(request, 'Discount must be between 0 and 99%.')
+            return redirect('dashboard')
+        
+        settings = StoreSettings.load()
+        
+        if discount_percent == 0:
+            # Remove global discount: clear all discount_price values
+            Product.objects.all().update(discount_price=None)
+            settings.global_discount_percentage = 0
+            settings.show_discount_banner = False
+            settings.banner_text = ""
+            settings.save()
+            messages.success(request, 'Global discount removed from all products.')
+        else:
+            # Apply discount to all products based on their original price
+            products = Product.objects.all()
+            for product in products:
+                original_price = product.price
+                new_discount_price = original_price * Decimal(str((100 - discount_percent) / 100))
+                product.discount_price = new_discount_price.quantize(Decimal('0.01'))
+                product.save(update_fields=['discount_price'])
+            
+            settings.global_discount_percentage = discount_percent
+            settings.show_discount_banner = show_banner
+            if show_banner:
+                settings.banner_text = f"🔥 SALE {discount_percent}% OFF EVERYTHING! 🔥 Limited Time Offer — Don't Miss Out! 🔥 SALE {discount_percent}% OFF EVERYTHING! 🔥 Shop Now & Save Big!"
+            else:
+                settings.banner_text = ""
+            settings.save()
+            
+            messages.success(request, f'{discount_percent}% discount applied to all {products.count()} products!')
+    
+    return redirect('dashboard')
+
 
 def reset_orders(request):
     if request.method == "POST":
