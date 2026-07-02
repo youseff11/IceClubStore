@@ -134,7 +134,8 @@ def product_detail(request, id):
     related_products = []
     if product.category:
         related_products = Product.objects.filter(
-            category=product.category
+            category=product.category,
+            stock__gt=0
         ).exclude(id=product.id).prefetch_related(
             'variants__sizes'
         ).order_by('-created_at')[:8]
