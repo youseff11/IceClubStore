@@ -549,6 +549,7 @@ def dashboard_view(request):
         'delivered_orders': orders.filter(status='Delivered').count(),
         'products_count': products.count(),
         'total_revenue': total_revenue,
+        'all_categories': Category.objects.all().order_by('name'),
     }
     return render(request, 'dashboard.html', context)
 @user_passes_test(is_admin, login_url='login')
@@ -851,6 +852,8 @@ def apply_global_discount(request):
     if request.method == 'POST':
         discount_percent = request.POST.get('global_discount', '0')
         show_banner = request.POST.get('show_banner') == 'on'
+        discount_scope = request.POST.get('discount_scope', 'all')  # 'all' or 'categories'
+        selected_category_ids = request.POST.getlist('selected_categories')  # list of category IDs
         
         try:
             discount_percent = int(discount_percent)
@@ -864,16 +867,31 @@ def apply_global_discount(request):
         settings = StoreSettings.load()
         
         if discount_percent == 0:
-            # Remove global discount: clear all discount_price values
-            Product.objects.all().update(discount_price=None)
+            # Remove discount
+            if discount_scope == 'categories' and selected_category_ids:
+                cat_ids = [int(cid) for cid in selected_category_ids]
+                Product.objects.filter(category_id__in=cat_ids).update(discount_price=None)
+                cat_names = list(Category.objects.filter(id__in=cat_ids).values_list('name', flat=True))
+                messages.success(request, f'Discount removed from: {", ".join(cat_names)}.')
+            else:
+                Product.objects.all().update(discount_price=None)
+                messages.success(request, 'Global discount removed from all products.')
+            
             settings.global_discount_percentage = 0
             settings.show_discount_banner = False
             settings.banner_text = ""
             settings.save()
-            messages.success(request, 'Global discount removed from all products.')
         else:
-            # Apply discount to all products based on their original price
-            products = Product.objects.all()
+            # Determine which products to discount
+            if discount_scope == 'categories' and selected_category_ids:
+                cat_ids = [int(cid) for cid in selected_category_ids]
+                products = Product.objects.filter(category_id__in=cat_ids)
+                cat_names = list(Category.objects.filter(id__in=cat_ids).values_list('name', flat=True))
+                scope_label = ", ".join(cat_names)
+            else:
+                products = Product.objects.all()
+                scope_label = "Everything"
+            
             for product in products:
                 original_price = product.price
                 new_discount_price = original_price * Decimal(str((100 - discount_percent) / 100))
@@ -883,12 +901,15 @@ def apply_global_discount(request):
             settings.global_discount_percentage = discount_percent
             settings.show_discount_banner = show_banner
             if show_banner:
-                settings.banner_text = f"🔥 SALE {discount_percent}% OFF EVERYTHING! 🔥 Limited Time Offer — Don't Miss Out! 🔥 SALE {discount_percent}% OFF EVERYTHING! 🔥 Shop Now & Save Big!"
+                if scope_label == "Everything":
+                    settings.banner_text = f"🔥 SALE {discount_percent}% OFF EVERYTHING! 🔥 Limited Time Offer — Don't Miss Out! 🔥 SALE {discount_percent}% OFF EVERYTHING! 🔥 Shop Now & Save Big!"
+                else:
+                    settings.banner_text = f"🔥 {discount_percent}% OFF on {scope_label}! 🔥 Limited Time Offer — Don't Miss Out! 🔥 {discount_percent}% OFF on {scope_label}! 🔥 Shop Now & Save Big!"
             else:
                 settings.banner_text = ""
             settings.save()
             
-            messages.success(request, f'{discount_percent}% discount applied to all {products.count()} products!')
+            messages.success(request, f'{discount_percent}% discount applied to {products.count()} products in [{scope_label}]!')
     
     return redirect('dashboard')
 

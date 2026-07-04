@@ -162,39 +162,100 @@
                 </span>
             {% endif %}
         </div>
-        <form method="POST" action="{% url 'apply_global_discount' %}" style="display: flex; flex-wrap: wrap; gap: 12px; align-items: center;">
+        <form method="POST" action="{% url 'apply_global_discount' %}" style="display: flex; flex-direction: column; gap: 14px;">
             {% csrf_token %}
-            <div style="flex: 1; min-width: 150px;">
-                <label style="font-size: 0.75rem; color: #b0c4de; display: block; margin-bottom: 5px;">Discount Percentage</label>
-                <input type="number" name="global_discount" min="0" max="99" value="{{ global_discount|default:0 }}" 
-                       placeholder="e.g. 20" 
-                       style="width: 100%; padding: 10px 14px; background: #1c3a4d; border: 1px solid #4fc3f7; color: white; border-radius: 10px; font-size: 1rem; font-weight: 700;">
+
+            <!-- Row 1: Discount % + Scope selector -->
+            <div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end;">
+                <div style="min-width: 130px; flex: 0 0 130px;">
+                    <label style="font-size: 0.75rem; color: #b0c4de; display: block; margin-bottom: 5px;">Discount %</label>
+                    <input type="number" name="global_discount" min="0" max="99" value="{{ global_discount|default:0 }}" 
+                           placeholder="e.g. 20" 
+                           style="width: 100%; padding: 10px 14px; background: #1c3a4d; border: 1px solid #4fc3f7; color: white; border-radius: 10px; font-size: 1rem; font-weight: 700;">
+                </div>
+                <div style="min-width: 180px; flex: 1;">
+                    <label style="font-size: 0.75rem; color: #b0c4de; display: block; margin-bottom: 5px;">Apply To</label>
+                    <select name="discount_scope" id="discountScope" onchange="toggleCategoryPicker()"
+                            style="width: 100%; padding: 10px 14px; background: #1c3a4d; border: 1px solid #4fc3f7; color: white; border-radius: 10px; font-size: 0.9rem; font-weight: 600; cursor: pointer; appearance: none; -webkit-appearance: none;">
+                        <option value="all">🛒 All Products</option>
+                        <option value="categories">📂 Specific Categories</option>
+                    </select>
+                </div>
             </div>
-            <div style="display: flex; align-items: center; gap: 8px; min-width: 200px; padding-top: 18px;">
-                <label style="position: relative; display: inline-block; width: 44px; height: 24px; cursor: pointer;">
-                    <input type="checkbox" name="show_banner" {% if show_discount_banner %}checked{% endif %}
-                           style="opacity: 0; width: 0; height: 0;" id="bannerToggle">
-                    <span style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: #1c3a4d; border: 1px solid #4fc3f7; border-radius: 24px; transition: 0.3s;" id="bannerSlider"></span>
-                    <span style="position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; background: #4fc3f7; border-radius: 50%; transition: 0.3s;" id="bannerDot"></span>
-                </label>
-                <span style="font-size: 0.8rem; color: #b0c4de;">Show scrolling banner on all pages</span>
+
+            <!-- Row 2: Category multi-select (hidden by default) -->
+            <div id="categoryPicker" style="display: none; background: rgba(28,58,77,0.6); border: 1px solid rgba(79,195,247,0.25); border-radius: 12px; padding: 14px;">
+                <label style="font-size: 0.75rem; color: #b0c4de; display: block; margin-bottom: 8px;">Select Categories</label>
+                <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                    {% for cat in all_categories %}
+                    <label style="display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; background: #1c3a4d; border: 1px solid rgba(79,195,247,0.3); border-radius: 8px; cursor: pointer; font-size: 0.8rem; transition: all 0.2s;" 
+                           class="cat-chip" onclick="toggleChip(this)">
+                        <input type="checkbox" name="selected_categories" value="{{ cat.id }}" style="display: none;">
+                        <span style="width: 16px; height: 16px; border: 2px solid #4fc3f7; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; transition: all 0.2s;" class="chip-box">
+                            <i class="fas fa-check" style="font-size: 9px; color: white; display: none;" class="chip-check"></i>
+                        </span>
+                        {{ cat.name }}
+                    </label>
+                    {% endfor %}
+                </div>
+                {% if not all_categories %}
+                <p style="color: #ff8a80; font-size: 0.8rem; margin: 0;">No categories found. Create categories first.</p>
+                {% endif %}
             </div>
-            <div style="display: flex; gap: 8px; padding-top: 18px;">
-                <button type="submit" class="btn-main" style="padding: 10px 20px;">
-                    <i class="fas fa-check"></i> Apply to All Products
+
+            <!-- Row 3: Banner toggle + Submit -->
+            <div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: center;">
+                <div style="display: flex; align-items: center; gap: 8px; flex: 1; min-width: 200px;">
+                    <label style="position: relative; display: inline-block; width: 44px; height: 24px; cursor: pointer;">
+                        <input type="checkbox" name="show_banner" {% if show_discount_banner %}checked{% endif %}
+                               style="opacity: 0; width: 0; height: 0;" id="bannerToggle">
+                        <span style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: #1c3a4d; border: 1px solid #4fc3f7; border-radius: 24px; transition: 0.3s;" id="bannerSlider"></span>
+                        <span style="position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; background: #4fc3f7; border-radius: 50%; transition: 0.3s;" id="bannerDot"></span>
+                    </label>
+                    <span style="font-size: 0.8rem; color: #b0c4de;">Show scrolling banner on all pages</span>
+                </div>
+                <button type="submit" class="btn-main" style="padding: 10px 24px;">
+                    <i class="fas fa-check"></i> Apply Discount
                 </button>
             </div>
         </form>
         {% if global_discount > 0 %}
         <div style="margin-top: 12px; padding: 10px 15px; background: rgba(255,82,82,0.1); border: 1px solid rgba(255,82,82,0.3); border-radius: 10px; font-size: 0.8rem; color: #ff8a80;">
-            <i class="fas fa-info-circle"></i> Currently <strong>{{ global_discount }}%</strong> discount is applied to all products. Set to <strong>0</strong> and submit to remove the discount.
+            <i class="fas fa-info-circle"></i> Currently <strong>{{ global_discount }}%</strong> discount is active. Set to <strong>0</strong> and submit to remove.
         </div>
         {% endif %}
     </div>
 
+    <script>
+        function toggleCategoryPicker() {
+            const scope = document.getElementById('discountScope').value;
+            const picker = document.getElementById('categoryPicker');
+            picker.style.display = scope === 'categories' ? 'block' : 'none';
+        }
+        function toggleChip(label) {
+            const cb = label.querySelector('input[type="checkbox"]');
+            const box = label.querySelector('.chip-box');
+            const icon = box.querySelector('i');
+            setTimeout(() => {
+                if (cb.checked) {
+                    label.style.borderColor = '#4fc3f7';
+                    label.style.background = 'rgba(79,195,247,0.15)';
+                    box.style.background = '#4fc3f7';
+                    icon.style.display = 'inline';
+                } else {
+                    label.style.borderColor = 'rgba(79,195,247,0.3)';
+                    label.style.background = '#1c3a4d';
+                    box.style.background = 'transparent';
+                    icon.style.display = 'none';
+                }
+            }, 10);
+        }
+    </script>
+
     <style>
         #bannerToggle:checked + #bannerSlider { background: rgba(79, 195, 247, 0.3); }
         #bannerToggle:checked ~ #bannerDot { transform: translateX(20px); }
+        .cat-chip:hover { border-color: #4fc3f7 !important; }
     </style>
 
     <div class="management-section">
