@@ -161,9 +161,42 @@
     }
     .nav-arrow:hover { background: var(--primary); color: var(--secondary); }
 
-    .color-options { display: flex; gap: 8px; margin-bottom: 15px; justify-content: center; }
-    .color-dot { width: 22px; height: 22px; border-radius: 50%; cursor: pointer; border: 2px solid rgba(255,255,255,0.2); transition: var(--smooth); }
-    .color-dot.active { transform: scale(1.3); border-color: var(--primary); box-shadow: 0 0 10px var(--primary); }
+    /* --- تعديل خيارات الألوان لتصبح التفاعلية والمرونة أعلى --- */
+    .color-options { 
+        display: flex; 
+        flex-wrap: wrap;
+        gap: 8px; 
+        margin-bottom: 15px; 
+        justify-content: center; 
+        align-items: center;
+        max-height: 70px;
+        overflow-y: auto;
+        padding: 4px 2px;
+        scroll-behavior: smooth;
+    }
+    
+    /* تخصيص شريط التمرير الداخلي للألوان عند وجود كثرة ألوان */
+    .color-options::-webkit-scrollbar {
+        width: 4px;
+    }
+    .color-options::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 10px;
+    }
+    .color-options::-webkit-scrollbar-thumb:hover {
+        background: var(--primary);
+    }
+
+    .color-dot { 
+        width: 22px; 
+        height: 22px; 
+        border-radius: 50%; 
+        cursor: pointer; 
+        border: 2px solid rgba(255,255,255,0.2); 
+        transition: var(--smooth); 
+        flex-shrink: 0;
+    }
+    .color-dot.active { transform: scale(1.25); border-color: var(--primary); box-shadow: 0 0 10px var(--primary); }
     .color-dot.is-sold-out-dot { opacity: 0.4; position: relative; }
 
     .current-price { color: var(--primary); font-weight: bold; font-size: 1.4rem; }
@@ -180,7 +213,8 @@
         .product-card__name { font-size: 0.95rem; margin-bottom: 5px !important; }
         .current-price { font-size: 1.1rem; }
         .old-price { font-size: 0.8rem; margin-left: 5px; }
-        .color-dot { width: 18px; height: 18px; }
+        .color-options { gap: 6px; max-height: 58px; }
+        .color-dot { width: 16px; height: 16px; }
         .product-card__btn { padding: 12px 8px; font-size: 0.8rem; border-radius: 10px; }
         .nav-arrow { width: 24px; height: 24px; font-size: 0.7rem; }         
         .badge { font-size: 0.65rem; padding: 3px 8px; top: 10px; }
@@ -193,17 +227,6 @@
     }
     @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
 </style>
-
-<!-- <div class="sale-banner">
-    <div class="sale-content">
-        <span>🔥 FLASH SALE: <b>UP TO 50% 🔥</b> </span>
-        <span>🔥 FLASH SALE: <b>UP TO 50% 🔥</b> </span>
-        <span>🔥 FLASH SALE: <b>UP TO 50% 🔥</b> </span>
-        <span>🔥 FLASH SALE: <b>UP TO 50% 🔥</b> </span>
-        <span>🔥 FLASH SALE: <b>UP TO 50% 🔥</b> </span>
-        <span>🔥 FLASH SALE: <b>UP TO 50% 🔥</b> </span>
-    </div>
-</div> -->
 
 <section class="shop-wrapper">
     <header class="shop-header">
