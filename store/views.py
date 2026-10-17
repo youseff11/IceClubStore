@@ -279,11 +279,59 @@ def add_to_cart(request, product_id):
         pass
 
     if is_ajax:
-        cart_count = sum(i.get('quantity', 0) for i in cart.values() if isinstance(i, dict))
-        return JsonResponse({'ok': level == 'success', 'level': level, 'message': msg, 'cart_count': cart_count})
+        payload = build_cart_payload(request)
+        return JsonResponse({
+            'ok': level == 'success', 'level': level, 'message': msg,
+            'cart_count': payload['count'], 'cart': payload, 'added_key': item_key,
+        })
 
     getattr(messages, level)(request, msg)
     return redirect(request.META.get('HTTP_REFERER', 'shop'))
+
+def build_cart_payload(request):
+    """محتوى السلة كـ JSON للسلة الجانبية (Drawer Cart)"""
+    user_cart_key = f"cart_{request.user.id}" if request.user.is_authenticated else "cart_guest"
+    cart = request.session.get(user_cart_key, {})
+    if not isinstance(cart, dict):
+        cart = {}
+
+    entries = {k: v for k, v in cart.items() if isinstance(v, dict)}
+    products = Product.objects.in_bulk({v.get('product_id') for v in entries.values()})
+
+    items, total, count = [], 0, 0
+    for item_key, item_data in entries.items():
+        product = products.get(item_data.get('product_id'))
+        if not product:
+            continue
+        quantity = item_data.get('quantity', 1)
+        actual_price = product.discount_price if product.discount_price else product.price
+        subtotal = actual_price * quantity
+        total += subtotal
+        count += quantity
+
+        variant = product.variants.filter(color_name=item_data.get('color')).first()
+        image = variant.variant_image.url if variant and variant.variant_image else product.main_image
+
+        items.append({
+            'key': item_key,
+            'product_id': product.id,
+            'name': product.name,
+            'url': reverse('product_detail', args=[product.id]),
+            'image': image or '',
+            'color': item_data.get('color'),
+            'size': item_data.get('size', 'N/A'),
+            'quantity': quantity,
+            'price': float(actual_price),
+            'subtotal': float(subtotal),
+            'increase_url': reverse('update_cart', args=[item_key, 'increase']),
+            'decrease_url': reverse('update_cart', args=[item_key, 'decrease']),
+            'remove_url': reverse('remove_from_cart', args=[item_key]),
+        })
+
+    return {'items': items, 'total': float(total), 'count': count}
+
+def cart_drawer_data(request):
+    return JsonResponse(build_cart_payload(request))
 
 def cart_view(request):
     if request.user.is_authenticated:
@@ -335,7 +383,8 @@ def update_cart(request, item_key, action):
         user_cart_key = "cart_guest"
         
     cart = request.session.get(user_cart_key, {})
-    
+    notice = None  # (level, message)
+
     if item_key in cart:
         if action == 'increase':
             item_data = cart[item_key]
@@ -354,9 +403,9 @@ def update_cart(request, item_key, action):
                 if cart[item_key]['quantity'] < stock_item.stock:
                     cart[item_key]['quantity'] += 1
                 else:
-                    messages.warning(request, f"Only {stock_item.stock} units left.")
+                    notice = ('warning', f"Only {stock_item.stock} units left.")
             except ProductSize.DoesNotExist:
-                messages.error(request, "Stock error occurred.")
+                notice = ('error', "Stock error occurred.")
                 
         elif action == 'decrease':
             cart[item_key]['quantity'] -= 1
@@ -365,9 +414,15 @@ def update_cart(request, item_key, action):
                 
         request.session[user_cart_key] = cart
         request.session.modified = True
-        
+
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        level, msg = notice or ('success', '')
+        return JsonResponse({'ok': notice is None, 'level': level, 'message': msg, 'cart': build_cart_payload(request)})
+
+    if notice:
+        getattr(messages, notice[0])(request, notice[1])
     return redirect('cart_view')
-    
+
 def remove_from_cart(request, item_key):
     if request.user.is_authenticated:
         user_cart_key = f"cart_{request.user.id}"
@@ -379,6 +434,8 @@ def remove_from_cart(request, item_key):
         del cart[item_key]
         request.session[user_cart_key] = cart
         request.session.modified = True
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return JsonResponse({'ok': True, 'level': 'success', 'message': '', 'cart': build_cart_payload(request)})
     return redirect('cart_view')
 
 def checkout(request):

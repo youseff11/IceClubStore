@@ -31,6 +31,7 @@ urlpatterns = [
 
     # --- عربة التسوق (Cart) ---
     path('cart/', views.cart_view, name='cart_view'),
+    path('cart/drawer/', views.cart_drawer_data, name='cart_drawer_data'),
     
     # إضافة للمنتج
     path('add-to-cart/<int:product_id>/', views.add_to_cart, name='add_to_cart'),

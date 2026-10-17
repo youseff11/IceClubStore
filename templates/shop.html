@@ -759,23 +759,16 @@
         try {
             const res = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' }, credentials: 'same-origin' });
             const data = await res.json();
+            CartDrawer.updateBadges(data.cart_count);
 
-            msg.className = 'qv-msg ' + data.level;
-            msg.textContent = data.message + ' ';
-            if (data.ok) {
-                const cartLink = document.createElement('a');
-                cartLink.href = "{% url 'cart_view' %}";
-                cartLink.textContent = 'View cart →';
-                cartLink.style.color = 'var(--primary)';
-                msg.appendChild(cartLink);
-            }
+            if (!data.ok) {
+                msg.className = 'qv-msg ' + data.level;
+                msg.textContent = data.message;
+            } else {
+                // نقفل المعاينة ونفتح السلة الجانبية فيها المنتج الجديد
+                closeQuickView();
+                CartDrawer.open(data.cart, { highlightKey: data.added_key, message: data.message, level: 'success' });
 
-            document.querySelectorAll('.js-cart-count').forEach(b => {
-                b.textContent = data.cart_count;
-                b.style.display = data.cart_count > 0 ? '' : 'none';
-            });
-
-            if (data.ok) {
                 const price = qvFinalPrice(p);
                 if (typeof fbq !== 'undefined') {
                     fbq('track', 'AddToCart', {
