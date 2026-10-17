@@ -19,6 +19,8 @@ from django.db import connection
 from django.db.models import Case, When, Value, IntegerField
 from django.contrib import messages
 from decimal import Decimal
+from django.http import JsonResponse
+from django.urls import reverse
 FB_PIXEL_ID = '792214427202379'  
 FB_ACCESS_TOKEN = 'EAAXY0i6ZArdwBQUwZAq4Mx7ArysubuZAELX8l1XnZBVA1gqWwklibClR6Hrw5Ves0DhZCK5SjjtrqwZAfWeX6yZBCmzsqNlUlW4cwTk4NQFHcCqT2rKPxfPLKMbr6DxvK4Gg0XlNqJGhBVTWqvgQR92MvT9CamOHpNDiUQ2X7bDc7s3LxXQZB6I9vSKs9R8u0ZCWv8gZDZD'
 FB_API_VERSION = 'v18.0'
@@ -145,6 +147,41 @@ def product_detail(request, id):
         'related_products': related_products,
     })
 
+def product_quick_view(request, id):
+    """بيانات المنتج كـ JSON لنافذة المعاينة السريعة في صفحة المتجر"""
+    product = get_object_or_404(
+        Product.objects.select_related('category').prefetch_related('variants__sizes', 'variants__additional_images'),
+        id=id
+    )
+
+    variants = []
+    for v in product.variants.all():
+        sizes = [{'name': s.size_name, 'stock': s.stock} for s in v.sizes.all()]
+        images = [v.variant_image.url] if v.variant_image else []
+        images += [img.image.url for img in v.additional_images.all() if img.image]
+        variants.append({
+            'color_name': v.color_name,
+            'color_code': v.color_code,
+            'stock': sum(s['stock'] for s in sizes),
+            'images': images,
+            'sizes': sizes,
+        })
+    # الألوان المتوفرة أولاً (نفس ترتيب صفحة المنتج)
+    variants.sort(key=lambda v: v['stock'], reverse=True)
+
+    return JsonResponse({
+        'id': product.id,
+        'name': product.name,
+        'category': product.category.name if product.category else '',
+        'description': product.description or '',
+        'price': float(product.price),
+        'discount_price': float(product.discount_price) if product.discount_price else None,
+        'discount_percentage': product.discount_percentage,
+        'detail_url': reverse('product_detail', args=[product.id]),
+        'add_to_cart_url': reverse('add_to_cart', args=[product.id]),
+        'variants': variants,
+    })
+
 def contact_view(request):
     if request.method == 'POST':
         name = request.POST.get('name')
@@ -188,9 +225,12 @@ def add_to_cart(request, product_id):
     cart = request.session.get(user_cart_key, {})
     selected_color = request.GET.get('color', 'Default') 
     selected_size = request.GET.get('size', 'N/A')    
-    e_id = request.GET.get('eid')    
+    e_id = request.GET.get('eid')
     item_key = f"{product_id}_{selected_color}_{selected_size}"
-    
+    # طلب من نافذة المعاينة السريعة: نرجع JSON بدل إعادة تحميل الصفحة
+    is_ajax = request.headers.get('x-requested-with') == 'XMLHttpRequest'
+    level, msg = 'error', "This combination is not available."
+
     try:
         # تعديل هنا: استخدام size_name بدلاً من size
         stock_item = ProductSize.objects.get(
@@ -230,14 +270,19 @@ def add_to_cart(request, product_id):
             
             request.session[user_cart_key] = cart
             request.session.modified = True
-            messages.success(request, f'Added to cart ({selected_color} - {selected_size})!')
-            
-        else:
-            messages.warning(request, f"Sorry, only {stock_item.stock} units available.")
-            
-    except ProductSize.DoesNotExist:
-        messages.error(request, "This combination is not available.")
+            level, msg = 'success', f'Added to cart ({selected_color} - {selected_size})!'
 
+        else:
+            level, msg = 'warning', f"Sorry, only {stock_item.stock} units available."
+
+    except ProductSize.DoesNotExist:
+        pass
+
+    if is_ajax:
+        cart_count = sum(i.get('quantity', 0) for i in cart.values() if isinstance(i, dict))
+        return JsonResponse({'ok': level == 'success', 'level': level, 'message': msg, 'cart_count': cart_count})
+
+    getattr(messages, level)(request, msg)
     return redirect(request.META.get('HTTP_REFERER', 'shop'))
 
 def cart_view(request):

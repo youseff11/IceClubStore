@@ -221,8 +221,94 @@
         .dropdown-content { width: 180px; left: 50%; }
     }
 
-    @keyframes dropFade { 
-        from { opacity: 0; transform: translate(-50%, -10px); } 
+    /* --- زر المعاينة السريعة على صورة المنتج --- */
+    .quick-view-btn {
+        position: absolute; left: 50%; bottom: 14px; transform: translate(-50%, 10px);
+        background: rgba(15, 32, 39, 0.85); color: #fff; border: 1px solid var(--primary);
+        border-radius: 30px; padding: 9px 18px; font-family: inherit; font-size: 0.85rem; font-weight: 700;
+        cursor: pointer; z-index: 6; white-space: nowrap; backdrop-filter: blur(6px);
+        opacity: 0; transition: var(--smooth);
+    }
+    .quick-view-btn:hover { background: var(--primary); color: var(--secondary); }
+    .product-card:hover .quick-view-btn, .quick-view-btn:focus-visible { opacity: 1; transform: translate(-50%, 0); }
+    @media (hover: none) {
+        .quick-view-btn { opacity: 1; transform: translate(-50%, 0); }
+    }
+
+    /* --- نافذة المعاينة السريعة --- */
+    body.qv-open { overflow: hidden; }
+    .qv-modal [hidden] { display: none !important; }
+    .qv-overlay {
+        position: fixed; inset: 0; z-index: 10000; background: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center;
+        padding: 20px; opacity: 0; visibility: hidden; transition: opacity 0.3s, visibility 0.3s;
+    }
+    .qv-overlay.show { opacity: 1; visibility: visible; }
+    .qv-modal {
+        position: relative; width: 100%; max-width: 920px; max-height: calc(100vh - 40px);
+        background: #0f2027; border: 1px solid var(--border); border-radius: 22px; overflow: hidden;
+        display: grid; grid-template-columns: 1.1fr 1fr; box-shadow: 0 30px 80px rgba(0,0,0,0.6);
+        transform: translateY(25px) scale(0.97); transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .qv-overlay.show .qv-modal { transform: none; }
+    .qv-close {
+        position: absolute; top: 12px; right: 12px; z-index: 20; width: 38px; height: 38px; border-radius: 50%;
+        border: 1px solid var(--border); background: rgba(0,0,0,0.5); color: #fff; font-size: 1.1rem; cursor: pointer;
+        transition: var(--smooth);
+    }
+    .qv-close:hover { background: var(--red); border-color: var(--red); }
+
+    .qv-gallery { background: #15262d; padding: 20px; display: flex; flex-direction: column; gap: 12px; position: relative; min-width: 0; }
+    .qv-main-wrap { position: relative; aspect-ratio: 4/5; border-radius: 16px; overflow: hidden; background: #1a1a1a; }
+    .qv-main-img { width: 100%; height: 100%; object-fit: cover; transition: opacity 0.2s; }
+    .qv-main-wrap .nav-arrow { position: absolute; top: 50%; transform: translateY(-50%); z-index: 5; }
+    .qv-main-wrap .nav-arrow.prev { left: 10px; }
+    .qv-main-wrap .nav-arrow.next { right: 10px; }
+    .qv-sold-out { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-12deg); background: rgba(220,20,20,0.9); color: #fff; padding: 8px 18px; border: 2px solid #fff; border-radius: 8px; font-weight: 900; display: none; z-index: 6; }
+    .qv-discount { position: absolute; top: 12px; left: 12px; background: var(--red); color: #fff; padding: 4px 10px; border-radius: 8px; font-weight: 800; font-size: 0.75rem; z-index: 6; }
+    .qv-thumbs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; }
+    .qv-thumb { flex: 0 0 56px; height: 70px; border-radius: 8px; overflow: hidden; border: 2px solid transparent; opacity: 0.55; cursor: pointer; transition: 0.25s; background: #000; padding: 0; }
+    .qv-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .qv-thumb.active { border-color: var(--primary); opacity: 1; }
+
+    .qv-info { padding: 32px 28px; display: flex; flex-direction: column; overflow-y: auto; }
+    .qv-category { color: var(--primary); font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 6px; }
+    .qv-title { font-size: 1.6rem; font-weight: 800; margin: 0 0 12px; line-height: 1.25; padding-right: 30px; }
+    .qv-price { margin-bottom: 18px; }
+    .qv-label { font-size: 0.8rem; color: rgba(255,255,255,0.6); margin: 0 0 8px; font-weight: 600; }
+    .qv-label span { color: var(--primary); }
+    .qv-colors { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
+    .qv-colors .color-dot { width: 30px; height: 30px; padding: 2px; background-clip: content-box; border: 2px solid rgba(255,255,255,0.2); }
+    .qv-colors .color-dot.active { transform: scale(1.12); }
+    .qv-sizes { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
+    .qv-size { padding: 8px 15px; border: 1px solid var(--border); border-radius: 10px; font-family: inherit; font-weight: 600; background: rgba(255,255,255,0.05); color: #fff; cursor: pointer; transition: 0.25s; }
+    .qv-size:hover:not(:disabled) { border-color: var(--primary); }
+    .qv-size.active { background: var(--primary); color: var(--secondary); border-color: var(--primary); }
+    .qv-size:disabled { opacity: 0.25; text-decoration: line-through; cursor: not-allowed; }
+    .qv-desc { color: rgba(255,255,255,0.6); font-size: 0.88rem; line-height: 1.6; margin: 0 0 20px; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; white-space: pre-line; }
+    .qv-actions { margin-top: auto; display: flex; flex-direction: column; gap: 10px; }
+    .qv-actions .product-card__btn { width: 100%; cursor: pointer; font-family: inherit; font-size: 0.95rem; }
+    .qv-details-link { text-align: center; color: rgba(255,255,255,0.7); font-size: 0.85rem; text-decoration: underline; }
+    .qv-details-link:hover { color: var(--primary); }
+    .qv-msg { min-height: 20px; font-size: 0.85rem; text-align: center; font-weight: 600; }
+    .qv-msg.success { color: #2ecc71; } .qv-msg.warning { color: #f1c40f; } .qv-msg.error { color: var(--red); }
+
+    .qv-loader { grid-column: 1 / -1; padding: 120px 20px; text-align: center; color: rgba(255,255,255,0.6); }
+    .qv-spinner { width: 38px; height: 38px; margin: 0 auto 14px; border: 3px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: qvSpin 0.8s linear infinite; }
+    @keyframes qvSpin { to { transform: rotate(360deg); } }
+
+    @media (max-width: 768px) {
+        .quick-view-btn { padding: 6px 10px; font-size: 0.7rem; bottom: 8px; }
+        .qv-overlay { padding: 0; align-items: flex-end; }
+        .qv-modal { grid-template-columns: 1fr; max-height: 92vh; border-radius: 22px 22px 0 0; overflow-y: auto; transform: translateY(100%); }
+        .qv-gallery { padding: 14px; }
+        .qv-main-wrap { aspect-ratio: auto; height: 46vh; }
+        .qv-info { padding: 18px 16px 24px; overflow: visible; }
+        .qv-title { font-size: 1.25rem; }
+    }
+
+    @keyframes dropFade {
+        from { opacity: 0; transform: translate(-50%, -10px); }
         to { opacity: 1; transform: translate(-50%, 0); } 
     }
     @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
@@ -270,6 +356,10 @@
                     <button class="nav-arrow prev" onclick="changeExtraImage('{{ product.id }}', -1, event)">❮</button>
                     <button class="nav-arrow next" onclick="changeExtraImage('{{ product.id }}', 1, event)">❯</button>
                 </div>
+
+                <button type="button" class="quick-view-btn" onclick="openQuickView('{{ product.id }}', event)">
+                    <i class="fas fa-eye"></i> Quick View
+                </button>
             </div>
 
             <div class="color-options">
@@ -300,6 +390,48 @@
         {% endfor %}
     </div>
 </section>
+
+<!-- نافذة المعاينة السريعة -->
+<div class="qv-overlay" id="qvOverlay" aria-hidden="true">
+    <div class="qv-modal" id="qvModal" role="dialog" aria-modal="true" aria-labelledby="qvTitle">
+        <button type="button" class="qv-close" onclick="closeQuickView()" aria-label="Close">✕</button>
+        <div class="qv-loader" id="qvLoader"><div class="qv-spinner"></div>Loading...</div>
+
+        <div class="qv-gallery" id="qvGallery" hidden>
+            <div class="qv-main-wrap">
+                <div class="qv-discount" id="qvDiscount" hidden></div>
+                <div class="qv-sold-out" id="qvSoldOut">SOLD OUT</div>
+                <img src="" alt="" class="qv-main-img" id="qvMainImg">
+                <button type="button" class="nav-arrow prev" id="qvPrev" onclick="qvStepImage(-1)">❮</button>
+                <button type="button" class="nav-arrow next" id="qvNext" onclick="qvStepImage(1)">❯</button>
+            </div>
+            <div class="qv-thumbs" id="qvThumbs"></div>
+        </div>
+
+        <div class="qv-info" id="qvInfo" hidden>
+            <span class="qv-category" id="qvCategory"></span>
+            <h2 class="qv-title" id="qvTitle"></h2>
+            <div class="qv-price">
+                <span class="current-price" id="qvPrice"></span>
+                <span class="old-price" id="qvOldPrice"></span>
+            </div>
+
+            <p class="qv-label">Color: <span id="qvColorName">Choose</span></p>
+            <div class="qv-colors" id="qvColors"></div>
+
+            <p class="qv-label">Size: <span id="qvSizeName">Choose</span></p>
+            <div class="qv-sizes" id="qvSizes"></div>
+
+            <p class="qv-desc" id="qvDesc"></p>
+
+            <div class="qv-actions">
+                <div class="qv-msg" id="qvMsg"></div>
+                <button type="button" class="product-card__btn btn-disabled" id="qvAddBtn" onclick="qvAddToCart()">Select Size</button>
+                <a href="#" class="qv-details-link" id="qvDetailsLink">View full details</a>
+            </div>
+        </div>
+    </div>
+</div>
 
 <div class="pagination-wrapper" style="text-align: center; margin-top: 50px;">
     {% if products.has_other_pages %}
@@ -418,6 +550,259 @@
                 fbq('track', 'ClickToViewProduct', { product_id: this.id.replace('btn-', '') });
             });
         });
+    });
+
+    // ================= المعاينة السريعة (Quick View) =================
+    const qvUrlTemplate = "{% url 'product_quick_view' 0 %}";
+    const qvCache = {};
+    let qv = null;            // { data, variant, size, images, index }
+    let qvPendingId = null;
+    let qvLastFocus = null;
+
+    const qvEl = id => document.getElementById(id);
+    const qvGenerateEventID = () => "evt_" + Date.now() + "_" + Math.floor(Math.random() * 1000);
+    const qvFinalPrice = p => p.discount_price !== null ? p.discount_price : p.price;
+
+    async function openQuickView(productId, event) {
+        if (event) { event.preventDefault(); event.stopPropagation(); }
+        qvLastFocus = document.activeElement;
+        qvPendingId = productId;
+
+        qvEl('qvGallery').hidden = true;
+        qvEl('qvInfo').hidden = true;
+        qvEl('qvLoader').hidden = false;
+        qvEl('qvLoader').innerHTML = '<div class="qv-spinner"></div>Loading...';
+
+        const overlay = qvEl('qvOverlay');
+        overlay.classList.add('show');
+        overlay.setAttribute('aria-hidden', 'false');
+        document.body.classList.add('qv-open');
+
+        try {
+            if (!qvCache[productId]) {
+                const res = await fetch(qvUrlTemplate.replace('/0/', '/' + productId + '/'));
+                if (!res.ok) throw new Error(res.status);
+                qvCache[productId] = await res.json();
+            }
+            // المستخدم ممكن يكون قفل النافذة أو فتح منتج تاني أثناء التحميل
+            if (qvPendingId !== productId || !overlay.classList.contains('show')) return;
+            renderQuickView(qvCache[productId]);
+        } catch (e) {
+            if (qvPendingId === productId) {
+                qvEl('qvLoader').textContent = "Couldn't load this product. Please try again.";
+            }
+        }
+    }
+
+    function closeQuickView() {
+        const overlay = qvEl('qvOverlay');
+        if (!overlay.classList.contains('show')) return;
+        overlay.classList.remove('show');
+        overlay.setAttribute('aria-hidden', 'true');
+        document.body.classList.remove('qv-open');
+        qvPendingId = null;
+        if (qvLastFocus) qvLastFocus.focus();
+    }
+
+    function renderQuickView(p) {
+        qv = { data: p, variant: null, size: '', images: [], index: 0 };
+
+        qvEl('qvCategory').textContent = p.category || 'Premium Edition';
+        qvEl('qvTitle').textContent = p.name;
+        qvEl('qvPrice').textContent = Math.round(qvFinalPrice(p)) + ' LE';
+        qvEl('qvOldPrice').textContent = p.discount_price !== null ? Math.round(p.price) + ' LE' : '';
+        qvEl('qvDesc').textContent = p.description;
+        qvEl('qvDesc').hidden = !p.description;
+        qvEl('qvDetailsLink').href = p.detail_url;
+        qvEl('qvMainImg').alt = p.name;
+        qvEl('qvMsg').textContent = '';
+
+        const discount = qvEl('qvDiscount');
+        discount.hidden = !(p.discount_percentage > 0);
+        discount.textContent = p.discount_percentage + '% OFF';
+
+        const colors = qvEl('qvColors');
+        colors.innerHTML = '';
+        p.variants.forEach((v, i) => {
+            const dot = document.createElement('button');
+            dot.type = 'button';
+            dot.className = 'color-dot' + (v.stock === 0 ? ' is-sold-out-dot' : '');
+            dot.style.backgroundColor = v.color_code;
+            dot.title = v.color_name;
+            dot.setAttribute('aria-label', v.color_name);
+            dot.onclick = () => qvSelectVariant(i);
+            colors.appendChild(dot);
+        });
+
+        qvEl('qvLoader').hidden = true;
+        qvEl('qvGallery').hidden = false;
+        qvEl('qvInfo').hidden = false;
+
+        if (p.variants.length) {
+            const firstInStock = p.variants.findIndex(v => v.stock > 0);
+            qvSelectVariant(firstInStock >= 0 ? firstInStock : 0);
+        } else {
+            qvEl('qvSizes').innerHTML = '';
+            qvShowImages([]);
+            qvUpdateBtn();
+        }
+        document.querySelector('.qv-close').focus();
+
+        const price = qvFinalPrice(p);
+        if (typeof fbq !== 'undefined') {
+            fbq('track', 'ViewContent', {
+                content_name: p.name, content_ids: [String(p.id)], content_type: 'product',
+                value: price, currency: 'EGP'
+            }, { eventID: qvGenerateEventID() });
+        }
+        if (typeof ttq !== 'undefined') {
+            ttq.track('ViewContent', {
+                content_id: String(p.id), content_name: p.name, content_type: 'product',
+                value: price, currency: 'EGP'
+            });
+        }
+    }
+
+    function qvSelectVariant(i) {
+        const v = qv.data.variants[i];
+        qv.variant = v;
+        qv.size = '';
+        qvEl('qvColorName').textContent = v.color_name;
+        qvEl('qvSizeName').textContent = 'Choose';
+        qvEl('qvMsg').textContent = '';
+        qvEl('qvColors').querySelectorAll('.color-dot').forEach((d, j) => d.classList.toggle('active', j === i));
+        qvEl('qvSoldOut').style.display = v.stock === 0 ? 'block' : 'none';
+
+        qvShowImages(v.images);
+
+        const sizes = qvEl('qvSizes');
+        sizes.innerHTML = '';
+        const available = v.sizes.filter(s => s.stock > 0);
+        v.sizes.forEach(s => {
+            const chip = document.createElement('button');
+            chip.type = 'button';
+            chip.className = 'qv-size';
+            chip.textContent = s.name;
+            chip.disabled = s.stock === 0;
+            chip.onclick = () => qvSelectSize(s.name, chip);
+            sizes.appendChild(chip);
+            // لو في مقاس واحد بس متاح نختاره تلقائياً
+            if (available.length === 1 && available[0] === s) qvSelectSize(s.name, chip);
+        });
+        qvUpdateBtn();
+    }
+
+    function qvSelectSize(name, chip) {
+        qv.size = name;
+        qvEl('qvSizeName').textContent = name;
+        qvEl('qvMsg').textContent = '';
+        qvEl('qvSizes').querySelectorAll('.qv-size').forEach(c => c.classList.toggle('active', c === chip));
+        qvUpdateBtn();
+    }
+
+    function qvShowImages(images) {
+        qv.images = images;
+        qv.index = 0;
+        const thumbs = qvEl('qvThumbs');
+        thumbs.innerHTML = '';
+        images.forEach((url, i) => {
+            const t = document.createElement('button');
+            t.type = 'button';
+            t.className = 'qv-thumb';
+            const img = document.createElement('img');
+            img.src = url;
+            img.alt = '';
+            img.loading = 'lazy';
+            t.appendChild(img);
+            t.onclick = () => qvShowImage(i);
+            thumbs.appendChild(t);
+        });
+        thumbs.hidden = images.length <= 1;
+        qvEl('qvPrev').hidden = qvEl('qvNext').hidden = images.length <= 1;
+        qvShowImage(0);
+    }
+
+    function qvShowImage(i) {
+        const img = qvEl('qvMainImg');
+        if (!qv.images.length) { img.removeAttribute('src'); return; }
+        qv.index = (i + qv.images.length) % qv.images.length;
+        img.style.opacity = '0.4';
+        setTimeout(() => { img.src = qv.images[qv.index]; img.style.opacity = '1'; }, 120);
+        qvEl('qvThumbs').querySelectorAll('.qv-thumb').forEach((t, j) => t.classList.toggle('active', j === qv.index));
+    }
+
+    function qvStepImage(dir) { qvShowImage(qv.index + dir); }
+
+    function qvUpdateBtn() {
+        const btn = qvEl('qvAddBtn');
+        const v = qv.variant;
+        let label = 'Add to Cart', enabled = false;
+        if (!v) label = 'Unavailable';
+        else if (v.stock === 0) label = 'Out of Stock';
+        else if (!qv.size) label = 'Select Size';
+        else enabled = true;
+        btn.textContent = label;
+        btn.classList.toggle('btn-disabled', !enabled);
+    }
+
+    async function qvAddToCart() {
+        const btn = qvEl('qvAddBtn');
+        if (btn.classList.contains('btn-disabled') || !qv.size) return;
+
+        const p = qv.data, color = qv.variant.color_name, size = qv.size;
+        const eventId = qvGenerateEventID();
+        const url = `${p.add_to_cart_url}?color=${encodeURIComponent(color)}&size=${encodeURIComponent(size)}&eid=${eventId}`;
+        const msg = qvEl('qvMsg');
+
+        btn.classList.add('btn-disabled');
+        btn.textContent = 'Adding...';
+        try {
+            const res = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' }, credentials: 'same-origin' });
+            const data = await res.json();
+
+            msg.className = 'qv-msg ' + data.level;
+            msg.textContent = data.message + ' ';
+            if (data.ok) {
+                const cartLink = document.createElement('a');
+                cartLink.href = "{% url 'cart_view' %}";
+                cartLink.textContent = 'View cart →';
+                cartLink.style.color = 'var(--primary)';
+                msg.appendChild(cartLink);
+            }
+
+            document.querySelectorAll('.js-cart-count').forEach(b => {
+                b.textContent = data.cart_count;
+                b.style.display = data.cart_count > 0 ? '' : 'none';
+            });
+
+            if (data.ok) {
+                const price = qvFinalPrice(p);
+                if (typeof fbq !== 'undefined') {
+                    fbq('track', 'AddToCart', {
+                        content_name: p.name, content_ids: [String(p.id)], content_type: 'product',
+                        value: price, currency: 'EGP'
+                    }, { eventID: eventId });
+                }
+                if (typeof ttq !== 'undefined') {
+                    ttq.track('AddToCart', {
+                        content_id: String(p.id), content_name: p.name, content_type: 'product',
+                        value: price, currency: 'EGP'
+                    });
+                }
+            }
+        } catch (e) {
+            msg.className = 'qv-msg error';
+            msg.textContent = 'Something went wrong. Please try again.';
+        }
+        qvUpdateBtn();
+    }
+
+    qvEl('qvOverlay').addEventListener('click', e => { if (e.target.id === 'qvOverlay') closeQuickView(); });
+    document.addEventListener('keydown', e => {
+        if (!qvEl('qvOverlay').classList.contains('show')) return;
+        if (e.key === 'Escape') closeQuickView();
+        else if (qv && e.key === 'ArrowRight') qvStepImage(1);
+        else if (qv && e.key === 'ArrowLeft') qvStepImage(-1);
     });
 
     function toggleDropdown(event) {
