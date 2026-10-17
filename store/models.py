@@ -10,6 +10,13 @@ from datetime import timedelta
 # استيراد الحقل الجديد للمعالجة
 from django_resized import ResizedImageField
 
+def parse_size_chart(text):
+    """يحوّل نص الجدول (سطر لكل صف، والأعمدة مفصولة بفاصلة) إلى (headers, rows)"""
+    lines = [line.strip() for line in (text or "").splitlines() if line.strip()]
+    table = [[cell.strip() for cell in re.split(r'[,\t|]', line)] for line in lines]
+    return (table[0], table[1:]) if table else ([], [])
+
+
 class SizeGuide(models.Model):
     """جدول مقاسات قابل لإعادة الاستخدام (مثلاً: هوديز، بناطيل، أحذية)"""
     name = models.CharField(max_length=100, unique=True, verbose_name="Guide Name")
@@ -30,13 +37,8 @@ class SizeGuide(models.Model):
     def __str__(self):
         return self.name
 
-    def parsed_chart(self):
-        lines = [line.strip() for line in (self.chart or "").splitlines() if line.strip()]
-        table = [[cell.strip() for cell in re.split(r'[,\t|]', line)] for line in lines]
-        return (table[0], table[1:]) if table else ([], [])
-
     def as_dict(self):
-        headers, rows = self.parsed_chart()
+        headers, rows = parse_size_chart(self.chart)
         return {
             'name': self.name,
             'headers': headers,
@@ -71,6 +73,10 @@ class Product(models.Model):
     size_guide = models.ForeignKey(
         SizeGuide, on_delete=models.SET_NULL, null=True, blank=True, related_name='products',
         help_text="Leave empty to use the category's size chart.",
+    )
+    size_chart = models.TextField(
+        blank=True, default="", verbose_name="Product Size Chart",
+        help_text="Optional. Fill it to give this product its own chart; leave it empty to use the category's size guide.",
     )
     created_at = models.DateTimeField(auto_now_add=True)
     
@@ -130,7 +136,12 @@ class Product(models.Model):
     @property
     def size_guide_data(self):
         guide = self.active_size_guide
-        return guide.as_dict() if guide else None
+        data = guide.as_dict() if guide else None
+        # جدول المنتج نفسه (لو متعبّي) له الأولوية، مع الاحتفاظ بصورة/ملاحظة جايد القسم
+        headers, rows = parse_size_chart(self.size_chart)
+        if headers and rows:
+            data = {**(data or {'image': '', 'notes': ''}), 'name': self.name, 'headers': headers, 'rows': rows}
+        return data
 
     @property
     def is_out_of_stock(self):

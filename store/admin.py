@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.utils.html import format_html
 import nested_admin
 from .models import Product, Category, ContactMessage, ProductVariant, ProductSize, Order, OrderItem, ProductImage, SizeGuide
+from .forms import ProductAdminForm, SizeGuideAdminForm
 
 # --- 1. ProductImageInline ---
 class ProductImageInline(nested_admin.NestedTabularInline):
@@ -39,6 +40,7 @@ class ProductVariantInline(nested_admin.NestedStackedInline):
 # --- 4. ProductAdmin ---
 @admin.register(Product)
 class ProductAdmin(nested_admin.NestedModelAdmin):
+    form = ProductAdminForm
     inlines = [ProductVariantInline]
     
     # تم تحديث list_display لتشمل السعر بتنسيقه الجديد
@@ -50,11 +52,15 @@ class ProductAdmin(nested_admin.NestedModelAdmin):
 
     fieldsets = (
         ('Basic Information', {
-            'fields': ('name', 'sku', 'category', 'size_guide', 'description', 'is_new_arrival'),
+            'fields': ('name', 'sku', 'category', 'description', 'is_new_arrival'),
             'classes': ('wide',),
         }),
         ('Pricing & Inventory', {
             'fields': (('price', 'discount_price'), 'stock'),
+        }),
+        ('Size Chart', {
+            'fields': ('size_chart', 'size_guide'),
+            'description': "Fill this product's own size table, or leave it empty to use the category's size guide.",
         }),
     )
     readonly_fields = ['stock']
@@ -108,6 +114,7 @@ class CategoryAdmin(admin.ModelAdmin):
 # --- 5.1 SizeGuideAdmin (جداول المقاسات) ---
 @admin.register(SizeGuide)
 class SizeGuideAdmin(admin.ModelAdmin):
+    form = SizeGuideAdminForm
     list_display = ['name', 'used_by_categories', 'notes']
     search_fields = ['name']
 
