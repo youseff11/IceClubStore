@@ -250,7 +250,15 @@
                             {% endfor %}
                         </div>
 
-                        <h4 style="font-size: 0.8rem; color: var(--text-muted); margin: 0;">Size: <span id="selected-size-name" style="color: var(--primary-color);">Choose</span></h4>
+                        <div class="size-label-row">
+                            <h4 style="font-size: 0.8rem; color: var(--text-muted); margin: 0;">Size: <span id="selected-size-name" style="color: var(--primary-color);">Choose</span></h4>
+                            {% if product.size_guide_data %}
+                                {{ product.size_guide_data|json_script:"sizeGuideData" }}
+                                <button type="button" class="size-guide-btn" onclick="SizeGuide.open(JSON.parse(document.getElementById('sizeGuideData').textContent), selSize)">
+                                    <i class="fas fa-ruler-horizontal"></i> جدول المقاسات
+                                </button>
+                            {% endif %}
+                        </div>
                         <div class="size-options" id="sizeOptionsContainer"></div>
                     </div>
 

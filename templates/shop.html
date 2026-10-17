@@ -419,7 +419,12 @@
             <p class="qv-label">Color: <span id="qvColorName">Choose</span></p>
             <div class="qv-colors" id="qvColors"></div>
 
-            <p class="qv-label">Size: <span id="qvSizeName">Choose</span></p>
+            <div class="size-label-row" style="margin-bottom: 8px;">
+                <p class="qv-label" style="margin: 0;">Size: <span id="qvSizeName">Choose</span></p>
+                <button type="button" class="size-guide-btn" id="qvSizeGuideBtn" onclick="SizeGuide.open(qv.data.size_guide, qv.size)" hidden>
+                    <i class="fas fa-ruler-horizontal"></i> جدول المقاسات
+                </button>
+            </div>
             <div class="qv-sizes" id="qvSizes"></div>
 
             <p class="qv-desc" id="qvDesc"></p>
@@ -614,6 +619,7 @@
         qvEl('qvDesc').textContent = p.description;
         qvEl('qvDesc').hidden = !p.description;
         qvEl('qvDetailsLink').href = p.detail_url;
+        qvEl('qvSizeGuideBtn').hidden = !p.size_guide;
         qvEl('qvMainImg').alt = p.name;
         qvEl('qvMsg').textContent = '';
 

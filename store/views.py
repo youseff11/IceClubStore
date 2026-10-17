@@ -150,7 +150,7 @@ def product_detail(request, id):
 def product_quick_view(request, id):
     """بيانات المنتج كـ JSON لنافذة المعاينة السريعة في صفحة المتجر"""
     product = get_object_or_404(
-        Product.objects.select_related('category').prefetch_related('variants__sizes', 'variants__additional_images'),
+        Product.objects.select_related('category__size_guide', 'size_guide').prefetch_related('variants__sizes', 'variants__additional_images'),
         id=id
     )
 
@@ -179,6 +179,7 @@ def product_quick_view(request, id):
         'discount_percentage': product.discount_percentage,
         'detail_url': reverse('product_detail', args=[product.id]),
         'add_to_cart_url': reverse('add_to_cart', args=[product.id]),
+        'size_guide': product.size_guide_data,
         'variants': variants,
     })
 

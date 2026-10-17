@@ -1,0 +1,159 @@
+<!-- نافذة جدول المقاسات — تُفتح من صفحة المنتج أو من المعاينة السريعة عبر SizeGuide.open(data, selectedSize) -->
+<style>
+    .size-guide-btn {
+        display: inline-flex; align-items: center; gap: 6px; background: none; border: none; padding: 0;
+        color: #4fc3f7; font-family: inherit; font-size: 0.8rem; font-weight: 700; cursor: pointer;
+        text-decoration: underline; text-underline-offset: 3px;
+    }
+    .size-guide-btn:hover { color: #fff; }
+    .size-label-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+
+    body.sg-open { overflow: hidden; }
+    .sg-overlay {
+        position: fixed; inset: 0; z-index: 10005; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(4px);
+        display: flex; align-items: center; justify-content: center; padding: 20px;
+        opacity: 0; visibility: hidden; transition: opacity 0.25s, visibility 0.25s;
+    }
+    .sg-overlay.show { opacity: 1; visibility: visible; }
+    .sg-modal {
+        position: relative; width: 100%; max-width: 640px; max-height: calc(100vh - 40px); overflow-y: auto;
+        background: #0f2027; color: #fff; border: 1px solid rgba(255,255,255,0.1); border-radius: 20px;
+        padding: 26px; box-shadow: 0 30px 80px rgba(0,0,0,0.6); font-family: 'Segoe UI', sans-serif;
+        transform: translateY(20px); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .sg-overlay.show .sg-modal { transform: none; }
+    .sg-close {
+        position: absolute; top: 14px; right: 14px; width: 36px; height: 36px; border-radius: 50%;
+        border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.05); color: #fff; cursor: pointer; transition: 0.25s;
+    }
+    .sg-close:hover { background: #ff5252; border-color: #ff5252; }
+    .sg-title { margin: 0 0 4px; font-size: 1.3rem; font-weight: 800; padding-right: 40px; }
+    .sg-subtitle { margin: 0 0 18px; font-size: 0.8rem; color: rgba(255,255,255,0.5); }
+
+    .sg-tabs { display: flex; gap: 22px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 18px; }
+    .sg-tab {
+        background: none; border: none; color: rgba(255,255,255,0.55); font-family: inherit; font-size: 0.9rem; font-weight: 700;
+        padding: 0 0 10px; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: 0.2s;
+    }
+    .sg-tab.active { color: #4fc3f7; border-bottom-color: #4fc3f7; }
+    .sg-panel[hidden], .sg-tabs[hidden], .sg-notes[hidden] { display: none; }
+
+    .sg-table-wrap { overflow-x: auto; border-radius: 12px; border: 1px solid rgba(255,255,255,0.08); }
+    .sg-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; text-align: center; }
+    .sg-table th { background: #4fc3f7; color: #0f2027; font-weight: 800; padding: 12px 10px; white-space: nowrap; }
+    .sg-table td { padding: 11px 10px; border-top: 1px solid rgba(255,255,255,0.06); color: rgba(255,255,255,0.85); }
+    .sg-table tbody tr:nth-child(even) td { background: rgba(255,255,255,0.03); }
+    .sg-table td:first-child { font-weight: 800; color: #fff; }
+    .sg-table tr.sg-current td { background: rgba(79,195,247,0.18); color: #fff; }
+    .sg-table tr.sg-current td:first-child { box-shadow: inset 3px 0 0 #4fc3f7; }
+    .sg-notes { margin: 14px 0 0; font-size: 0.82rem; color: rgba(255,255,255,0.6); display: flex; gap: 8px; align-items: flex-start; }
+    .sg-notes i { color: #4fc3f7; margin-top: 2px; }
+    .sg-image { width: 100%; border-radius: 12px; background: #fff; display: block; }
+
+    @media (max-width: 600px) {
+        .sg-overlay { padding: 0; align-items: flex-end; }
+        .sg-modal { border-radius: 20px 20px 0 0; max-height: 88vh; padding: 22px 16px; transform: translateY(100%); }
+        .sg-table { font-size: 0.8rem; }
+        .sg-table th, .sg-table td { padding: 10px 6px; }
+    }
+</style>
+
+<div class="sg-overlay" id="sgOverlay" aria-hidden="true">
+    <div class="sg-modal" role="dialog" aria-modal="true" aria-labelledby="sgTitle">
+        <button type="button" class="sg-close" id="sgClose" aria-label="Close">✕</button>
+        <h3 class="sg-title" id="sgTitle">جدول المقاسات</h3>
+        <p class="sg-subtitle" id="sgSubtitle"></p>
+
+        <div class="sg-tabs" id="sgTabs">
+            <button type="button" class="sg-tab active" data-panel="sgChart">Size Chart</button>
+            <button type="button" class="sg-tab" data-panel="sgGuide">Measurement Guide</button>
+        </div>
+
+        <div class="sg-panel" id="sgChart">
+            <div class="sg-table-wrap">
+                <table class="sg-table">
+                    <thead><tr id="sgHead"></tr></thead>
+                    <tbody id="sgBody"></tbody>
+                </table>
+            </div>
+            <p class="sg-notes" id="sgNotes" hidden><i class="fas fa-info-circle"></i><span></span></p>
+        </div>
+        <div class="sg-panel" id="sgGuide" hidden>
+            <img class="sg-image" id="sgImage" alt="How to measure">
+        </div>
+    </div>
+</div>
+
+<script>
+(function () {
+    const overlay = document.getElementById('sgOverlay');
+    const tabs = document.getElementById('sgTabs');
+    let lastFocus = null;
+
+    function showPanel(id) {
+        tabs.querySelectorAll('.sg-tab').forEach(t => t.classList.toggle('active', t.dataset.panel === id));
+        document.getElementById('sgChart').hidden = id !== 'sgChart';
+        document.getElementById('sgGuide').hidden = id !== 'sgGuide';
+    }
+
+    function open(guide, selectedSize) {
+        if (!guide) return;
+        lastFocus = document.activeElement;
+        document.getElementById('sgSubtitle').textContent = guide.name;
+
+        const head = document.getElementById('sgHead');
+        head.innerHTML = '';
+        guide.headers.forEach(h => {
+            const th = document.createElement('th');
+            th.textContent = h;
+            head.appendChild(th);
+        });
+
+        // نميّز صف المقاس اللي الزبون مختاره حالياً
+        const current = (selectedSize || '').trim().toLowerCase();
+        const body = document.getElementById('sgBody');
+        body.innerHTML = '';
+        guide.rows.forEach(row => {
+            const tr = document.createElement('tr');
+            if (current && (row[0] || '').toLowerCase() === current) tr.className = 'sg-current';
+            for (let i = 0; i < guide.headers.length; i++) {
+                const td = document.createElement('td');
+                td.textContent = row[i] || '-';
+                tr.appendChild(td);
+            }
+            body.appendChild(tr);
+        });
+
+        const notes = document.getElementById('sgNotes');
+        notes.hidden = !guide.notes;
+        notes.querySelector('span').textContent = guide.notes || '';
+
+        tabs.hidden = !guide.image;
+        if (guide.image) document.getElementById('sgImage').src = guide.image;
+        showPanel('sgChart');
+
+        overlay.classList.add('show');
+        overlay.setAttribute('aria-hidden', 'false');
+        document.body.classList.add('sg-open');
+        document.getElementById('sgClose').focus();
+    }
+
+    function close() {
+        if (!overlay.classList.contains('show')) return;
+        overlay.classList.remove('show');
+        overlay.setAttribute('aria-hidden', 'true');
+        document.body.classList.remove('sg-open');
+        if (lastFocus) lastFocus.focus();
+    }
+
+    tabs.addEventListener('click', e => { if (e.target.dataset.panel) showPanel(e.target.dataset.panel); });
+    overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
+    document.getElementById('sgClose').addEventListener('click', close);
+    // capture: يقفل جدول المقاسات بس من غير ما يقفل المعاينة السريعة اللي تحته
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape' && overlay.classList.contains('show')) { e.stopImmediatePropagation(); close(); }
+    }, true);
+
+    window.SizeGuide = { open, close };
+})();
+</script>

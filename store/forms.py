@@ -5,7 +5,7 @@ class ProductForm(forms.ModelForm):
     class Meta:
         model = Product
         # أضفنا 'is_new_arrival' هنا لكي يظهر لك في صفحة manage_product.html
-        fields = ['name', 'category', 'description', 'price', 'discount_price', 'is_new_arrival']
+        fields = ['name', 'category', 'size_guide', 'description', 'price', 'discount_price', 'is_new_arrival']
         
         # إضافة تنسيقات (Bootstrap) لتبدو الخانة بشكل جيد
         widgets = {
@@ -13,6 +13,7 @@ class ProductForm(forms.ModelForm):
             'description': forms.Textarea(attrs={'rows': 4, 'class': 'form-control'}),
             'name': forms.TextInput(attrs={'class': 'form-control'}),
             'category': forms.Select(attrs={'class': 'form-control'}),
+            'size_guide': forms.Select(attrs={'class': 'form-control'}),
             'price': forms.NumberInput(attrs={'class': 'form-control'}),
             'discount_price': forms.NumberInput(attrs={'class': 'form-control'}),
         }

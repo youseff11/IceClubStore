@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.utils.html import format_html
 import nested_admin
-from .models import Product, Category, ContactMessage, ProductVariant, ProductSize, Order, OrderItem, ProductImage
+from .models import Product, Category, ContactMessage, ProductVariant, ProductSize, Order, OrderItem, ProductImage, SizeGuide
 
 # --- 1. ProductImageInline ---
 class ProductImageInline(nested_admin.NestedTabularInline):
@@ -50,7 +50,7 @@ class ProductAdmin(nested_admin.NestedModelAdmin):
 
     fieldsets = (
         ('Basic Information', {
-            'fields': ('name', 'sku', 'category', 'description', 'is_new_arrival'),
+            'fields': ('name', 'sku', 'category', 'size_guide', 'description', 'is_new_arrival'),
             'classes': ('wide',),
         }),
         ('Pricing & Inventory', {
@@ -101,8 +101,19 @@ class ProductAdmin(nested_admin.NestedModelAdmin):
 # --- 5. CategoryAdmin ---
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
-    list_display = ['name', 'slug']
+    list_display = ['name', 'slug', 'size_guide']
+    list_editable = ['size_guide']
     prepopulated_fields = {'slug': ('name',)}
+
+# --- 5.1 SizeGuideAdmin (جداول المقاسات) ---
+@admin.register(SizeGuide)
+class SizeGuideAdmin(admin.ModelAdmin):
+    list_display = ['name', 'used_by_categories', 'notes']
+    search_fields = ['name']
+
+    def used_by_categories(self, obj):
+        return ", ".join(c.name for c in obj.categories.all()) or "-"
+    used_by_categories.short_description = 'Categories'
 
 # --- 6. ContactMessageAdmin ---
 @admin.register(ContactMessage)

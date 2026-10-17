@@ -1,3 +1,4 @@
+import re
 from django.db import models
 from colorfield.fields import ColorField
 from django.core.mail import send_mail
@@ -9,9 +10,49 @@ from datetime import timedelta
 # استيراد الحقل الجديد للمعالجة
 from django_resized import ResizedImageField
 
+class SizeGuide(models.Model):
+    """جدول مقاسات قابل لإعادة الاستخدام (مثلاً: هوديز، بناطيل، أحذية)"""
+    name = models.CharField(max_length=100, unique=True, verbose_name="Guide Name")
+    chart = models.TextField(
+        verbose_name="Size Chart",
+        help_text=(
+            "First line = column headers, then one line per size. Separate columns with commas.<br>"
+            "Example:<br>Size, Height (cm), Weight (kg)<br>M, 165-172, 60-70<br>L, 172-178, 70-80<br>XL, 178-185, 80-90"
+        ),
+    )
+    measurement_image = models.ImageField(
+        upload_to='size_guides/', blank=True, null=True,
+        verbose_name="Measurement Guide Image",
+        help_text="Optional diagram showing how to measure (shown in a separate tab).",
+    )
+    notes = models.CharField(max_length=255, blank=True, default="", help_text="Optional tip, e.g. 'Between two sizes? Pick the larger one.'")
+
+    def __str__(self):
+        return self.name
+
+    def parsed_chart(self):
+        lines = [line.strip() for line in (self.chart or "").splitlines() if line.strip()]
+        table = [[cell.strip() for cell in re.split(r'[,\t|]', line)] for line in lines]
+        return (table[0], table[1:]) if table else ([], [])
+
+    def as_dict(self):
+        headers, rows = self.parsed_chart()
+        return {
+            'name': self.name,
+            'headers': headers,
+            'rows': rows,
+            'image': self.measurement_image.url if self.measurement_image else '',
+            'notes': self.notes,
+        }
+
+
 class Category(models.Model):
     name = models.CharField(max_length=100, unique=True)
     slug = models.SlugField(max_length=100, unique=True, blank=True, null=True)
+    size_guide = models.ForeignKey(
+        SizeGuide, on_delete=models.SET_NULL, null=True, blank=True, related_name='categories',
+        help_text="Default size chart for all products in this category.",
+    )
 
     def __str__(self):
         return self.name
@@ -27,6 +68,10 @@ class Product(models.Model):
     price = models.DecimalField(max_digits=10, decimal_places=2) 
     discount_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True) 
     stock = models.PositiveIntegerField(default=0, verbose_name="Total Stock Quantity", editable=False)
+    size_guide = models.ForeignKey(
+        SizeGuide, on_delete=models.SET_NULL, null=True, blank=True, related_name='products',
+        help_text="Leave empty to use the category's size chart.",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     
     # الحقول الجديدة للتحكم في حالة "وصل حديثاً"
@@ -74,6 +119,18 @@ class Product(models.Model):
         if first_variant and first_variant.variant_image:
             return first_variant.variant_image.url
         return None
+
+    @property
+    def active_size_guide(self):
+        """جدول المقاسات الخاص بالمنتج، أو جدول القسم لو مفيش"""
+        if self.size_guide:
+            return self.size_guide
+        return self.category.size_guide if self.category else None
+
+    @property
+    def size_guide_data(self):
+        guide = self.active_size_guide
+        return guide.as_dict() if guide else None
 
     @property
     def is_out_of_stock(self):
