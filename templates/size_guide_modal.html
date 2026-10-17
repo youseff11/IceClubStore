@@ -1,11 +1,14 @@
 <!-- نافذة جدول المقاسات — تُفتح من صفحة المنتج أو من المعاينة السريعة عبر SizeGuide.open(data, selectedSize) -->
 <style>
     .size-guide-btn {
-        display: inline-flex; align-items: center; gap: 6px; background: none; border: none; padding: 0;
-        color: #4fc3f7; font-family: inherit; font-size: 0.8rem; font-weight: 700; cursor: pointer;
-        text-decoration: underline; text-underline-offset: 3px;
+        display: inline-flex; align-items: center; gap: 7px; padding: 6px 13px;
+        background: rgba(79, 195, 247, 0.08); border: 1px solid rgba(79, 195, 247, 0.35); border-radius: 30px;
+        color: #4fc3f7; font-family: inherit; font-size: 0.72rem; font-weight: 700; letter-spacing: 1px;
+        text-transform: uppercase; cursor: pointer; white-space: nowrap; transition: all 0.25s ease;
     }
-    .size-guide-btn:hover { color: #fff; }
+    .size-guide-btn i { font-size: 0.8rem; }
+    .size-guide-btn:hover { background: #4fc3f7; border-color: #4fc3f7; color: #0f2027; }
+    .size-guide-btn:focus-visible { outline: 2px solid #4fc3f7; outline-offset: 2px; }
     .size-label-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 
     body.sg-open { overflow: hidden; }
@@ -61,7 +64,7 @@
 <div class="sg-overlay" id="sgOverlay" aria-hidden="true">
     <div class="sg-modal" role="dialog" aria-modal="true" aria-labelledby="sgTitle">
         <button type="button" class="sg-close" id="sgClose" aria-label="Close">✕</button>
-        <h3 class="sg-title" id="sgTitle">جدول المقاسات</h3>
+        <h3 class="sg-title" id="sgTitle">Size Guide</h3>
         <p class="sg-subtitle" id="sgSubtitle"></p>
 
         <div class="sg-tabs" id="sgTabs">

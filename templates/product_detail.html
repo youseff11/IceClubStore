@@ -255,7 +255,7 @@
                             {% if product.size_guide_data %}
                                 {{ product.size_guide_data|json_script:"sizeGuideData" }}
                                 <button type="button" class="size-guide-btn" onclick="SizeGuide.open(JSON.parse(document.getElementById('sizeGuideData').textContent), selSize)">
-                                    <i class="fas fa-ruler-horizontal"></i> جدول المقاسات
+                                    <i class="fas fa-ruler"></i> Size Guide
                                 </button>
                             {% endif %}
                         </div>
