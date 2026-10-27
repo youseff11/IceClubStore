@@ -68,8 +68,25 @@
                 <div class="field-wrapper" style="display:flex; align-items:center; gap:10px; padding-top:20px;">
                     {{ form.is_new_arrival }} <label style="margin:0;">New Arrival</label>
                 </div>
-                <div class="field-wrapper" style="grid-column:span 3;"><label>Size Chart <small style="opacity:0.6;">(this product only)</small></label>{{ form.size_chart }}</div>
-                <div class="field-wrapper" style="grid-column:span 3;"><label>Size Guide <small style="opacity:0.6;">(empty = use the category's chart)</small></label>{{ form.size_guide }}</div>
+                <div class="field-wrapper" style="grid-column:span 3; display:flex; align-items:center; gap:10px;">
+                    <span style="width:auto;">{{ form.show_size_chart }}</span> <label for="{{ form.show_size_chart.id_for_label }}" style="margin:0;">Show Size Chart for this product</label>
+                </div>
+                <div class="field-wrapper sc-field" style="grid-column:span 3;"><label>Size Chart <small style="opacity:0.6;">(this product only)</small></label>{{ form.size_chart }}</div>
+                <div class="field-wrapper sc-field" style="grid-column:span 3;">
+                    <label>Size Chart Image <small style="opacity:0.6;">(optional, this product only)</small></label>
+                    {% if form.instance.size_chart_image %}
+                        <div style="display:flex; align-items:center; gap:12px; margin-bottom:8px;">
+                            <a href="{{ form.instance.size_chart_image.url }}" target="_blank"><img src="{{ form.instance.size_chart_image.url }}" class="img-preview" style="width:70px; height:70px;"></a>
+                            <label style="margin:0; display:flex; align-items:center; gap:6px; cursor:pointer;">
+                                <input type="checkbox" name="{{ form.size_chart_image.html_name }}-clear" style="width:auto;"> Remove image
+                            </label>
+                        </div>
+                    {% endif %}
+                    <input type="file" name="{{ form.size_chart_image.html_name }}" accept="image/*" onchange="previewImages(this)" style="font-size:12px;">
+                    <div class="preview-container"></div>
+                    {% if form.size_chart_image.errors %}<small style="color:var(--error-red);">{{ form.size_chart_image.errors|join:" " }}</small>{% endif %}
+                </div>
+                <div class="field-wrapper sc-field" style="grid-column:span 3;"><label>Size Guide <small style="opacity:0.6;">(empty = use the category's chart)</small></label>{{ form.size_guide }}</div>
                 <div class="field-wrapper" style="grid-column:span 3;"><label>Description</label>{{ form.description }}</div>
             </div>
 
@@ -162,6 +179,14 @@
             const r = new FileReader(); r.onload = e => { const img = document.createElement('img'); img.src = e.target.result; img.className = 'img-preview'; cont.appendChild(img); }; r.readAsDataURL(f);
         });
     }
+
+    // إخفاء حقول جدول المقاسات لما يكون مقفول للمنتج ده
+    const showChart = document.getElementById('{{ form.show_size_chart.id_for_label }}');
+    function toggleSizeChartFields() {
+        document.querySelectorAll('.sc-field').forEach(el => el.style.display = showChart.checked ? '' : 'none');
+    }
+    showChart.addEventListener('change', toggleSizeChartFields);
+    toggleSizeChartFields();
 
     document.getElementById('add-variant-row').addEventListener('click', () => {
         const tbody = document.getElementById('variant-tbody'), rows = document.querySelectorAll('.variant-row'), i = rows.length;

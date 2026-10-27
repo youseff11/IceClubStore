@@ -59,8 +59,8 @@ class ProductAdmin(nested_admin.NestedModelAdmin):
             'fields': (('price', 'discount_price'), 'stock'),
         }),
         ('Size Chart', {
-            'fields': ('size_chart', 'size_guide'),
-            'description': "Fill this product's own size table, or leave it empty to use the category's size guide.",
+            'fields': ('show_size_chart', 'size_chart', 'size_chart_image', 'size_guide'),
+            'description': "Fill this product's own size table and/or upload a size chart image, or leave them empty to use the category's size guide.",
         }),
     )
     readonly_fields = ['stock']

@@ -39,7 +39,7 @@
         padding: 0 0 10px; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: 0.2s;
     }
     .sg-tab.active { color: #4fc3f7; border-bottom-color: #4fc3f7; }
-    .sg-panel[hidden], .sg-tabs[hidden], .sg-notes[hidden] { display: none; }
+    .sg-panel[hidden], .sg-tabs[hidden], .sg-notes[hidden], .sg-table-wrap[hidden], .sg-image[hidden] { display: none; }
 
     .sg-table-wrap { overflow-x: auto; border-radius: 12px; border: 1px solid rgba(255,255,255,0.08); }
     .sg-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; text-align: center; }
@@ -52,6 +52,7 @@
     .sg-notes { margin: 14px 0 0; font-size: 0.82rem; color: rgba(255,255,255,0.6); display: flex; gap: 8px; align-items: flex-start; }
     .sg-notes i { color: #4fc3f7; margin-top: 2px; }
     .sg-image { width: 100%; border-radius: 12px; background: #fff; display: block; }
+    .sg-table-wrap:not([hidden]) + .sg-chart-image { margin-top: 14px; }
 
     @media (max-width: 600px) {
         .sg-overlay { padding: 0; align-items: flex-end; }
@@ -73,12 +74,13 @@
         </div>
 
         <div class="sg-panel" id="sgChart">
-            <div class="sg-table-wrap">
+            <div class="sg-table-wrap" id="sgTableWrap">
                 <table class="sg-table">
                     <thead><tr id="sgHead"></tr></thead>
                     <tbody id="sgBody"></tbody>
                 </table>
             </div>
+            <img class="sg-image sg-chart-image" id="sgChartImage" alt="Size chart" hidden>
             <p class="sg-notes" id="sgNotes" hidden><i class="fas fa-info-circle"></i><span></span></p>
         </div>
         <div class="sg-panel" id="sgGuide" hidden>
@@ -126,6 +128,12 @@
             }
             body.appendChild(tr);
         });
+
+        // الجدول بيستخبى لو المنتج ليه صورة جدول مقاسات بس
+        document.getElementById('sgTableWrap').hidden = !guide.headers.length;
+        const chartImage = document.getElementById('sgChartImage');
+        chartImage.hidden = !guide.chart_image;
+        if (guide.chart_image) chartImage.src = guide.chart_image;
 
         const notes = document.getElementById('sgNotes');
         notes.hidden = !guide.notes;

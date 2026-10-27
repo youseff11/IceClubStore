@@ -78,6 +78,15 @@ class Product(models.Model):
         blank=True, default="", verbose_name="Product Size Chart",
         help_text="Optional. Fill it to give this product its own chart; leave it empty to use the category's size guide.",
     )
+    show_size_chart = models.BooleanField(
+        default=True, verbose_name="Show Size Chart?",
+        help_text="Uncheck to hide the Size Guide button for this product.",
+    )
+    size_chart_image = models.ImageField(
+        upload_to='size_charts/', blank=True, null=True,
+        verbose_name="Size Chart Image",
+        help_text="Optional. An image of this product's size chart (shown in the Size Guide).",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     
     # الحقول الجديدة للتحكم في حالة "وصل حديثاً"
@@ -135,12 +144,21 @@ class Product(models.Model):
 
     @property
     def size_guide_data(self):
+        if not self.show_size_chart:
+            return None
         guide = self.active_size_guide
         data = guide.as_dict() if guide else None
-        # جدول المنتج نفسه (لو متعبّي) له الأولوية، مع الاحتفاظ بصورة/ملاحظة جايد القسم
+        # جدول/صورة المنتج نفسه (لو موجودين) لهم الأولوية على جدول القسم، مع الاحتفاظ بصورة القياس/ملاحظة جايد القسم
         headers, rows = parse_size_chart(self.size_chart)
-        if headers and rows:
-            data = {**(data or {'image': '', 'notes': ''}), 'name': self.name, 'headers': headers, 'rows': rows}
+        own_table = bool(headers and rows)
+        if own_table or self.size_chart_image:
+            data = {
+                **(data or {'image': '', 'notes': ''}),
+                'name': self.name,
+                'headers': headers if own_table else [],
+                'rows': rows if own_table else [],
+                'chart_image': self.size_chart_image.url if self.size_chart_image else '',
+            }
         return data
 
     @property
